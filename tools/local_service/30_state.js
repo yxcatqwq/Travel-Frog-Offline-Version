@@ -138,7 +138,7 @@
                 misc_moment: {list: []}, easteregg: {egg_list: []}, touch: {cur: 0, list: []},
                 wishingpool: {end_time: 0, coin: 0, items: []}, lottery: {},
                 animpicture: {guide: 0, page_num: 0, item_num: 0, making_index: 0, pic_list: []},
-                museum: {museum_list: []},
+                museum: {museum_list: []}, encyclopedia: {unlock_list: [], unlock_desc: [], show_sub: []}, encytravel: {unlock_list: [], unlock_desc: [], show_sub: []},
                 calendar: {
                     day_key: "", new_flag: [], note_list: [], lucky_days: [], st_days: [],
                     task_list: [], claimed: {}

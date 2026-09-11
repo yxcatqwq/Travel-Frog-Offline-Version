@@ -881,8 +881,9 @@
     server.placeholder("lottery_load", {});
     server.placeholder("animpicture_load", {guide: 0, page_num: 0, item_num: 0, making_index: 0, pic_list: []});
     server.placeholder("museum_load", {museum_list: []});
-    server.handlers.encyclopedia_load = { read: function (work) { var ids=Object.keys(work.items.house).map(function(id){return util.toInt(id,0);}); return {unlock_list:ids, unlock_desc:[], show_sub:[]}; } };
-    server.handlers.encytravel_load = { read: function (work) { var a=rules.album.ensure(work); return {unlock_list:a.pictures.map(function(p){return p.pic_id||p.id;}), unlock_desc:[], show_sub:[]}; } };
+    server.handlers.encyclopedia_load = { read: function (work) { return rules.encyclopedia.snapshot(work); } };
+    server.handlers.encyclopedia_unlock = { idempotent:true, apply:function(work,params,effects){ return rules.encyclopedia.unlock(work,params,effects); } };
+    server.handlers.encytravel_load = { read: function (work) { return rules.encyclopedia.travelSnapshot(work); } };
     server.handlers.calendar_load = { read: function (work) { return rules.calendar.snapshot(work); } };
     server.handlers.calendar_load_note = { read: function (work) { return rules.calendar.noteSnapshot(work); } };
     server.handlers.calendar_task_update = { apply: function (work, params, effects) {

@@ -670,6 +670,17 @@ test('easter egg activation expires through offline scheduler and keeps history'
   assert.equal(loaded.active, null); assert.equal(loaded.egg_list.length, 1); assert.equal(loaded.egg_list[0], 9);
 });
 
+test('encyclopedia unlocks are persisted and travel entries derive from album', () => {
+  const r = runtime(); const {lf} = r;
+  assert.equal(r.commit(w => lf.server.handlers.encyclopedia_unlock.apply(w, {id: 42}, {})).ok, true);
+  lf.state.data.album.pictures.push({id: 'photo-a', pic_id: 77});
+  const encyclopedia = lf.server.handlers.encyclopedia_load.read(lf.state.data);
+  const travel = lf.server.handlers.encytravel_load.read(lf.state.data);
+  assert.equal(encyclopedia.unlock_list.indexOf(42) >= 0, true);
+  assert.equal(travel.unlock_list.indexOf(77) >= 0, true);
+  r.reload(); assert.equal(lf.state.data.activities.encyclopedia.unlock_list.indexOf(42) >= 0, true);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);
