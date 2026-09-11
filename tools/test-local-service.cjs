@@ -619,6 +619,22 @@ test('wishing pool rejects expired event without spending coin', () => {
   assert.equal(lf.state.data.activities.wishingpool.coin, 1);
 });
 
+test('touch events persist counts and grant an explicit reward once', () => {
+  const r = runtime(); const {lf} = r;
+  const first = r.commit(w => lf.server.handlers.other_req_touch.apply(w, {id: 12, reward_id: 9001}, {}));
+  assert.equal(first.ok, true); assert.equal(first.count, 1); assert.equal(lf.state.data.items.house[9001], 1);
+  const second = r.commit(w => lf.server.handlers.other_req_touch.apply(w, {id: 12, reward_id: 9001}, {}));
+  assert.equal(second.count, 2); assert.equal(lf.state.data.items.house[9001], 1);
+  r.reload(); assert.equal(lf.state.data.activities.touch.counts['12'], 2);
+});
+
+test('moment unlock is idempotent and survives restart', () => {
+  const r = runtime(); const {lf} = r;
+  assert.equal(r.commit(w => lf.server.handlers.misc_moment_unlock.apply(w, {id: 5}, {})).already, false);
+  assert.equal(r.commit(w => lf.server.handlers.misc_moment_unlock.apply(w, {id: 5}, {})).already, true);
+  r.reload(); assert.equal(lf.state.data.activities.misc_moment.list.length, 1);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);

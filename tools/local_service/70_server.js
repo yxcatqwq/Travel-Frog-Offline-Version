@@ -975,6 +975,10 @@
 
     server.handlers.wishingpool_load = {read:function(work){ return rules.wishingpool ? rules.wishingpool.snapshot(work) : LF.activities.read(work, "wishingpool"); }};
     server.handlers.wishingpool_wish = {idempotent:true,apply:function(work,params,effects){ return rules.wishingpool.wish(work,params,effects); }};
+    server.handlers.other_load_touch = {read:function(work){ return rules.touch ? rules.touch.load(work) : LF.activities.read(work, "touch"); }};
+    server.handlers.other_req_touch = {idempotent:true,apply:function(work,params,effects){ return rules.touch.request(work,params,effects); }};
+    server.handlers.misc_moment_load = {read:function(work){ return rules.moment ? rules.moment.ensure(work) : LF.activities.read(work, "misc_moment"); }};
+    server.handlers.misc_moment_unlock = {idempotent:true,apply:function(work,params,effects){ return rules.moment.unlock(work,params,effects); }};
 
     server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
     server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};
