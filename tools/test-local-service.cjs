@@ -722,6 +722,17 @@ test('greeting card buy, compose, send, reward, and gift reply persist locally',
   r.reload(); assert.equal(lf.state.data.activities.greetcard.get_list[0].gift, 9001);
 });
 
+test('lottery selection survives restart until reward confirmation', () => {
+  const r = runtime(); const {lf} = r;
+  const opened = r.commit(w => lf.server.handlers.lottery_open.apply(w, {phase: 1, reward: [{item_id: 9001, count: 1}]}, {}));
+  assert.equal(opened.state, 1);
+  assert.equal(r.commit(w => lf.server.handlers.lottery_select.apply(w, {index: 2}, {})).state, 2);
+  r.reload(); assert.equal(lf.state.data.activities.lottery.state, 2);
+  assert.equal(r.commit(w => lf.server.handlers.lottery_confirm_reward.apply(w, {}, {})).ok, true);
+  assert.equal(lf.state.data.items.house[9001], 1);
+  assert.equal(r.commit(w => lf.server.handlers.lottery_confirm_reward.apply(w, {}, {})).ok, false);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);

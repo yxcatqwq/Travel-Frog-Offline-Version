@@ -1023,6 +1023,10 @@
     server.handlers.greetcard_stock = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.stock(work,effects); }};
     server.handlers.greetcard_read_new = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.readNew(work,effects); }};
     server.handlers.greetcard_get_task_reward = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.taskReward(work,effects); }};
+    server.handlers.lottery_load = {read:function(work){ return rules.lottery.snapshot(work); }};
+    server.handlers.lottery_open = {idempotent:true,apply:function(work,params,effects){ return rules.lottery.open(work,params,effects); }};
+    server.handlers.lottery_select = {idempotent:true,apply:function(work,params,effects){ return rules.lottery.select(work,params,effects); }};
+    server.handlers.lottery_confirm_reward = {idempotent:true,apply:function(work,params,effects){ return rules.lottery.confirm(work,params,effects); }};
 
     server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
     server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};
