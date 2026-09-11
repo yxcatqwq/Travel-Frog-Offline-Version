@@ -694,6 +694,20 @@ test('museum exploration persists route, compass, refresh, and rewards locally',
   r.reload(); assert.equal(lf.state.data.activities.museumday.items.length, 0);
 });
 
+test('party cake restores materials and advances each stage exactly once', () => {
+  const r = runtime(); const {lf} = r;
+  const v = lf.state.data.activities.partycake; v.pre_cream = 2; v.pre_sugar = 2;
+  assert.equal(r.commit(w => lf.server.handlers.partycake_get_mate.apply(w, {}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.partycake_make.apply(w, {layer:1, cream:1, sugar:1}, {})).state, 1);
+  assert.equal(r.commit(w => lf.server.handlers.partycake_reward_make.apply(w, {}, {})).state, 2);
+  assert.equal(r.commit(w => lf.server.handlers.partycake_answer.apply(w, {index:0}, {})).state, 3);
+  assert.equal(r.commit(w => lf.server.handlers.partycake_reward_qa.apply(w, {}, {})).state, 4);
+  assert.equal(r.commit(w => lf.server.handlers.partycake_light.apply(w, {}, {})).state, 5);
+  assert.equal(r.commit(w => lf.server.handlers.partycake_reward_light.apply(w, {}, {})).state, 6);
+  assert.equal(r.commit(w => lf.server.handlers.partycake_reward_light.apply(w, {}, {})).ok, false);
+  r.reload(); assert.equal(lf.state.data.activities.partycake.cur_state, 6);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);

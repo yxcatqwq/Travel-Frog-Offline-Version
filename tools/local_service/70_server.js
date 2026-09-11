@@ -1000,6 +1000,18 @@
     server.handlers.museumday_inspire = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.inspire(work,params,effects); }};
     server.handlers.museumday_get_items = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.getItems(work,effects); }};
     server.handlers.museumday_refresh = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.refresh(work,params,effects); }};
+    server.handlers.partycake_load = {read:function(work){ return rules.partycake.snapshot(work); }};
+    server.handlers.partycake_load_mate = {read:function(work){ var v=rules.partycake.ensure(work); return {pre_cream:v.pre_cream,pre_sugar:v.pre_sugar}; }};
+    server.handlers.partycake_load_task = {read:function(work){ return {task_list:util.clone(rules.partycake.ensure(work).task_list)}; }};
+    server.handlers.partycake_load_qa = {read:function(work){ var v=rules.partycake.ensure(work); return {guest:v.guest||{},wrong:v.wrong||0,answer:v.answer||[],reward:v.reward||[]}; }};
+    server.handlers.partycake_get_mate = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.getMate(work,effects); }};
+    server.handlers.partycake_make = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.make(work,params,effects); }};
+    server.handlers.partycake_reward_make = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.rewardMake(work,effects); }};
+    server.handlers.partycake_answer = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.answer(work,params,effects); }};
+    server.handlers.partycake_reward_qa = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.rewardQa(work,effects); }};
+    server.handlers.partycake_light = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.light(work,effects); }};
+    server.handlers.partycake_reward_light = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.rewardLight(work,effects); }};
+    server.handlers.partycake_reward_share = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.rewardShare(work,params,effects); }};
 
     server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
     server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};
