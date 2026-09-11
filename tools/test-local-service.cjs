@@ -579,6 +579,24 @@ test('cooking cycle consumes ingredients, completes offline, and rewards once', 
   assert.equal(r.commit(w => lf.server.handlers.cooking_complete_task.apply(w, {}, {})).ok, false);
 });
 
+test('capsule coin and twist are local and persist rewards', () => {
+  const r = runtime(); const {lf} = r;
+  assert.equal(r.commit(w => lf.server.handlers.capsule_get_coin.apply(w, {count: 2}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.capsule_twist.apply(w, {output_id: 9001}, {})).ok, true);
+  assert.equal(lf.state.data.activities.capsule.coin, 1);
+  assert.equal(lf.state.data.items.house[9001], 1);
+  r.reload(); assert.equal(lf.state.data.activities.capsule.reward_list.length, 1);
+});
+
+test('capsule protocol shape matches client callbacks without output parameters', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.activities.capsule.pre_coin = 1;
+  assert.equal(r.commit(w => lf.server.handlers.capsule_get_coin.apply(w, {}, {})).ok, true);
+  const result = r.commit(w => lf.server.handlers.capsule_twist.apply(w, {}, {}));
+  assert.equal(result.ok, true); assert.equal(result.response, undefined);
+  assert.equal(result.reward_id, 1001); assert.equal(lf.state.data.activities.capsule.reward_list[0], 1001);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);
