@@ -58,6 +58,17 @@
             }
         });
         list.push({
+            id: "flowerpot.finish",
+            dueAt: (work.flowerpot && work.flowerpot.plant_list || []).reduce(function (next, plant) {
+                if (!plant || plant.state === "done") return next;
+                var at = util.toInt(plant.finish_time || plant.end_time || plant.harvest_at, 0);
+                return at && (next === 0 || at < next) ? at : next;
+            }, 0),
+            run: function (effects) {
+                return rules.flowerpot ? rules.flowerpot.finish(work, effects, now) : {ok:true, skipped:true};
+            }
+        });
+        list.push({
             id: "furniture.craft.finish",
             dueAt: work.furniture.craft && work.furniture.craft.state === "running" ? util.toInt(work.furniture.craft.finish_at, 0) : 0,
             run: function (effects) {
@@ -85,6 +96,26 @@
                 }
                 return {ok: true, code: LF.ERR.OK, skipped: true};
             }
+        });
+        list.push({
+            id: "guest.expire",
+            dueAt: work.guests && work.guests.current ? util.toInt(work.guests.current.expires_at || work.guests.current.expire_at, 0) : 0,
+            run: function (effects) {
+                var guest = work.guests && work.guests.current;
+                if (!guest || util.toInt(guest.expires_at || guest.expire_at, 0) > now) return {ok:true, skipped:true};
+                work.guests.history = util.toArray(work.guests.history);
+                guest.status = "expired";
+                work.guests.history.push(guest);
+                work.guests.current = null;
+                rules.effect(effects, "guests");
+                return {ok:true, code:LF.ERR.OK, changed:{expired:true}};
+            }
+        });
+        list.push({
+            id: "pray.finish",
+            dueAt: work.activities && work.activities.pray && work.activities.pray.process && work.activities.pray.process.state === "running"
+                ? util.toInt(work.activities.pray.process.finish_at, 0) : 0,
+            run: function (effects) { return rules.pray ? rules.pray.finish(work, effects, now) : {ok:true, skipped:true}; }
         });
         return list;
     };

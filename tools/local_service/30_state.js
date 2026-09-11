@@ -121,7 +121,7 @@
             tasks: {data: {}, list: [], dataList: [], dataReward: {}, redot: {}},
             mail: {mails: [], nextId: 1, pictures: [], specialtys: [], notes: []},
             events: {pending: [], settled: [], nextId: 1},
-            guests: {current: null, history: []},
+            guests: {current: null, history: [], drawing: {is_accept: false, bag: [-1, -1, -1, -1], locked: false, gifts: []}},
             travel: {status: 'home', tripId: '', destinationId: 0, companionId: 0, startedAt: 0, etaAt: 0, returnedAt: 0, bag: [], result: null, settled: true, lastTripId: '', nextEventAt: 0},
             album: {pictures: [], newPictures: [], deleted: [], capacity: 30, expansionCount: 0},
             decorate: {list: [], put_id: 0, status: 0},
@@ -132,6 +132,27 @@
                 lastCommitReason: "",
                 lastCommitAt: now,
                 recovered: []
+            },
+            activities: {
+                visit: {visitor: null, acquire: []}, story: {stories: [], new_story_id: 0},
+                misc_moment: {list: []}, easteregg: {egg_list: []}, touch: {cur: 0, list: []},
+                wishingpool: {end_time: 0, coin: 0, items: []}, lottery: {},
+                animpicture: {guide: 0, page_num: 0, item_num: 0, making_index: 0, pic_list: []},
+                museum: {museum_list: []},
+                calendar: {
+                    day_key: "", new_flag: [], note_list: [], lucky_days: [], st_days: [],
+                    task_list: [], claimed: {}
+                },
+                calendar_note: {list: []},
+                recharge: {water: 0, change: 0, field: [], sack: []}, recharge_gift: {gift: []}, recharge_num: {},
+                adsmgr: {can_pop: false, can_banner: false, day_left: 0, gift_id: 0, gift_time: 0, gift_can_get: 0, gift_get: 0, item_list: []},
+                rank: {}, cooking: {month: 0, month_pro: 0, week: 0, complete: true, select: 0, refresh_time: 0, task_list: []},
+                capsule: {end_time: 0, coin: 0, pre_coin: 0, reward_list: [], task_list: [], patch_num: 0},
+                greetcard: {end_time: 0, card_info: {bg: 0, bless: 0, tags: [0, 0, 0]}, send_list: [], get_list: [], items: [], task_item: [], can_reward: false},
+                springcard: {end_time: 0, card_info: {bg: 0, bless: 0, tags: [0, 0, 0]}, items: [], task_item: [], reward_list: []},
+                partycake: {end_time: 0, cream: 0, sugar: 0, cur_state: 0, part: 0, layers: [], task_list: [], share_get: []},
+                museumday: {end_time: 0, inspire_num: 0, inspire_time: 0, museum_list: [], cur_museum: 0, compass: 0, task_num: 0, frog: 0, next: 0, left_num: 0, desc_id: 0, pic_id: 0, items: [], get_items: [], log_list: [], path: []},
+                pray: {wishs: [], stamps: [], boxes: [], wish_new: null, stamp_new: null}
             },
             scheduler: {
                 lastRunAt: now,

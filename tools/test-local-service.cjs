@@ -389,6 +389,28 @@ test('flowerpot harvest returns mature reward and clears plant slot', () => {
   assert.equal(lf.state.data.flowerpot.plant_list[0], null);
 });
 
+test('flowerpot planting consumes seed, matures offline, and harvests once', () => {
+  const r = runtime(); const {lf} = r; const effects = {};
+  lf.state.data.flowerpot.show_list = [{type: 1, id: 41}];
+  lf.state.data.items.house[1001] = 1;
+  const started = r.commit(w => lf.rules.flowerpot.plant(w, {
+    type: 1, index: 1, seed_id: 1001, reward_id: 1002, reward_count: 2, duration: 60
+  }, effects));
+  assert.equal(started.ok, true);
+  assert.equal(lf.state.data.items.house[1001], undefined);
+  assert.equal(lf.state.data.flowerpot.plant_list[0].state, 'growing');
+  lf.state.data.clock.timeTravelSeconds += 61;
+  const caught = r.commit(w => ({ok: true, changed: lf.scheduler.catchUp(w, effects)}));
+  assert.equal(caught.ok, true);
+  assert.equal(lf.state.data.flowerpot.plant_list[0].state, 'done');
+  assert.equal(r.commit(w => lf.rules.flowerpot.harvest(w, {type: 1, index: 1}, effects)).ok, true);
+  assert.equal(lf.state.data.items.house[1002], 2);
+  assert.equal(lf.state.data.flowerpot.plant_list.length, 1);
+  assert.equal(lf.state.data.flowerpot.plant_list[0], null);
+  assert.equal(r.commit(w => lf.rules.flowerpot.harvest(w, {type: 1, index: 1}, effects)).ok, false);
+  r.reload(); assert.equal(lf.state.data.flowerpot.plant_list.length, 1);
+});
+
 test('compost processes filled slots and pays reward after deadline', () => {
   const r=runtime(); const {lf}=r; const effects={};
   lf.state.data.compost.show_index=1; lf.state.data.compost.compost_list=[1]; lf.state.data.compost.box_list[0]=5001;
@@ -426,6 +448,24 @@ test('calendar task protocol reads and updates local task state', () => {
   lf.state.data.tasks.list=[{id:3,progress:0,target:1,claimed:false}]; lf.server.respond=()=>{}; lf.server.emitEffects=()=>{};
   lf.server.dispatch({cmd:'calendar_task_update',session:99,data:{id:3,num:1}});
   assert.equal(lf.state.data.tasks.list[0].progress,1);
+});
+
+test('calendar beginner reward is persisted and cannot be claimed twice', () => {
+  const r=runtime(); const {lf}=r, effects={};
+  assert.equal(r.commit(w=>lf.server.handlers.calendar_get_beginer_reward.apply(w,{day:1},effects)).ok,true);
+  assert.equal(lf.state.data.wallet.clover,10);
+  const again=r.commit(w=>lf.server.handlers.calendar_get_beginer_reward.apply(w,{day:1},effects));
+  assert.equal(again.ok,false); assert.equal(again.reason,'already-claimed');
+  r.reload(); assert.equal(lf.state.data.activities.calendar.new_flag[0],1);
+});
+
+test('calendar special-day reward consumes local item and records claim', () => {
+  const r=runtime(); const {lf}=r, effects={};
+  lf.state.data.activities.calendar.st_days=[{day:1,item_id:1001,count:2}];
+  assert.equal(r.commit(w=>lf.server.handlers.calendar_get_st_reward.apply(w,{day:1},effects)).ok,true);
+  assert.equal(lf.state.data.items.house[1001],2);
+  assert.equal(lf.state.data.activities.calendar.st_days[0].claimed,true);
+  assert.equal(r.commit(w=>lf.server.handlers.calendar_get_st_reward.apply(w,{day:1},effects)).ok,false);
 });
 
 test('claiming a task can unlock and persist an achievement', () => {
@@ -471,4 +511,55 @@ test('guest confirm, serve, and finish are local atomic operations', () => {
   assert.equal(lf.rules.items.ownedCount(lf.state.data,1001),0);
   assert.equal(r.commit(w=>lf.server.handlers.guest_finish.apply(w,{},effects)).ok,true);
   assert.equal(lf.state.data.guests.current,null); assert.equal(lf.state.data.guests.history.length,1);
+});
+
+test('guest invitation drawing bag is local and expires offline', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.items.house[1001] = 1;
+  assert.equal(r.commit(w => lf.server.handlers.guest_confirm.apply(w, {id: 8, expires_at: lf.clock.now()+30}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.guest_putin_bag.apply(w, {pos:1, id:1001}, {})).ok, true);
+  assert.equal(lf.state.data.guests.drawing.bag[0], 1001);
+  assert.equal(r.commit(w => lf.server.handlers.guest_lock_bag.apply(w, {}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.guest_putin_bag.apply(w, {pos:2, id:1001}, {})).ok, false);
+  lf.state.data.clock.timeTravelSeconds += 31;
+  r.commit(w => ({ok:true, changed:lf.scheduler.catchUp(w,{})}));
+  assert.equal(lf.state.data.guests.current, null);
+});
+
+test('activity containers persist local updates and loads', () => {
+  const r = runtime(); const {lf} = r; const effects = {};
+  assert.equal(r.commit(w => lf.activities.merge(w, 'partycake', {cur_state: 2, layers: [{id: 1}]}, effects)).ok, true);
+  const loaded = lf.activities.read(lf.state.data, 'partycake');
+  assert.equal(loaded.cur_state, 2); assert.equal(loaded.layers[0].id, 1);
+  r.reload(); assert.equal(lf.state.data.activities.partycake.cur_state, 2);
+});
+
+test('activity protocol handlers use persisted local containers', () => {
+  const r = runtime(); const {lf} = r;
+  const before = lf.server.handlers.story_load.read(lf.state.data);
+  assert.deepEqual(Array.from(before.stories), []);
+  const changed = r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 12, read: true}, {}));
+  assert.equal(changed.ok, true);
+  assert.equal(lf.server.handlers.story_load.read(lf.state.data).story_id, 12);
+  r.reload(); assert.equal(lf.state.data.activities.story.story_id, 12);
+});
+
+test('pray composition consumes materials and confirms one local result', () => {
+  const r = runtime(); const {lf} = r; const effects = {};
+  lf.state.data.items.house[3001] = 1;
+  assert.equal(r.commit(w => lf.server.handlers.pray_compose.apply(w, {output_id: 9001, inputs: [{item_id: 3001, count: 1}], duration: 30}, effects)).ok, true);
+  lf.state.data.clock.timeTravelSeconds += 31;
+  assert.equal(r.commit(w => ({ok:true, changed:lf.scheduler.catchUp(w, effects)})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.pray_confirm_make_box.apply(w, {}, effects)).ok, true);
+  assert.equal(lf.state.data.items.house[9001], 1);
+  assert.equal(r.commit(w => lf.server.handlers.pray_confirm_make_box.apply(w, {}, effects)).ok, false);
+});
+
+test('activity protocol handlers keep their own activity namespace', () => {
+  const r = runtime(); const {lf} = r;
+  assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.visit_open.apply(w, {visitor_id: 3}, {})).ok, true);
+  assert.equal(lf.state.data.activities.story.story_id, 7);
+  assert.equal(lf.state.data.activities.visit.visitor_id, 3);
+  assert.equal(lf.state.data.activities.pray.story_id, undefined);
 });

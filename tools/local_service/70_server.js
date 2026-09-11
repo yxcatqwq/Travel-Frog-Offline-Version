@@ -327,6 +327,9 @@
             server.push("album_load_new", {pictures: util.clone(albumState.newPictures), visted_pic: [], has_ads: false, is_share: false});
             server.push("album_load_recover", {pictures: util.clone(albumState.deleted)});
         }
+        if (effects.activities) {
+            server.push("activity_update", {activities: LF.activities.snapshot(work)});
+        }
         if (effects.gacha) {
             server.push("item_load_items", rules.snapshot.items(work));
         }
@@ -803,13 +806,27 @@
     server.handlers.furniture_flowerpot_harvest = {
         apply: function (work, params, effects) {
             /* M1 尚未实现花盆生长结算：返回空产物，界面正常关闭且不发放任何奖励 */
-            var result = rules.flowerpot.harvest(work, params.pos || params.index || 1, effects);
+            var location = params && params.type !== undefined
+                ? {type: params.type, index: params.index !== undefined ? params.index : params.pos}
+                : (params.pos !== undefined ? params.pos : (params.index !== undefined ? params.index : 1));
+            var result = rules.flowerpot.harvest(work, location, effects);
             if (result.ok) { result.response = {code: LF.ERR.OK, item_list: result.item_list}; }
             return result;
         }
     };
 
     /* ---- 天气 ---- */
+    /* Local extension: planting is absent from the legacy protocol list, but this handler gives diagnostic tools and a future UI an atomic endpoint. */
+    server.handlers.furniture_flowerpot_plant = {
+        idempotent: true,
+        apply: function (work, params, effects) {
+            var result = rules.flowerpot.plant(work, params || {}, effects);
+            if (result.ok) result.response = {code: LF.ERR.OK, finish_at: result.finish_at, plant: result.plant};
+            return result;
+        }
+    };
+    server.handlers.flowerpot_plant = server.handlers.furniture_flowerpot_plant;
+
     server.handlers.weather_load = {
         read: function (work) {
             return rules.snapshot.weather(work);
@@ -844,9 +861,15 @@
     server.handlers.album_load_recover = { read: function (work) { return {pictures:util.clone(rules.album.ensure(work).deleted)}; } };
     server.handlers.client_load_events = { read: function (work) { return rules.travel.eventsSnapshot(work); } };
     server.handlers.guest_load = { read: function (work) { var g=work.guests||{current:null,history:[]}; return {guest_list:g.current?[g.current]:[], drawing:{}}; } };
-    server.handlers.guest_confirm = { apply: function (work, params, effects) { work.guests=work.guests||{current:null,history:[]}; if(work.guests.current)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-exists'}; work.guests.current={id:params.id||params.guest_id||1,name:params.name||'',arrived_at:clock.now(),served:false}; rules.effect(effects,'guests'); return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_confirm = { apply: function (work, params, effects) { work.guests=work.guests||{current:null,history:[]}; if(work.guests.current)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-exists'}; var now=clock.now(); work.guests.current={id:params.id||params.guest_id||1,name:params.name||'',arrived_at:now,expires_at:util.toInt(params.expires_at||params.expire_at,now+86400),served:false}; rules.effect(effects,'guests'); return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_set_expire_time = { apply: function (work, params, effects) { var g=work.guests&&work.guests.current;if(!g)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-none'};var at=util.toInt(params.time||params.expire_at||params.expires_at,0);if(at<=clock.now())return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'expire-time'};g.expires_at=at;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK,expires_at:at}; } };
     server.handlers.guest_serve = { apply: function (work, params, effects) { var g=work.guests&&work.guests.current;if(!g)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-none'}; var item=util.toInt(params.item_id||params.id,-1), take=rules.items.consume(work,item,1,effects);if(!take.ok)return take;g.served=true;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK,item_id:item}; } };
     server.handlers.guest_finish = { apply: function (work, params, effects) { work.guests=work.guests||{current:null,history:[]};if(!work.guests.current)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-none'};work.guests.history=util.toArray(work.guests.history);work.guests.history.push(work.guests.current);work.guests.current=null;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_load_drawing = { read: function (work) { work.guests=work.guests||{}; return util.clone(work.guests.drawing||{is_accept:false,bag:[-1,-1,-1,-1],locked:false,gifts:[]}); } };
+    server.handlers.guest_accept_invit = { apply: function (work, params, effects) { work.guests=work.guests||{current:null,history:[]}; work.guests.drawing=work.guests.drawing||{is_accept:false,bag:[-1,-1,-1,-1],locked:false,gifts:[]}; if (work.guests.drawing.is_accept) return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-invite-set'}; work.guests.drawing.is_accept=!!(params.is_accept===undefined?true:params.is_accept); rules.effect(effects,'guests'); return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_lock_bag = { apply: function (work, params, effects) { work.guests.drawing=work.guests.drawing||{bag:[-1,-1,-1,-1]}; work.guests.drawing.locked=true; rules.effect(effects,'guests'); return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_putin_bag = { apply: function (work, params, effects) { var d=work.guests&&work.guests.drawing;if(!d||d.locked)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-bag-locked'};var pos=util.toInt(params.pos,0)-1,id=util.toInt(params.id,-1);if(pos<0||pos>=4||id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'guest-bag'};var take=rules.items.consume(work,id,1,effects);if(!take.ok)return take;d.bag[pos]=id;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_takeout_bag = { apply: function (work, params, effects) { var d=work.guests&&work.guests.drawing;if(!d||d.locked)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-bag-locked'};var pos=util.toInt(params.pos,0)-1;if(pos<0||pos>=4||util.toInt(d.bag[pos],-1)<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'guest-bag'};var id=d.bag[pos],add=rules.items.add(work,id,1,effects);if(!add.ok)return add;d.bag[pos]=-1;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK}; } };
     server.handlers.travel_load_note = { read: function (work) { return rules.travel.noteSnapshot(work); } };
     server.handlers.travel_load_gift = { read: function (work) { return rules.travel.giftSnapshot(work); } };
     server.placeholder("visit_load", {visitor: null, acquire: []});
@@ -860,13 +883,22 @@
     server.placeholder("museum_load", {museum_list: []});
     server.handlers.encyclopedia_load = { read: function (work) { var ids=Object.keys(work.items.house).map(function(id){return util.toInt(id,0);}); return {unlock_list:ids, unlock_desc:[], show_sub:[]}; } };
     server.handlers.encytravel_load = { read: function (work) { var a=rules.album.ensure(work); return {unlock_list:a.pictures.map(function(p){return p.pic_id||p.id;}), unlock_desc:[], show_sub:[]}; } };
-    server.handlers.calendar_load = { read: function (work) {
-        var snap=rules.tasks.snapshot(work), now=clock.now();
-        return {new_flag: [], task_list: snap.tasks, lucky_days: [], st_days: [], refresh_time: now};
-    } };
-    server.placeholder("calendar_load_note", {list: []});
+    server.handlers.calendar_load = { read: function (work) { return rules.calendar.snapshot(work); } };
+    server.handlers.calendar_load_note = { read: function (work) { return rules.calendar.noteSnapshot(work); } };
     server.handlers.calendar_task_update = { apply: function (work, params, effects) {
-        return rules.tasks.update(work, params.id || params.task_id, params.num || params.amount || 1, effects);
+        return rules.calendar.taskUpdate(work, params, effects);
+    } };
+    server.handlers.calendar_get_beginer_reward = { apply: function (work, params, effects) {
+        return rules.calendar.claim(work, "beginner", params, effects);
+    } };
+    server.handlers.calendar_get_code_reward = { apply: function (work, params, effects) {
+        return rules.calendar.claim(work, "beginner", params, effects);
+    } };
+    server.handlers.calendar_get_luck_reward = { apply: function (work, params, effects) {
+        return rules.calendar.claim(work, "luck", params, effects);
+    } };
+    server.handlers.calendar_get_st_reward = { apply: function (work, params, effects) {
+        return rules.calendar.claim(work, "st", params, effects);
     } };
     server.placeholder("recharge_load", {water: 0, change: 0, field: [], sack: []});
     server.placeholder("recharge_load_gift", {gift: []});
@@ -902,7 +934,45 @@
     server.placeholder("pray_load_grays", {wishs: [], stamps: [], boxes: [], wish_new: null, stamp_new: null});
     server.placeholder("client_load_publicity", {id_list: []});
 
+    /* C01-C17 ??????????????????????????????? */
+    (function () {
+        var activityCommands = {
+            visit: ["visit_load", "visit_open", "visit_set_carpet", "visit_set_expire_time"],
+            story: ["story_load", "story_read_new_story", "story_send_gift", "story_feedback_gift"],
+            misc_moment: ["misc_moment_load", "misc_moment_unlock"], easteregg: ["easteregg_load"],
+            touch: ["other_load_touch", "other_req_touch"], wishingpool: ["wishingpool_load", "wishingpool_wish"], lottery: ["lottery_load", "lottery_open", "lottery_select", "lottery_confirm_reward"],
+            animpicture: ["animpicture_load", "animpicture_add_pic", "animpicture_album_add_pic", "animpicture_album_remove_pic", "animpicture_get_item", "animpicture_guide", "animpicture_open_album", "animpicture_remove_pic", "animpicture_select_pic", "animpicture_use_item"],
+            museum: ["museum_load"], calendar_note: ["calendar_load_note"], recharge: ["recharge_load", "recharge_change", "recharge_water"], recharge_gift: ["recharge_load_gift"], recharge_num: ["recharge_update_num"], adsmgr: ["adsmgr_load"], rank: ["rank_load", "rank_get_intro"],
+            cooking: ["cooking_load_cooking", "cooking_complete_task", "cooking_look_ad", "cooking_refresh_task", "cooking_select", "cooking_start_cooking", "cooking_task_update"], capsule: ["capsule_load", "capsule_load_coin", "capsule_load_task", "capsule_fast_task", "capsule_get_coin", "capsule_patch", "capsule_twist"],
+            greetcard: ["greetcard_load", "greetcard_load_count", "greetcard_buy", "greetcard_change_bg", "greetcard_change_bless", "greetcard_feedback_gift", "greetcard_get_reward", "greetcard_get_task_item", "greetcard_get_task_reward", "greetcard_put_tags", "greetcard_read_new", "greetcard_send", "greetcard_send_gift", "greetcard_stock"],
+            springcard: ["springcard_load", "springcard_load_count", "springcard_load_task_item", "springcard_buy", "springcard_change_bg", "springcard_change_bless", "springcard_get_reward", "springcard_get_task_item", "springcard_get_task_reward", "springcard_put_tags", "springcard_send"],
+            partycake: ["partycake_load", "partycake_load_mate", "partycake_load_qa", "partycake_load_task", "partycake_answer", "partycake_get_mate", "partycake_light", "partycake_make", "partycake_reward_light", "partycake_reward_make", "partycake_reward_qa", "partycake_reward_share"],
+            museumday: ["museumday_load", "museumday_info", "museumday_load_path", "museumday_arrive", "museumday_dir_compass", "museumday_get_items", "museumday_inspire", "museumday_random_compass", "museumday_refresh", "museumday_start_advance"], pray: ["pray_load_grays", "pray_compose", "pray_confirm_make_box"]
+        };
+        Object.keys(activityCommands).forEach(function (key) {
+            activityCommands[key].forEach(function (name) {
+                /* Capture both values per handler; a plain var closure here makes every
+                 * activity endpoint use the final loop key (pray). */
+                (function (activityKey, protocolName) {
+                    if (protocolName.indexOf("_load") >= 0 || protocolName === "museumday_info" || protocolName === "rank_get_intro") {
+                        server.handlers[protocolName] = {read: function (work) { return LF.activities.read(work, activityKey); }};
+                    } else {
+                        server.handlers[protocolName] = {idempotent: true, apply: function (work, params, effects) {
+                            var result = LF.activities.merge(work, activityKey, params || {}, effects);
+                            if (result.ok) result.response = {code: LF.ERR.OK};
+                            return result;
+                        }};
+                    }
+                })(key, name);
+            });
+        });
+    })();
+
     /* ---- 本地可确认的运营/统计类协议 ---- */
+    server.handlers.pray_load_grays = {read:function(work){ return rules.pray ? rules.pray.ensure(work) : LF.activities.read(work, "pray"); }};
+    server.handlers.pray_compose = {idempotent:true,apply:function(work,params,effects){ return rules.pray.compose(work,params,effects); }};
+    server.handlers.pray_confirm_make_box = {idempotent:true,apply:function(work,params,effects){ return rules.pray.confirm(work,effects); }};
+
     var ackOnly = [
         "client_set_ads", "client_set_channel", "client_set_channel_id", "client_set_client_envinfo",
         "client_user_action", "hall_report_remote_addr", "client_set_lang", "client_add_push_id",

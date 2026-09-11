@@ -792,7 +792,7 @@
             tasks: {data: {}, list: [], dataList: [], dataReward: {}, redot: {}},
             mail: {mails: [], nextId: 1, pictures: [], specialtys: [], notes: []},
             events: {pending: [], settled: [], nextId: 1},
-            guests: {current: null, history: []},
+            guests: {current: null, history: [], drawing: {is_accept: false, bag: [-1, -1, -1, -1], locked: false, gifts: []}},
             travel: {status: 'home', tripId: '', destinationId: 0, companionId: 0, startedAt: 0, etaAt: 0, returnedAt: 0, bag: [], result: null, settled: true, lastTripId: '', nextEventAt: 0},
             album: {pictures: [], newPictures: [], deleted: [], capacity: 30, expansionCount: 0},
             decorate: {list: [], put_id: 0, status: 0},
@@ -803,6 +803,27 @@
                 lastCommitReason: "",
                 lastCommitAt: now,
                 recovered: []
+            },
+            activities: {
+                visit: {visitor: null, acquire: []}, story: {stories: [], new_story_id: 0},
+                misc_moment: {list: []}, easteregg: {egg_list: []}, touch: {cur: 0, list: []},
+                wishingpool: {end_time: 0, coin: 0, items: []}, lottery: {},
+                animpicture: {guide: 0, page_num: 0, item_num: 0, making_index: 0, pic_list: []},
+                museum: {museum_list: []},
+                calendar: {
+                    day_key: "", new_flag: [], note_list: [], lucky_days: [], st_days: [],
+                    task_list: [], claimed: {}
+                },
+                calendar_note: {list: []},
+                recharge: {water: 0, change: 0, field: [], sack: []}, recharge_gift: {gift: []}, recharge_num: {},
+                adsmgr: {can_pop: false, can_banner: false, day_left: 0, gift_id: 0, gift_time: 0, gift_can_get: 0, gift_get: 0, item_list: []},
+                rank: {}, cooking: {month: 0, month_pro: 0, week: 0, complete: true, select: 0, refresh_time: 0, task_list: []},
+                capsule: {end_time: 0, coin: 0, pre_coin: 0, reward_list: [], task_list: [], patch_num: 0},
+                greetcard: {end_time: 0, card_info: {bg: 0, bless: 0, tags: [0, 0, 0]}, send_list: [], get_list: [], items: [], task_item: [], can_reward: false},
+                springcard: {end_time: 0, card_info: {bg: 0, bless: 0, tags: [0, 0, 0]}, items: [], task_item: [], reward_list: []},
+                partycake: {end_time: 0, cream: 0, sugar: 0, cur_state: 0, part: 0, layers: [], task_list: [], share_get: []},
+                museumday: {end_time: 0, inspire_num: 0, inspire_time: 0, museum_list: [], cur_museum: 0, compass: 0, task_num: 0, frog: 0, next: 0, left_num: 0, desc_id: 0, pic_id: 0, items: [], get_items: [], log_list: [], path: []},
+                pray: {wishs: [], stamps: [], boxes: [], wish_new: null, stamp_new: null}
             },
             scheduler: {
                 lastRunAt: now,
@@ -5220,15 +5241,100 @@
         };
     };
     rules.flowerpot = rules.flowerpot || {};
-    rules.flowerpot.harvest = function (work, pos, effects) {
-        var list = util.toArray(work.flowerpot.plant_list), index = util.toInt(pos, 1) - 1;
-        if (index < 0 || index >= list.length || !util.isObject(list[index])) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"flowerpot-position"};
-        var plant=list[index], finish=util.toInt(plant.finish_time || plant.end_time || plant.harvest_at,0);
-        if (!(plant.state === "done" || util.toInt(plant.state,0)>=2 || (finish>0 && finish<=clock.now()))) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"flowerpot-not-ready"};
-        var itemId=util.toInt(plant.reward_id || plant.item_id || plant.seed_id,-1), count=Math.max(1,util.toInt(plant.reward_count || plant.count,1));
-        if(itemId>=0){var added=rules.items.add(work,itemId,count,effects);if(!added.ok)return added;}
-        list[index]=null; work.flowerpot.plant_list=list; rules.effect(effects,"flowerpot");
-        return {ok:true,code:LF.ERR.OK,item_list:itemId>=0?[{item_id:itemId,count:count}]:[]};
+    var flowerpot = rules.flowerpot;
+    flowerpot.ensure = function (work) {
+        if (!util.isObject(work.flowerpot)) work.flowerpot = {show_list: [], list: [], plant_list: []};
+        if (!Array.isArray(work.flowerpot.show_list)) work.flowerpot.show_list = [];
+        if (!Array.isArray(work.flowerpot.list)) work.flowerpot.list = [];
+        if (!Array.isArray(work.flowerpot.plant_list)) work.flowerpot.plant_list = [];
+        return work.flowerpot;
+    };
+    flowerpot.pot = function (work, type) {
+        var f = flowerpot.ensure(work), wanted = util.toInt(type, 1);
+        for (var i = 0; i < f.show_list.length; i++) {
+            var row = f.show_list[i];
+            if (util.isObject(row) && util.toInt(row.type, 1) === wanted) return row;
+        }
+        /* Older saves only have a numeric show entry. */
+        if (f.show_list.length && wanted === 1) return {type: 1, id: util.toInt(f.show_list[0], 0)};
+        return null;
+    };
+    flowerpot.slotCount = function (work, type) {
+        var row = flowerpot.pot(work, type), count = 0;
+        if (row) {
+            var definition = config.get("flowerpotData", row.id);
+            var positions = definition && (definition.pos_list || definition.positions);
+            if (Array.isArray(positions)) count = positions.length;
+        }
+        /* Configuration is optional in imported saves; the client has one slot for
+         * the default pot, while preserving imported plant indices is safer. */
+        if (!count) count = 1;
+        var f = flowerpot.ensure(work);
+        f.plant_list.forEach(function (p) {
+            if (util.isObject(p) && util.toInt(p.type, 1) === util.toInt(type, 1)) {
+                count = Math.max(count, util.toInt(p.index, 0));
+            }
+        });
+        return count;
+    };
+    flowerpot.find = function (work, type, index) {
+        var list = flowerpot.ensure(work).plant_list, wantedType = util.toInt(type, 1), wantedIndex = util.toInt(index, 1);
+        for (var i = 0; i < list.length; i++) {
+            var row = list[i];
+            if (util.isObject(row) && util.toInt(row.type, wantedType) === wantedType && util.toInt(row.index, 0) === wantedIndex) return {row: row, offset: i};
+        }
+        return null;
+    };
+    flowerpot.recipe = function (seedId, params) {
+        params = util.isObject(params) ? params : {};
+        var row = config.get("FlowerData", seedId) || config.get("flowerData", seedId) || {};
+        var duration = util.toInt(params.duration !== undefined ? params.duration : (row.grow_time || row.growTime || row.need_time || row.duration), 3600);
+        var rewardId = util.toInt(params.reward_id !== undefined ? params.reward_id : (row.reward_id !== undefined ? row.reward_id : (row.flower_id !== undefined ? row.flower_id : (row.item_id !== undefined ? row.item_id : seedId))), seedId);
+        var rewardCount = Math.max(1, util.toInt(params.reward_count !== undefined ? params.reward_count : (row.reward_count !== undefined ? row.reward_count : (row.count !== undefined ? row.count : 1)), 1));
+        return {duration: Math.max(1, duration), reward_id: rewardId, reward_count: rewardCount};
+    };
+    flowerpot.plant = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var f = flowerpot.ensure(work), type = util.toInt(params.type, 1), index = util.toInt(params.index !== undefined ? params.index : params.pos, 1);
+        var seedId = util.toInt(params.seed_id !== undefined ? params.seed_id : (params.item_id !== undefined ? params.item_id : params.id), -1);
+        var amount = Math.max(1, util.toInt(params.count, 1));
+        if (!flowerpot.pot(work, type)) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"flowerpot-unavailable"};
+        if (index < 1 || index > flowerpot.slotCount(work, type)) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"flowerpot-position"};
+        if (flowerpot.find(work, type, index)) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"flowerpot-occupied"};
+        if (seedId < 0 || !rules.itemInfo(seedId)) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"flowerpot-seed"};
+        if (rules.items.count(work, seedId) < amount) return {ok:false, code:LF.ERR.NO_ITEM, reason:"flowerpot-seed-not-owned"};
+        var recipe = flowerpot.recipe(seedId, params), consumed = rules.items.consume(work, seedId, amount, effects);
+        if (!consumed.ok) return consumed;
+        var now = clock.now(), plant = {type:type, index:index, id:seedId, seed_id:seedId, stage:1, state:"growing", started_at:now, finish_time:now + recipe.duration, reward_id:recipe.reward_id, reward_count:recipe.reward_count};
+        f.plant_list.push(plant);
+        rules.effect(effects, "flowerpot");
+        if (rules.tasks && rules.tasks.update) rules.tasks.update(work, "flowerpot_plant", 1, effects);
+        return {ok:true, code:LF.ERR.OK, plant:util.clone(plant), finish_at:plant.finish_time};
+    };
+    flowerpot.finish = function (work, effects, now) {
+        now = util.toInt(now, clock.now());
+        var f = flowerpot.ensure(work), changed = 0;
+        f.plant_list.forEach(function (plant) {
+            if (!util.isObject(plant) || plant.state === "done") return;
+            var finish = util.toInt(plant.finish_time || plant.end_time || plant.harvest_at, 0);
+            if (finish > 0 && finish <= now) { plant.state = "done"; plant.stage = 3; changed++; }
+        });
+        if (changed) rules.effect(effects, "flowerpot");
+        return {ok:true, code:LF.ERR.OK, changed:changed};
+    };
+    flowerpot.harvest = function (work, pos, effects) {
+        var f = flowerpot.ensure(work), type = 1, index = 0, match = null;
+        if (util.isObject(pos)) { type = util.toInt(pos.type, 1); index = util.toInt(pos.index !== undefined ? pos.index : pos.pos, 1); match = flowerpot.find(work, type, index); }
+        else { index = util.toInt(pos, 1); if (index > 0 && index <= f.plant_list.length) match = {row:f.plant_list[index - 1], offset:index - 1}; }
+        if (!match || !util.isObject(match.row)) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"flowerpot-position"};
+        var plant = match.row, finish = util.toInt(plant.finish_time || plant.end_time || plant.harvest_at, 0);
+        if (!(plant.state === "done" || util.toInt(plant.state, 0) >= 2 || (finish > 0 && finish <= clock.now()))) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"flowerpot-not-ready"};
+        var itemId = util.toInt(plant.reward_id || plant.item_id || plant.seed_id, -1), count = Math.max(1, util.toInt(plant.reward_count || plant.count, 1));
+        if (itemId >= 0) { var added = rules.items.add(work, itemId, count, effects); if (!added.ok) return added; }
+        /* 客户端按固定槽位读取 plant_list，收获后保留空槽而不是缩短数组。 */
+        f.plant_list[match.offset] = null; rules.effect(effects, "flowerpot");
+        if (rules.tasks && rules.tasks.update) rules.tasks.update(work, "flowerpot_harvest", 1, effects);
+        return {ok:true, code:LF.ERR.OK, item_list:itemId >= 0 ? [{item_id:itemId, count:count}] : []};
     };
 
     rules.snapshot.weather = function (work) {
@@ -5288,6 +5394,169 @@
                 create_time: util.toInt(role.createTime, Math.floor(Date.now() / 1000))
             }
         };
+    };
+
+/* ---- 63_activities.js ---- */
+    /* ------------------------------------------------------------------
+     * 63 活动玩法本地容器（C01-C17）
+     * 活动规则尚未有统一的原版配方时，先提供可持久化、可恢复、可领取一次的
+     * 状态接口。未知字段原样保留，便于在线账号导入和后续按活动逐项替换规则。
+     * ------------------------------------------------------------------ */
+    var activities = LF.activities = {};
+    activities.keys = ["visit", "story", "misc_moment", "easteregg", "touch", "wishingpool", "lottery", "animpicture", "museum", "calendar", "calendar_note", "recharge", "recharge_gift", "recharge_num", "adsmgr", "rank", "cooking", "capsule", "greetcard", "springcard", "partycake", "museumday", "pray"];
+    activities.ensure = function (work) {
+        if (!util.isObject(work.activities)) work.activities = {};
+        activities.keys.forEach(function (key) {
+            if (!util.isObject(work.activities[key])) work.activities[key] = {};
+        });
+        return work.activities;
+    };
+    activities.read = function (work, key) {
+        var all = activities.ensure(work);
+        return util.clone(all[key] || {});
+    };
+    activities.merge = function (work, key, patch, effects) {
+        if (activities.keys.indexOf(key) < 0 || !util.isObject(patch)) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"activity"};
+        var all = activities.ensure(work), target = all[key];
+        Object.keys(patch).forEach(function (field) { target[field] = util.clone(patch[field]); });
+        rules.effect(effects, "activities");
+        return {ok:true, code:LF.ERR.OK, changed:{activity:key, fields:Object.keys(patch)}};
+    };
+    activities.claim = function (work, key, params, effects) {
+        var all = activities.ensure(work), target = all[key];
+        if (!target || !util.isObject(target)) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"activity"};
+        var claimKey = String((params && params.key) || "claimed");
+        if (target[claimKey] === true) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"already-claimed"};
+        target[claimKey] = true;
+        rules.effect(effects, "activities");
+        return {ok:true, code:LF.ERR.OK, changed:{activity:key, claim:claimKey}};
+    };
+    activities.snapshot = function (work) { return util.clone(activities.ensure(work)); };
+
+    /* C06 祈福/手作：材料消耗和成品确认采用与工作台相同的持久化事务。 */
+    var pray = rules.pray = {};
+    pray.ensure = function (work) {
+        var value = activities.ensure(work).pray;
+        if (!util.isObject(value)) value = activities.ensure(work).pray = {};
+        if (!Array.isArray(value.wishs)) value.wishs = [];
+        if (!Array.isArray(value.stamps)) value.stamps = [];
+        if (!Array.isArray(value.boxes)) value.boxes = [];
+        return value;
+    };
+    pray.compose = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var value = pray.ensure(work);
+        if (value.process && (value.process.state === "running" || value.process.state === "ready")) return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"pray-running"};
+        var output = util.toInt(params.output_id !== undefined ? params.output_id : params.item_id, -1), count = Math.max(1,util.toInt(params.output_count || params.count,1));
+        if (output < 0 || !rules.itemInfo(output)) return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"pray-output"};
+        var inputs = Array.isArray(params.inputs) ? params.inputs : [];
+        for (var i=0;i<inputs.length;i++) { var id=util.toInt(inputs[i].item_id !== undefined ? inputs[i].item_id : inputs[i].id,-1), n=Math.max(1,util.toInt(inputs[i].count || inputs[i].num,1)); if(id<0 || !rules.itemInfo(id) || rules.items.count(work,id)<n)return {ok:false,code:LF.ERR.NO_ITEM,reason:"pray-material:"+id}; }
+        for (var j=0;j<inputs.length;j++) { var cid=util.toInt(inputs[j].item_id !== undefined ? inputs[j].item_id : inputs[j].id,-1); var taken=rules.items.consume(work,cid,Math.max(1,util.toInt(inputs[j].count || inputs[j].num,1)),effects); if(!taken.ok)return taken; }
+        var now=clock.now(), finish=now+Math.max(1,util.toInt(params.duration,3600));
+        value.process={state:"running",output_id:output,output_count:count,started_at:now,finish_at:finish,inputs:util.clone(inputs)};
+        rules.effect(effects,"activities"); return {ok:true,code:LF.ERR.OK,finish_at:finish};
+    };
+    pray.finish = function (work,effects,now) { var v=pray.ensure(work),p=v.process;if(!p||p.state!=="running"||util.toInt(p.finish_at,0)>now)return {ok:true,skipped:true};p.state="ready";rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
+    pray.confirm = function (work,effects) { var v=pray.ensure(work),p=v.process;if(!p||p.state!=="ready"||p.finish_at>clock.now())return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"pray-not-ready"};var add=rules.items.add(work,p.output_id,p.output_count,effects);if(!add.ok)return add;v.boxes.push({item_id:p.output_id,count:p.output_count,created_at:clock.now(),claimed:false});v.process=null;rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK,item_list:[{item_id:p.output_id,count:p.output_count}]}; };
+
+    /* ---------------- C14 日历/签到 ----------------
+     * 日历是一个独立的持久化分区。服务器原本会按自然日下发任务和
+     * 幸运/特殊日结果；离线版在首次读取或提交时完成换日，并以 claim
+     * 键保证奖励只结算一次。配置存在时优先使用 CalendarData，缺少
+     * 配置时保留空列表，避免把未知的原版奖励误当成已解锁内容。
+     */
+    var calendar = rules.calendar = {};
+    calendar.dayKey = function (at) {
+        var date = new Date(util.toInt(at, clock.now()) * 1000);
+        return date.getUTCFullYear() + "-" + String(date.getUTCMonth() + 1).padStart(2, "0") + "-" + String(date.getUTCDate()).padStart(2, "0");
+    };
+    calendar.ensure = function (work, effects) {
+        var all = activities.ensure(work), value = all.calendar;
+        if (!util.isObject(value) || Array.isArray(value)) value = all.calendar = {};
+        if (!Array.isArray(value.new_flag)) value.new_flag = [];
+        if (!Array.isArray(value.note_list)) value.note_list = [];
+        if (!Array.isArray(value.lucky_days)) value.lucky_days = [];
+        if (!Array.isArray(value.st_days)) value.st_days = [];
+        if (!Array.isArray(value.task_list)) value.task_list = [];
+        if (!util.isObject(value.claimed)) value.claimed = {};
+        var key = calendar.dayKey(clock.now());
+        if (value.day_key && value.day_key !== key) {
+            value.day_key = key;
+            value.new_flag = [];
+            value.lucky_days = [];
+            value.st_days = [];
+            value.task_list = [];
+            /* claim history is intentionally retained; it is part of the save. */
+            if (effects) rules.effect(effects, "activities");
+        }
+        if (!value.day_key) value.day_key = key;
+        return value;
+    };
+    calendar.snapshot = function (work) {
+        var value = calendar.ensure(work);
+        /* Existing global tasks remain visible for old saves and clients. */
+        var tasks = value.task_list.length ? value.task_list : (rules.tasks && rules.tasks.snapshot ? rules.tasks.snapshot(work).tasks : []);
+        return {
+            new_flag: util.clone(value.new_flag),
+            task_list: util.clone(tasks),
+            lucky_days: util.clone(value.lucky_days),
+            st_days: util.clone(value.st_days),
+            refresh_time: clock.now() + 86400
+        };
+    };
+    calendar.noteSnapshot = function (work) {
+        var all = activities.ensure(work), note = all.calendar_note;
+        if (!util.isObject(note)) note = all.calendar_note = {};
+        if (!Array.isArray(note.list)) note.list = [];
+        return {list: util.clone(note.list)};
+    };
+    calendar.taskUpdate = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var value = calendar.ensure(work, effects), id = params.id !== undefined ? params.id : params.task_id;
+        if (id === undefined || id === null) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"calendar-task-id"};
+        var amount = Math.max(1, util.toInt(params.num !== undefined ? params.num : params.amount, 1));
+        var found = null;
+        for (var i = 0; i < value.task_list.length; i++) if (String(value.task_list[i].id) === String(id)) found = value.task_list[i];
+        if (!found) { found = {id:id, progress:0, target:1, claimed:false}; value.task_list.push(found); }
+        found.progress = Math.min(Math.max(0, util.toInt(found.target, 1)), Math.max(0, util.toInt(found.progress, 0) + amount));
+        /* Keep the legacy task model in sync so imported saves using tasks.list continue to work. */
+        if (rules.tasks && rules.tasks.update) rules.tasks.update(work, id, amount, effects);
+        rules.effect(effects, "activities");
+        return {ok:true, code:LF.ERR.OK, task:util.clone(found)};
+    };
+    calendar.findReward = function (list, day) {
+        var key = String(util.toInt(day, 0));
+        for (var i = 0; i < list.length; i++) {
+            var row = list[i];
+            if (row && String(row.day) === key) return row;
+        }
+        return null;
+    };
+    calendar.claim = function (work, kind, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var value = calendar.ensure(work, effects), day = util.toInt(params.day, 0), claimKey = kind + ":" + (day || value.day_key);
+        if (value.claimed[claimKey]) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"already-claimed"};
+        var row = null, reward = null;
+        if (kind === "beginner") {
+            if (day < 1 || day > 7) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"beginner-day"};
+            row = config.get("CalendarData", "beginner");
+            row = Array.isArray(row) ? row[day - 1] : null;
+            reward = row ? {item_id:util.toInt(row.item_id, -1), count:Math.max(1, util.toInt(row.num || row.count, 1))} : {clover:10};
+        } else {
+            row = calendar.findReward(kind === "luck" ? value.lucky_days : value.st_days, day);
+            if (!row) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"calendar-reward-unavailable"};
+            reward = {item_id:util.toInt(row.item_id, -1), count:Math.max(1, util.toInt(row.count, 1))};
+        }
+        var granted;
+        if (reward.clover) granted = rules.wallet.grant(work, {clover:reward.clover}, effects);
+        else if (reward.item_id >= 0) granted = rules.items.add(work, reward.item_id, reward.count, effects);
+        else return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"calendar-reward-invalid"};
+        if (!granted.ok) return granted;
+        value.claimed[claimKey] = true;
+        if (kind === "beginner") value.new_flag[day - 1] = 1;
+        else if (row) row.claimed = true;
+        rules.effect(effects, "activities");
+        return {ok:true, code:LF.ERR.OK, day:day, reward:reward};
     };
 
 /* ---- 65_travel.js ---- */
@@ -5856,6 +6125,9 @@
             server.push("album_load_new", {pictures: util.clone(albumState.newPictures), visted_pic: [], has_ads: false, is_share: false});
             server.push("album_load_recover", {pictures: util.clone(albumState.deleted)});
         }
+        if (effects.activities) {
+            server.push("activity_update", {activities: LF.activities.snapshot(work)});
+        }
         if (effects.gacha) {
             server.push("item_load_items", rules.snapshot.items(work));
         }
@@ -6332,13 +6604,27 @@
     server.handlers.furniture_flowerpot_harvest = {
         apply: function (work, params, effects) {
             /* M1 尚未实现花盆生长结算：返回空产物，界面正常关闭且不发放任何奖励 */
-            var result = rules.flowerpot.harvest(work, params.pos || params.index || 1, effects);
+            var location = params && params.type !== undefined
+                ? {type: params.type, index: params.index !== undefined ? params.index : params.pos}
+                : (params.pos !== undefined ? params.pos : (params.index !== undefined ? params.index : 1));
+            var result = rules.flowerpot.harvest(work, location, effects);
             if (result.ok) { result.response = {code: LF.ERR.OK, item_list: result.item_list}; }
             return result;
         }
     };
 
     /* ---- 天气 ---- */
+    /* Local extension: planting is absent from the legacy protocol list, but this handler gives diagnostic tools and a future UI an atomic endpoint. */
+    server.handlers.furniture_flowerpot_plant = {
+        idempotent: true,
+        apply: function (work, params, effects) {
+            var result = rules.flowerpot.plant(work, params || {}, effects);
+            if (result.ok) result.response = {code: LF.ERR.OK, finish_at: result.finish_at, plant: result.plant};
+            return result;
+        }
+    };
+    server.handlers.flowerpot_plant = server.handlers.furniture_flowerpot_plant;
+
     server.handlers.weather_load = {
         read: function (work) {
             return rules.snapshot.weather(work);
@@ -6373,9 +6659,15 @@
     server.handlers.album_load_recover = { read: function (work) { return {pictures:util.clone(rules.album.ensure(work).deleted)}; } };
     server.handlers.client_load_events = { read: function (work) { return rules.travel.eventsSnapshot(work); } };
     server.handlers.guest_load = { read: function (work) { var g=work.guests||{current:null,history:[]}; return {guest_list:g.current?[g.current]:[], drawing:{}}; } };
-    server.handlers.guest_confirm = { apply: function (work, params, effects) { work.guests=work.guests||{current:null,history:[]}; if(work.guests.current)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-exists'}; work.guests.current={id:params.id||params.guest_id||1,name:params.name||'',arrived_at:clock.now(),served:false}; rules.effect(effects,'guests'); return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_confirm = { apply: function (work, params, effects) { work.guests=work.guests||{current:null,history:[]}; if(work.guests.current)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-exists'}; var now=clock.now(); work.guests.current={id:params.id||params.guest_id||1,name:params.name||'',arrived_at:now,expires_at:util.toInt(params.expires_at||params.expire_at,now+86400),served:false}; rules.effect(effects,'guests'); return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_set_expire_time = { apply: function (work, params, effects) { var g=work.guests&&work.guests.current;if(!g)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-none'};var at=util.toInt(params.time||params.expire_at||params.expires_at,0);if(at<=clock.now())return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'expire-time'};g.expires_at=at;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK,expires_at:at}; } };
     server.handlers.guest_serve = { apply: function (work, params, effects) { var g=work.guests&&work.guests.current;if(!g)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-none'}; var item=util.toInt(params.item_id||params.id,-1), take=rules.items.consume(work,item,1,effects);if(!take.ok)return take;g.served=true;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK,item_id:item}; } };
     server.handlers.guest_finish = { apply: function (work, params, effects) { work.guests=work.guests||{current:null,history:[]};if(!work.guests.current)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-none'};work.guests.history=util.toArray(work.guests.history);work.guests.history.push(work.guests.current);work.guests.current=null;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_load_drawing = { read: function (work) { work.guests=work.guests||{}; return util.clone(work.guests.drawing||{is_accept:false,bag:[-1,-1,-1,-1],locked:false,gifts:[]}); } };
+    server.handlers.guest_accept_invit = { apply: function (work, params, effects) { work.guests=work.guests||{current:null,history:[]}; work.guests.drawing=work.guests.drawing||{is_accept:false,bag:[-1,-1,-1,-1],locked:false,gifts:[]}; if (work.guests.drawing.is_accept) return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-invite-set'}; work.guests.drawing.is_accept=!!(params.is_accept===undefined?true:params.is_accept); rules.effect(effects,'guests'); return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_lock_bag = { apply: function (work, params, effects) { work.guests.drawing=work.guests.drawing||{bag:[-1,-1,-1,-1]}; work.guests.drawing.locked=true; rules.effect(effects,'guests'); return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_putin_bag = { apply: function (work, params, effects) { var d=work.guests&&work.guests.drawing;if(!d||d.locked)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-bag-locked'};var pos=util.toInt(params.pos,0)-1,id=util.toInt(params.id,-1);if(pos<0||pos>=4||id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'guest-bag'};var take=rules.items.consume(work,id,1,effects);if(!take.ok)return take;d.bag[pos]=id;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK}; } };
+    server.handlers.guest_takeout_bag = { apply: function (work, params, effects) { var d=work.guests&&work.guests.drawing;if(!d||d.locked)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-bag-locked'};var pos=util.toInt(params.pos,0)-1;if(pos<0||pos>=4||util.toInt(d.bag[pos],-1)<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'guest-bag'};var id=d.bag[pos],add=rules.items.add(work,id,1,effects);if(!add.ok)return add;d.bag[pos]=-1;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK}; } };
     server.handlers.travel_load_note = { read: function (work) { return rules.travel.noteSnapshot(work); } };
     server.handlers.travel_load_gift = { read: function (work) { return rules.travel.giftSnapshot(work); } };
     server.placeholder("visit_load", {visitor: null, acquire: []});
@@ -6389,13 +6681,22 @@
     server.placeholder("museum_load", {museum_list: []});
     server.handlers.encyclopedia_load = { read: function (work) { var ids=Object.keys(work.items.house).map(function(id){return util.toInt(id,0);}); return {unlock_list:ids, unlock_desc:[], show_sub:[]}; } };
     server.handlers.encytravel_load = { read: function (work) { var a=rules.album.ensure(work); return {unlock_list:a.pictures.map(function(p){return p.pic_id||p.id;}), unlock_desc:[], show_sub:[]}; } };
-    server.handlers.calendar_load = { read: function (work) {
-        var snap=rules.tasks.snapshot(work), now=clock.now();
-        return {new_flag: [], task_list: snap.tasks, lucky_days: [], st_days: [], refresh_time: now};
-    } };
-    server.placeholder("calendar_load_note", {list: []});
+    server.handlers.calendar_load = { read: function (work) { return rules.calendar.snapshot(work); } };
+    server.handlers.calendar_load_note = { read: function (work) { return rules.calendar.noteSnapshot(work); } };
     server.handlers.calendar_task_update = { apply: function (work, params, effects) {
-        return rules.tasks.update(work, params.id || params.task_id, params.num || params.amount || 1, effects);
+        return rules.calendar.taskUpdate(work, params, effects);
+    } };
+    server.handlers.calendar_get_beginer_reward = { apply: function (work, params, effects) {
+        return rules.calendar.claim(work, "beginner", params, effects);
+    } };
+    server.handlers.calendar_get_code_reward = { apply: function (work, params, effects) {
+        return rules.calendar.claim(work, "beginner", params, effects);
+    } };
+    server.handlers.calendar_get_luck_reward = { apply: function (work, params, effects) {
+        return rules.calendar.claim(work, "luck", params, effects);
+    } };
+    server.handlers.calendar_get_st_reward = { apply: function (work, params, effects) {
+        return rules.calendar.claim(work, "st", params, effects);
     } };
     server.placeholder("recharge_load", {water: 0, change: 0, field: [], sack: []});
     server.placeholder("recharge_load_gift", {gift: []});
@@ -6431,7 +6732,45 @@
     server.placeholder("pray_load_grays", {wishs: [], stamps: [], boxes: [], wish_new: null, stamp_new: null});
     server.placeholder("client_load_publicity", {id_list: []});
 
+    /* C01-C17 ??????????????????????????????? */
+    (function () {
+        var activityCommands = {
+            visit: ["visit_load", "visit_open", "visit_set_carpet", "visit_set_expire_time"],
+            story: ["story_load", "story_read_new_story", "story_send_gift", "story_feedback_gift"],
+            misc_moment: ["misc_moment_load", "misc_moment_unlock"], easteregg: ["easteregg_load"],
+            touch: ["other_load_touch", "other_req_touch"], wishingpool: ["wishingpool_load", "wishingpool_wish"], lottery: ["lottery_load", "lottery_open", "lottery_select", "lottery_confirm_reward"],
+            animpicture: ["animpicture_load", "animpicture_add_pic", "animpicture_album_add_pic", "animpicture_album_remove_pic", "animpicture_get_item", "animpicture_guide", "animpicture_open_album", "animpicture_remove_pic", "animpicture_select_pic", "animpicture_use_item"],
+            museum: ["museum_load"], calendar_note: ["calendar_load_note"], recharge: ["recharge_load", "recharge_change", "recharge_water"], recharge_gift: ["recharge_load_gift"], recharge_num: ["recharge_update_num"], adsmgr: ["adsmgr_load"], rank: ["rank_load", "rank_get_intro"],
+            cooking: ["cooking_load_cooking", "cooking_complete_task", "cooking_look_ad", "cooking_refresh_task", "cooking_select", "cooking_start_cooking", "cooking_task_update"], capsule: ["capsule_load", "capsule_load_coin", "capsule_load_task", "capsule_fast_task", "capsule_get_coin", "capsule_patch", "capsule_twist"],
+            greetcard: ["greetcard_load", "greetcard_load_count", "greetcard_buy", "greetcard_change_bg", "greetcard_change_bless", "greetcard_feedback_gift", "greetcard_get_reward", "greetcard_get_task_item", "greetcard_get_task_reward", "greetcard_put_tags", "greetcard_read_new", "greetcard_send", "greetcard_send_gift", "greetcard_stock"],
+            springcard: ["springcard_load", "springcard_load_count", "springcard_load_task_item", "springcard_buy", "springcard_change_bg", "springcard_change_bless", "springcard_get_reward", "springcard_get_task_item", "springcard_get_task_reward", "springcard_put_tags", "springcard_send"],
+            partycake: ["partycake_load", "partycake_load_mate", "partycake_load_qa", "partycake_load_task", "partycake_answer", "partycake_get_mate", "partycake_light", "partycake_make", "partycake_reward_light", "partycake_reward_make", "partycake_reward_qa", "partycake_reward_share"],
+            museumday: ["museumday_load", "museumday_info", "museumday_load_path", "museumday_arrive", "museumday_dir_compass", "museumday_get_items", "museumday_inspire", "museumday_random_compass", "museumday_refresh", "museumday_start_advance"], pray: ["pray_load_grays", "pray_compose", "pray_confirm_make_box"]
+        };
+        Object.keys(activityCommands).forEach(function (key) {
+            activityCommands[key].forEach(function (name) {
+                /* Capture both values per handler; a plain var closure here makes every
+                 * activity endpoint use the final loop key (pray). */
+                (function (activityKey, protocolName) {
+                    if (protocolName.indexOf("_load") >= 0 || protocolName === "museumday_info" || protocolName === "rank_get_intro") {
+                        server.handlers[protocolName] = {read: function (work) { return LF.activities.read(work, activityKey); }};
+                    } else {
+                        server.handlers[protocolName] = {idempotent: true, apply: function (work, params, effects) {
+                            var result = LF.activities.merge(work, activityKey, params || {}, effects);
+                            if (result.ok) result.response = {code: LF.ERR.OK};
+                            return result;
+                        }};
+                    }
+                })(key, name);
+            });
+        });
+    })();
+
     /* ---- 本地可确认的运营/统计类协议 ---- */
+    server.handlers.pray_load_grays = {read:function(work){ return rules.pray ? rules.pray.ensure(work) : LF.activities.read(work, "pray"); }};
+    server.handlers.pray_compose = {idempotent:true,apply:function(work,params,effects){ return rules.pray.compose(work,params,effects); }};
+    server.handlers.pray_confirm_make_box = {idempotent:true,apply:function(work,params,effects){ return rules.pray.confirm(work,effects); }};
+
     var ackOnly = [
         "client_set_ads", "client_set_channel", "client_set_channel_id", "client_set_client_envinfo",
         "client_user_action", "hall_report_remote_addr", "client_set_lang", "client_add_push_id",
@@ -6568,6 +6907,17 @@
             }
         });
         list.push({
+            id: "flowerpot.finish",
+            dueAt: (work.flowerpot && work.flowerpot.plant_list || []).reduce(function (next, plant) {
+                if (!plant || plant.state === "done") return next;
+                var at = util.toInt(plant.finish_time || plant.end_time || plant.harvest_at, 0);
+                return at && (next === 0 || at < next) ? at : next;
+            }, 0),
+            run: function (effects) {
+                return rules.flowerpot ? rules.flowerpot.finish(work, effects, now) : {ok:true, skipped:true};
+            }
+        });
+        list.push({
             id: "furniture.craft.finish",
             dueAt: work.furniture.craft && work.furniture.craft.state === "running" ? util.toInt(work.furniture.craft.finish_at, 0) : 0,
             run: function (effects) {
@@ -6595,6 +6945,26 @@
                 }
                 return {ok: true, code: LF.ERR.OK, skipped: true};
             }
+        });
+        list.push({
+            id: "guest.expire",
+            dueAt: work.guests && work.guests.current ? util.toInt(work.guests.current.expires_at || work.guests.current.expire_at, 0) : 0,
+            run: function (effects) {
+                var guest = work.guests && work.guests.current;
+                if (!guest || util.toInt(guest.expires_at || guest.expire_at, 0) > now) return {ok:true, skipped:true};
+                work.guests.history = util.toArray(work.guests.history);
+                guest.status = "expired";
+                work.guests.history.push(guest);
+                work.guests.current = null;
+                rules.effect(effects, "guests");
+                return {ok:true, code:LF.ERR.OK, changed:{expired:true}};
+            }
+        });
+        list.push({
+            id: "pray.finish",
+            dueAt: work.activities && work.activities.pray && work.activities.pray.process && work.activities.pray.process.state === "running"
+                ? util.toInt(work.activities.pray.process.finish_at, 0) : 0,
+            run: function (effects) { return rules.pray ? rules.pray.finish(work, effects, now) : {ok:true, skipped:true}; }
         });
         return list;
     };

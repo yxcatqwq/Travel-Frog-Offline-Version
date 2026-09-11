@@ -626,15 +626,100 @@
         };
     };
     rules.flowerpot = rules.flowerpot || {};
-    rules.flowerpot.harvest = function (work, pos, effects) {
-        var list = util.toArray(work.flowerpot.plant_list), index = util.toInt(pos, 1) - 1;
-        if (index < 0 || index >= list.length || !util.isObject(list[index])) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"flowerpot-position"};
-        var plant=list[index], finish=util.toInt(plant.finish_time || plant.end_time || plant.harvest_at,0);
-        if (!(plant.state === "done" || util.toInt(plant.state,0)>=2 || (finish>0 && finish<=clock.now()))) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"flowerpot-not-ready"};
-        var itemId=util.toInt(plant.reward_id || plant.item_id || plant.seed_id,-1), count=Math.max(1,util.toInt(plant.reward_count || plant.count,1));
-        if(itemId>=0){var added=rules.items.add(work,itemId,count,effects);if(!added.ok)return added;}
-        list[index]=null; work.flowerpot.plant_list=list; rules.effect(effects,"flowerpot");
-        return {ok:true,code:LF.ERR.OK,item_list:itemId>=0?[{item_id:itemId,count:count}]:[]};
+    var flowerpot = rules.flowerpot;
+    flowerpot.ensure = function (work) {
+        if (!util.isObject(work.flowerpot)) work.flowerpot = {show_list: [], list: [], plant_list: []};
+        if (!Array.isArray(work.flowerpot.show_list)) work.flowerpot.show_list = [];
+        if (!Array.isArray(work.flowerpot.list)) work.flowerpot.list = [];
+        if (!Array.isArray(work.flowerpot.plant_list)) work.flowerpot.plant_list = [];
+        return work.flowerpot;
+    };
+    flowerpot.pot = function (work, type) {
+        var f = flowerpot.ensure(work), wanted = util.toInt(type, 1);
+        for (var i = 0; i < f.show_list.length; i++) {
+            var row = f.show_list[i];
+            if (util.isObject(row) && util.toInt(row.type, 1) === wanted) return row;
+        }
+        /* Older saves only have a numeric show entry. */
+        if (f.show_list.length && wanted === 1) return {type: 1, id: util.toInt(f.show_list[0], 0)};
+        return null;
+    };
+    flowerpot.slotCount = function (work, type) {
+        var row = flowerpot.pot(work, type), count = 0;
+        if (row) {
+            var definition = config.get("flowerpotData", row.id);
+            var positions = definition && (definition.pos_list || definition.positions);
+            if (Array.isArray(positions)) count = positions.length;
+        }
+        /* Configuration is optional in imported saves; the client has one slot for
+         * the default pot, while preserving imported plant indices is safer. */
+        if (!count) count = 1;
+        var f = flowerpot.ensure(work);
+        f.plant_list.forEach(function (p) {
+            if (util.isObject(p) && util.toInt(p.type, 1) === util.toInt(type, 1)) {
+                count = Math.max(count, util.toInt(p.index, 0));
+            }
+        });
+        return count;
+    };
+    flowerpot.find = function (work, type, index) {
+        var list = flowerpot.ensure(work).plant_list, wantedType = util.toInt(type, 1), wantedIndex = util.toInt(index, 1);
+        for (var i = 0; i < list.length; i++) {
+            var row = list[i];
+            if (util.isObject(row) && util.toInt(row.type, wantedType) === wantedType && util.toInt(row.index, 0) === wantedIndex) return {row: row, offset: i};
+        }
+        return null;
+    };
+    flowerpot.recipe = function (seedId, params) {
+        params = util.isObject(params) ? params : {};
+        var row = config.get("FlowerData", seedId) || config.get("flowerData", seedId) || {};
+        var duration = util.toInt(params.duration !== undefined ? params.duration : (row.grow_time || row.growTime || row.need_time || row.duration), 3600);
+        var rewardId = util.toInt(params.reward_id !== undefined ? params.reward_id : (row.reward_id !== undefined ? row.reward_id : (row.flower_id !== undefined ? row.flower_id : (row.item_id !== undefined ? row.item_id : seedId))), seedId);
+        var rewardCount = Math.max(1, util.toInt(params.reward_count !== undefined ? params.reward_count : (row.reward_count !== undefined ? row.reward_count : (row.count !== undefined ? row.count : 1)), 1));
+        return {duration: Math.max(1, duration), reward_id: rewardId, reward_count: rewardCount};
+    };
+    flowerpot.plant = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var f = flowerpot.ensure(work), type = util.toInt(params.type, 1), index = util.toInt(params.index !== undefined ? params.index : params.pos, 1);
+        var seedId = util.toInt(params.seed_id !== undefined ? params.seed_id : (params.item_id !== undefined ? params.item_id : params.id), -1);
+        var amount = Math.max(1, util.toInt(params.count, 1));
+        if (!flowerpot.pot(work, type)) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"flowerpot-unavailable"};
+        if (index < 1 || index > flowerpot.slotCount(work, type)) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"flowerpot-position"};
+        if (flowerpot.find(work, type, index)) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"flowerpot-occupied"};
+        if (seedId < 0 || !rules.itemInfo(seedId)) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"flowerpot-seed"};
+        if (rules.items.count(work, seedId) < amount) return {ok:false, code:LF.ERR.NO_ITEM, reason:"flowerpot-seed-not-owned"};
+        var recipe = flowerpot.recipe(seedId, params), consumed = rules.items.consume(work, seedId, amount, effects);
+        if (!consumed.ok) return consumed;
+        var now = clock.now(), plant = {type:type, index:index, id:seedId, seed_id:seedId, stage:1, state:"growing", started_at:now, finish_time:now + recipe.duration, reward_id:recipe.reward_id, reward_count:recipe.reward_count};
+        f.plant_list.push(plant);
+        rules.effect(effects, "flowerpot");
+        if (rules.tasks && rules.tasks.update) rules.tasks.update(work, "flowerpot_plant", 1, effects);
+        return {ok:true, code:LF.ERR.OK, plant:util.clone(plant), finish_at:plant.finish_time};
+    };
+    flowerpot.finish = function (work, effects, now) {
+        now = util.toInt(now, clock.now());
+        var f = flowerpot.ensure(work), changed = 0;
+        f.plant_list.forEach(function (plant) {
+            if (!util.isObject(plant) || plant.state === "done") return;
+            var finish = util.toInt(plant.finish_time || plant.end_time || plant.harvest_at, 0);
+            if (finish > 0 && finish <= now) { plant.state = "done"; plant.stage = 3; changed++; }
+        });
+        if (changed) rules.effect(effects, "flowerpot");
+        return {ok:true, code:LF.ERR.OK, changed:changed};
+    };
+    flowerpot.harvest = function (work, pos, effects) {
+        var f = flowerpot.ensure(work), type = 1, index = 0, match = null;
+        if (util.isObject(pos)) { type = util.toInt(pos.type, 1); index = util.toInt(pos.index !== undefined ? pos.index : pos.pos, 1); match = flowerpot.find(work, type, index); }
+        else { index = util.toInt(pos, 1); if (index > 0 && index <= f.plant_list.length) match = {row:f.plant_list[index - 1], offset:index - 1}; }
+        if (!match || !util.isObject(match.row)) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"flowerpot-position"};
+        var plant = match.row, finish = util.toInt(plant.finish_time || plant.end_time || plant.harvest_at, 0);
+        if (!(plant.state === "done" || util.toInt(plant.state, 0) >= 2 || (finish > 0 && finish <= clock.now()))) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"flowerpot-not-ready"};
+        var itemId = util.toInt(plant.reward_id || plant.item_id || plant.seed_id, -1), count = Math.max(1, util.toInt(plant.reward_count || plant.count, 1));
+        if (itemId >= 0) { var added = rules.items.add(work, itemId, count, effects); if (!added.ok) return added; }
+        /* 客户端按固定槽位读取 plant_list，收获后保留空槽而不是缩短数组。 */
+        f.plant_list[match.offset] = null; rules.effect(effects, "flowerpot");
+        if (rules.tasks && rules.tasks.update) rules.tasks.update(work, "flowerpot_harvest", 1, effects);
+        return {ok:true, code:LF.ERR.OK, item_list:itemId >= 0 ? [{item_id:itemId, count:count}] : []};
     };
 
     rules.snapshot.weather = function (work) {
