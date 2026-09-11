@@ -973,6 +973,9 @@
     server.handlers.pray_compose = {idempotent:true,apply:function(work,params,effects){ return rules.pray.compose(work,params,effects); }};
     server.handlers.pray_confirm_make_box = {idempotent:true,apply:function(work,params,effects){ return rules.pray.confirm(work,effects); }};
 
+    server.handlers.wishingpool_load = {read:function(work){ return rules.wishingpool ? rules.wishingpool.snapshot(work) : LF.activities.read(work, "wishingpool"); }};
+    server.handlers.wishingpool_wish = {idempotent:true,apply:function(work,params,effects){ return rules.wishingpool.wish(work,params,effects); }};
+
     server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
     server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};
     server.handlers.visit_set_carpet = {idempotent:true,apply:function(work,params,effects){var v=work.activities&&work.activities.visit&&work.activities.visit.visitor;if(!v)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"visitor-none"};v.carpet_id=util.toInt(params.id,-1);rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK};}};

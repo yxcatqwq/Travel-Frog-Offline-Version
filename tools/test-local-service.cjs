@@ -597,6 +597,28 @@ test('capsule protocol shape matches client callbacks without output parameters'
   assert.equal(result.reward_id, 1001); assert.equal(lf.state.data.activities.capsule.reward_list[0], 1001);
 });
 
+test('wishing pool spends coin, grants configured item, and deduplicates request', () => {
+  const r = runtime(); const {lf} = r;
+  const pool = lf.state.data.activities.wishingpool;
+  pool.end_time = lf.clock.now() + 3600; pool.coin = 2; pool.items = [{item_id: 9001, count: 1}];
+  const first = r.commit(w => lf.server.handlers.wishingpool_wish.apply(w, {request_id: 'wish-1'}, {}));
+  assert.equal(first.ok, true); assert.equal(first.item_list[0].item_id, 9001);
+  assert.equal(lf.state.data.activities.wishingpool.coin, 1);
+  const duplicate = r.commit(w => lf.server.handlers.wishingpool_wish.apply(w, {request_id: 'wish-1'}, {}));
+  assert.equal(duplicate.ok, true); assert.equal(duplicate.coin, 1);
+  assert.equal(lf.state.data.items.house[9001], 1);
+  r.reload(); assert.equal(lf.state.data.activities.wishingpool.reward_list.length, 1);
+});
+
+test('wishing pool rejects expired event without spending coin', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.activities.wishingpool.end_time = lf.clock.now() - 1;
+  lf.state.data.activities.wishingpool.coin = 1;
+  const result = r.commit(w => lf.server.handlers.wishingpool_wish.apply(w, {output_id: 9001}, {}));
+  assert.equal(result.ok, false); assert.equal(result.reason, 'wishingpool-closed');
+  assert.equal(lf.state.data.activities.wishingpool.coin, 1);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);

@@ -79,6 +79,51 @@
     rules.capsule.getCoin = function(work,params,effects){var v=rules.capsule.ensure(work);var explicit=params&&params.count!==undefined,n=explicit?Math.max(0,util.toInt(params.count,0)):Math.max(0,util.toInt(v.pre_coin,0));v.coin+=n;if(!explicit)v.pre_coin=0;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,coin:v.coin,pre_coin:v.pre_coin};};
     rules.capsule.reward = function(params){params=util.isObject(params)?params:{};var id=util.toInt(params.output_id||params.item_id||params.reward_id,-1),count=Math.max(1,util.toInt(params.output_count||params.num||params.count,1));if(id>=0)return {id:id,count:count};var row=config.get('capsuleData','reward');if(Array.isArray(row)&&row.length)row=row[0];if(util.isObject(row)){id=util.toInt(row.id||row.item_id||row.reward_id,-1);count=Math.max(1,util.toInt(row.num||row.count,1));}if(id<0)id=1001;return {id:id,count:count};};
     rules.capsule.twist = function(work,params,effects){params=util.isObject(params)?params:{};var v=rules.capsule.ensure(work),cost=Math.max(1,util.toInt(params.cost,1));if(v.coin<cost)return {ok:false,code:LF.ERR.NO_RESOURCE,reason:'capsule-coin'};var reward=rules.capsule.reward(params),id=reward.id,count=reward.count;if(id<0||!rules.itemInfo(id))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'capsule-output'};v.coin-=cost;var add=rules.items.add(work,id,count,effects);if(!add.ok)return add;v.reward_list.push(id);while(v.reward_list.length>16)v.reward_list.shift();rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,reward_id:id,item_list:[{item_id:id,count:count}],coin:v.coin};};
+
+    /* C17 许愿池。活动状态、开放期限和请求去重都保存在存档中，
+     * 这样离线推进或重启后重复点击不会再次扣币。奖池由导入档或
+     * 调用参数提供；没有奖品配置时明确失败，避免凭空发放奖励。 */
+    var wishingpool = rules.wishingpool = {};
+    wishingpool.ensure = function (work) {
+        var value = activities.ensure(work).wishingpool;
+        if (!util.isObject(value) || Array.isArray(value)) value = activities.ensure(work).wishingpool = {};
+        value.end_time = Math.max(0, util.toInt(value.end_time, 0));
+        value.coin = Math.max(0, util.toInt(value.coin, 0));
+        if (!Array.isArray(value.items)) value.items = [];
+        if (!Array.isArray(value.reward_list)) value.reward_list = [];
+        if (!util.isObject(value.requests)) value.requests = {};
+        return value;
+    };
+    wishingpool.snapshot = function (work) {
+        var value = wishingpool.ensure(work);
+        return {end_time:value.end_time, coin:value.coin, items:util.clone(value.items), reward_list:util.clone(value.reward_list)};
+    };
+    wishingpool.wish = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var value = wishingpool.ensure(work), requestId = params.request_id !== undefined ? String(params.request_id) : (params.req_id !== undefined ? String(params.req_id) : '');
+        if (requestId && value.requests[requestId]) return util.clone(value.requests[requestId]);
+        var now = clock.now();
+        if (value.end_time <= now) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:'wishingpool-closed'};
+        var cost = Math.max(1, util.toInt(params.cost, 1));
+        if (value.coin < cost) return {ok:false, code:LF.ERR.NO_RESOURCE, reason:'wishingpool-coin'};
+        var id = util.toInt(params.output_id !== undefined ? params.output_id : (params.item_id !== undefined ? params.item_id : params.reward_id), -1);
+        var count = Math.max(1, util.toInt(params.output_count !== undefined ? params.output_count : (params.count !== undefined ? params.count : 1), 1));
+        if (id < 0 && value.items.length) {
+            var row = value.items[0];
+            id = util.toInt(util.isObject(row) ? (row.item_id !== undefined ? row.item_id : (row.id !== undefined ? row.id : row.reward_id)) : row, -1);
+            if (util.isObject(row)) count = Math.max(1, util.toInt(row.count !== undefined ? row.count : row.num, count));
+        }
+        if (id < 0 || !rules.itemInfo(id)) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:'wishingpool-reward'};
+        value.coin -= cost;
+        var add = rules.items.add(work, id, count, effects);
+        if (!add.ok) return add;
+        var result = {ok:true, code:LF.ERR.OK, item_list:[{item_id:id, count:count}], coin:value.coin, end_time:value.end_time};
+        value.reward_list.push({item_id:id, count:count, at:now});
+        while (value.reward_list.length > 32) value.reward_list.shift();
+        if (requestId) value.requests[requestId] = util.clone(result);
+        rules.effect(effects, 'activities');
+        return result;
+    };
     /* ---------------- C14 日历/签到 ----------------
      * 日历是一个独立的持久化分区。服务器原本会按自然日下发任务和
      * 幸运/特殊日结果；离线版在首次读取或提交时完成换日，并以 claim
