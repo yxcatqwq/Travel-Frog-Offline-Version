@@ -644,6 +644,22 @@ test('dynamic picture guide and item count persist through protocol load', () =>
   r.reload(); assert.equal(lf.state.data.activities.animpicture.guide, 1);
 });
 
+test('dynamic picture moves photos across making and album slots with 1-based indexes', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.mail.pictures = [{id: 'p1', pic_id: 1}, {id: 'p2', pic_id: 2}];
+  const selected = r.commit(w => lf.server.handlers.animpicture_select_pic.apply(w, {pic_id: 'p1', phase: 1}, {}));
+  assert.equal(selected.ok, true); assert.equal(lf.state.data.mail.pictures.length, 1);
+  assert.equal(r.commit(w => lf.server.handlers.animpicture_open_album.apply(w, {index: 1}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.animpicture_album_add_pic.apply(w, {anim_index: 1, pic_index: 1, pic_id: 'p2'}, {})).ok, true);
+  assert.equal(lf.state.data.mail.pictures.length, 0);
+  assert.equal(r.commit(w => lf.server.handlers.animpicture_album_remove_pic.apply(w, {anim_index: 1, pic_index: 1}, {})).ok, true);
+  assert.equal(lf.state.data.mail.pictures.length, 1);
+  assert.equal(r.commit(w => lf.server.handlers.animpicture_get_item.apply(w, {}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.animpicture_use_item.apply(w, {index: 1, phase: 0}, {})).ok, true);
+  assert.equal(lf.state.data.mail.pictures.length, 2);
+  r.reload(); assert.equal(lf.state.data.activities.animpicture.pic_list.length, 1);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);

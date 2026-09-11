@@ -982,6 +982,13 @@
     server.handlers.animpicture_load = {read:function(work){ return rules.animpicture.snapshot(work); }};
     server.handlers.animpicture_guide = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.guide(work,effects); }};
     server.handlers.animpicture_get_item = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.getItem(work,params,effects); }};
+    server.handlers.animpicture_select_pic = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.select(work,params,effects); }};
+    server.handlers.animpicture_add_pic = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.add(work,params,effects); }};
+    server.handlers.animpicture_remove_pic = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.remove(work,params,effects); }};
+    server.handlers.animpicture_open_album = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.openAlbum(work,params,effects); }};
+    server.handlers.animpicture_album_add_pic = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.albumAdd(work,params,effects); }};
+    server.handlers.animpicture_album_remove_pic = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.albumRemove(work,params,effects); }};
+    server.handlers.animpicture_use_item = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.useItem(work,params,effects); }};
 
     server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
     server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};
