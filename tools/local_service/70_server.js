@@ -1012,6 +1012,17 @@
     server.handlers.partycake_light = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.light(work,effects); }};
     server.handlers.partycake_reward_light = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.rewardLight(work,effects); }};
     server.handlers.partycake_reward_share = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.rewardShare(work,params,effects); }};
+    server.handlers.greetcard_load = {read:function(work){ return rules.greetcard.snapshot(work); }};
+    server.handlers.greetcard_buy = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.buy(work,params,effects); }};
+    server.handlers.greetcard_change_bg = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.changeBg(work,params,effects); }};
+    server.handlers.greetcard_change_bless = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.changeBless(work,params,effects); }};
+    server.handlers.greetcard_put_tags = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.putTags(work,params,effects); }};
+    server.handlers.greetcard_send = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.send(work,effects); }};
+    server.handlers.greetcard_get_reward = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.getReward(work,params,effects); }};
+    server.handlers.greetcard_send_gift = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.sendGift(work,params,effects); }};
+    server.handlers.greetcard_stock = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.stock(work,effects); }};
+    server.handlers.greetcard_read_new = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.readNew(work,effects); }};
+    server.handlers.greetcard_get_task_reward = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.taskReward(work,effects); }};
 
     server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
     server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};

@@ -708,6 +708,20 @@ test('party cake restores materials and advances each stage exactly once', () =>
   r.reload(); assert.equal(lf.state.data.activities.partycake.cur_state, 6);
 });
 
+test('greeting card buy, compose, send, reward, and gift reply persist locally', () => {
+  const r = runtime(); const {lf} = r;
+  assert.equal(r.commit(w => lf.server.handlers.greetcard_buy.apply(w, {id: 201}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.greetcard_change_bg.apply(w, {id: 201}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.greetcard_buy.apply(w, {id: 202}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.greetcard_put_tags.apply(w, {pos: 1, id: 202}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.greetcard_send.apply(w, {}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.greetcard_get_reward.apply(w, {item_id: 9001}, {})).ok, true);
+  assert.equal(lf.state.data.items.house[9001], 1);
+  lf.state.data.activities.greetcard.get_list = [{gift: 0}]; lf.state.data.items.house[9001] = 2;
+  assert.equal(r.commit(w => lf.server.handlers.greetcard_send_gift.apply(w, {index: 1, gift: 9001}, {})).ok, true);
+  r.reload(); assert.equal(lf.state.data.activities.greetcard.get_list[0].gift, 9001);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);
