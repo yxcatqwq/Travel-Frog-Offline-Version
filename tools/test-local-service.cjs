@@ -1,0 +1,453 @@
+// Regression tests for the actual service modules, using only Node's stdlib.
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const {test} = require('node:test');
+const root = path.resolve(__dirname, '..');
+const source = fs.readdirSync(path.join(__dirname, 'local_service')).sort()
+  .filter(n => n.endsWith('.js') && n !== '99_footer.js')
+  .map(n => fs.readFileSync(path.join(__dirname, 'local_service', n), 'utf8')).join('\n') + '\n})(this);';
+
+function runtime(saved = new Map()) {
+  const timers = [];
+  const storage = {
+    fail: null, silent: false,
+    getItem(k) { return saved.has(k) ? saved.get(k) : null; },
+    setItem(k, v) {
+      if (this.fail === k) { if (this.silent) return false; throw Error('quota'); }
+      saved.set(k, v); return true;
+    },
+    removeItem(k) { saved.delete(k); }
+  };
+  const c = vm.createContext({console: {log() {}}, localStorage: storage,
+    setTimeout: fn => { timers.push(fn); return timers.length; }, setInterval: () => 1});
+  vm.runInContext(source, c);
+  c.window = c;
+  vm.runInContext(fs.readFileSync(path.join(root, 'offline_build/web_game/dev/fixtures.js'), 'utf8'), c);
+  const lf = c.LocalFrog;
+  const types = {LunchBox: 0, Amulet: 1, Tools: 2, Specialty: 3, FURNITURE_ITEM: 11, FURNITURE_TOOL: 12, RESOURCE: 14, Courtyard: 15};
+  c.Tabikaeru = {DataType: {ItemType: types, ItemResourceType: {CLOVER: 1, TICKET: 2}},
+    Define: {FourLeafCloverID: 1000, RAFFEL_NEEDTICKETS: 5, PrizeBalls: [40,25,22,9,3,1]}};
+  const tables = {ItemDB: 'Item_json', FurnitureShopDB: 'furnitureShopData_json',
+    FurnitureDB: 'furnitureData_json', ShopDataDB: 'shopData_json', PrizeDB: 'Prize_json'};
+  lf.config.get = (name, id) => {
+    const rows = c.__fixtures[tables[name]];
+    return Array.isArray(rows) ? rows.find(r => String(r.id) === String(id)) : null;
+  };
+  lf.config.ready = () => true;
+  lf.state.set(lf.stateDefaults());
+  lf.state.data.header.source = 'import';
+  lf.state.data.furniture.shop.start_time = 1;
+  lf.state.data.furniture.shop.leave_time = Math.floor(Date.now()/1000)+10000;
+  lf.state.data.compost.show_index = 1;
+  lf.state.data.compost.compost_list = [1];
+  function commit(fn, meta = {}) { return lf.tx.commit(fn, {reason: 'test', ...meta}); }
+  function reload() { const result = lf.store.load(); assert.equal(result.ok, true); }
+  return {c, lf, storage, saved, timers, commit, reload};
+}
+
+for (const [kind, id, pos] of [['bag',1001,1], ['desk',1001,1], ['bench',2001,1], ['bench',3001,6]]) {
+  test(`last copy survives ${kind} placement, restart, removal (${id})`, () => {
+    const r = runtime(); const {lf} = r;
+    lf.state.data.items.house[id] = 1;
+    const ops = kind === 'bench' ? lf.rules.bench : {
+      putIn: (w,p,id,e) => lf.rules.container.putIn(w,kind,p,id,e),
+      takeOut: (w,p,e) => lf.rules.container.takeOut(w,kind,p,e)
+    };
+    assert.equal(r.commit(w => ops.putIn(w,pos,id,{})).ok, true);
+    assert.equal(lf.state.data.items.house[id], undefined);
+    r.reload();
+    const slots = kind === 'bench' ? lf.state.data.furniture.bench : lf.state.data.items[kind];
+    assert.equal(slots[pos-1], id);
+    assert.equal(r.commit(w => ops.takeOut(w,pos,{})).ok, true);
+    assert.equal(lf.state.data.items.house[id], 1);
+    r.reload(); assert.equal(lf.state.data.items.house[id], 1);
+  });
+}
+
+for (const stage of ['SAVE_TMP_KEY','SAVE_BACKUP_KEY','SAVE_KEY']) {
+  for (const silent of [false,true]) {
+    test(`failed ${stage} write (${silent ? 'Egret false' : 'throw'}) rolls back all state`, () => {
+      const r = runtime(); const {lf} = r;
+      assert.equal(lf.store.save('seed'), true);
+      const before = lf.store.serialize(lf.state.data);
+      const disk = r.saved.get(lf.SAVE_KEY);
+      r.storage.fail = lf[stage]; r.storage.silent = silent;
+      const result = r.commit(w => {
+        w.wallet.clover += 10;
+        lf.rng.next();
+        return {ok: true};
+      }, {opId: 'reward'});
+      assert.equal(result.ok, false);
+      assert.equal(result.persisted, false);
+      assert.equal(lf.store.serialize(lf.state.data), before);
+      assert.equal(r.saved.get(lf.SAVE_KEY), disk);
+      r.storage.fail = null;
+      assert.equal(r.commit(w => {w.wallet.clover += 10; return {ok:true};}, {opId:'reward'}).ok,true);
+      assert.equal(lf.state.data.wallet.clover,10);
+    });
+  }
+}
+
+test('random stream commits with state and failed operations do not advance it', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.rng.seed = 42;
+  let first;
+  r.commit(w => { first = lf.rng.next(); return {ok:false}; });
+  assert.equal(lf.state.data.rng.counter,0);
+  r.commit(w => { assert.equal(lf.rng.next(),first); return {ok:true}; });
+  assert.equal(lf.state.data.rng.counter,1);
+  r.reload(); assert.equal(lf.state.data.rng.counter,1);
+  r.commit(w => { assert.notEqual(lf.rng.next(),first); return {ok:true}; });
+  assert.equal(lf.state.data.rng.counter,2);
+});
+
+test('future save version is rejected without overwriting the file', () => {
+  const r = runtime(); const {lf} = r;
+  const data = lf.store.snapshot(); data.header.formatVersion = 999;
+  const text = JSON.stringify(data); r.saved.set(lf.SAVE_KEY,text);
+  assert.equal(lf.store.load().ok,false);
+  assert.equal(r.saved.get(lf.SAVE_KEY),text);
+  assert.equal(lf.store.save('autosave'),false);
+  assert.equal(r.saved.get(lf.SAVE_KEY),text);
+});
+
+test('failed import and reset preserve memory and primary save', () => {
+  const r=runtime(); const {lf}=r;
+  lf.store.save('seed');
+  const before=JSON.stringify(lf.state.data);
+  const candidate=lf.store.snapshot(); candidate.wallet.clover=123;
+  r.storage.fail=lf.SAVE_KEY;
+  assert.equal(lf.diagImportSave(JSON.stringify(candidate)).ok,false);
+  assert.equal(JSON.stringify(lf.state.data),before);
+  lf.config.ready=()=>false;
+  assert.equal(lf.diagReset({confirm:true}).ok,false);
+  assert.equal(JSON.stringify(lf.state.data),before);
+  assert.equal(r.saved.get(lf.SAVE_KEY),before);
+});
+
+test('failed time advance rolls back clock and rewards together', () => {
+  const r=runtime(); const {lf}=r;
+  lf.store.save('seed'); const before=JSON.stringify(lf.state.data);
+  r.storage.fail=lf.SAVE_KEY;
+  assert.equal(lf.diagTimeTravel(3600).ok,false);
+  assert.equal(lf.state.data.clock.timeTravelSeconds,0);
+  assert.equal(lf.state.data.wallet.clover,0);
+  assert.equal(lf.diagTimeTravel(-1).ok,false);
+  assert.equal(r.saved.get(lf.SAVE_KEY),before);
+});
+
+test('malformed nested save sections are repaired with original values retained', () => {
+  const {lf}=runtime(); const work=lf.store.snapshot();
+  work.furniture.shop=12; work.compost.box_list='broken'; work.scheduler.history={invalid:true};
+  const result=lf.state.validate(work);
+  assert.equal(result.data.furniture.shop.start_time,0);
+  assert.equal(result.data.compost.box_list.length,6);
+  assert.equal(result.data.header.invalidFields['furniture.shop'],12);
+  assert.equal(result.data.header.invalidFields['compost.box_list'],'broken');
+});
+
+test('bag type and away state, locked bench and unavailable compost reject edits', () => {
+  const r=runtime(); const {lf}=r;
+  lf.state.data.items.house={1001:1,2001:1,5001:1};
+  assert.equal(r.commit(w=>lf.rules.container.putIn(w,'bag',1,2001,{})).ok,false);
+  lf.state.data.role.frogStatus=1;
+  assert.equal(r.commit(w=>lf.rules.container.putIn(w,'bag',1,1001,{})).ok,false);
+  lf.state.data.furniture.bench[0]=2001;lf.state.data.furniture.bench_lock=true;
+  assert.equal(r.commit(w=>lf.rules.bench.takeOut(w,1,{})).ok,false);
+  assert.equal(r.commit(w=>lf.rules.compost.putIn(w,1,2001,{})).ok,false);
+  lf.state.data.compost.show_index=0;
+  assert.equal(r.commit(w=>lf.rules.compost.putIn(w,1,5001,{})).ok,false);
+});
+
+test('last compost input copy survives restart and returns to inventory', () => {
+  const r=runtime(); const {lf}=r;
+  lf.state.data.items.house[5001]=1;
+  assert.equal(r.commit(w=>lf.rules.compost.putIn(w,1,5001,{})).ok,true);
+  r.reload(); assert.equal(lf.state.data.compost.box_list[0],5001);
+  assert.equal(lf.state.data.items.house[5001],undefined);
+  assert.equal(r.commit(w=>lf.rules.compost.takeOut(w,1,{})).ok,true);
+  assert.equal(lf.state.data.items.house[5001],1);
+});
+
+test('merchant only sells stocked items while present', () => {
+  const r=runtime(); const {lf}=r;lf.state.data.wallet.clover=100;
+  assert.equal(r.commit(w=>lf.rules.furniture.buyShop(w,11,{})).ok,false);
+  lf.state.data.furniture.shop.shop_list=[{shop_id:11,item_id:9001,num:1}];
+  assert.equal(r.commit(w=>lf.rules.furniture.buyShop(w,11,{})).ok,true);
+  assert.equal(lf.state.data.wallet.clover,80);
+  assert.equal(r.commit(w=>lf.rules.furniture.buyShop(w,11,{})).ok,false);
+  lf.state.data.furniture.shop.shop_list[0].num=1;
+  lf.state.data.furniture.shop.leave_time=1;
+  assert.equal(r.commit(w=>lf.rules.furniture.buyShop(w,11,{})).ok,false);
+  assert.equal(lf.rules.bench.isOpen(lf.state.data),true);
+});
+
+test('invalid facility change uses -1 failure code and never changes selection', () => {
+  const r=runtime(); const {lf,c}=r;
+  c.ProtocolList={protocolList:{furniture_replace_compost:[['index'],true]}};
+  let reply; lf.server.respond=(q,d)=>reply=d;lf.server.emitEffects=()=>{};
+  lf.server.dispatch({cmd:'furniture.replace_compost',session:1,data:{index:999}});
+  assert.equal(reply.code,-1);assert.equal(lf.state.data.compost.show_index,1);
+});
+
+test('failed boot never signals successful login or permits autosave', () => {
+  const {lf}=runtime(); let callbacks=0;
+  const control={syncComplete:true,loginCallback(){callbacks++;},dispatchEvent(){callbacks++;}};
+  lf.boot.fail(control,new Error('storage unavailable'));
+  assert.equal(callbacks,0);assert.equal(control.syncComplete,false);
+  assert.equal(lf.boot.ensureStarted(),false);assert.equal(lf.store.save('autosave'),false);
+});
+
+test('scheduler computes real next deadline and handles merchant departure once', () => {
+  const r=runtime();const {lf}=r;const now=lf.clock.now();
+  lf.state.data.clover.slots=[{clover_id:1,last_harvest:now,rebirth_span:600,element:0,sprite:1}];
+  lf.state.data.weather.nextAt=now+1000;lf.state.data.furniture.shop.leave_time=now-1;
+  r.commit(w=>({ok:true,changed:lf.scheduler.catchUp(w,{})}));
+  assert.equal(lf.state.data.scheduler.nextDueAt,now+600);
+  const second=r.commit(w=>({ok:true,changed:lf.scheduler.catchUp(w,{})}));
+  assert.equal(second.changed.ran.includes('shop.leave'),false);
+});
+
+test('read errors never create a replacement save', () => {
+  const r=runtime(); const before=JSON.stringify(r.lf.state.data);
+  r.storage.getItem=()=>{throw Error('read denied');};
+  assert.equal(r.lf.store.load().ok,false);
+  assert.equal(JSON.stringify(r.lf.state.data),before);
+  assert.equal(r.lf.store.save('autosave'),false);
+});
+
+test('clock continues forward after system clock is turned back', () => {
+  const {lf,c}=runtime();
+  vm.runInContext('Date.now=function(){return 2000000;}',c);
+  lf.state.data.clock=lf.clock.defaults();
+  assert.equal(lf.clock.now(),2000);
+  vm.runInContext('Date.now=function(){return 1000000;}',c);
+  assert.equal(lf.clock.now(),2000);
+  vm.runInContext('Date.now=function(){return 1001000;}',c);
+  assert.equal(lf.clock.now(),2001);
+});
+
+test('unclaimed raffle result cannot be overwritten by a new draw', () => {
+  const r=runtime();const {lf}=r;
+  lf.state.data.wallet.ticket=20;
+  lf.state.data.items.gacha.pending={rank:1,prizes:[2],settled:false};
+  assert.equal(r.commit(w=>lf.rules.gacha.roll(w,{})).ok,false);
+  assert.equal(lf.state.data.wallet.ticket,20);
+  assert.equal(lf.state.data.items.gacha.pending.rank,1);
+});
+
+test('starter kit preloaded items are transferred, not duplicated', () => {
+  const {lf}=runtime(); const previous=lf.state.data;
+  lf.config.ids=(name)=>({ItemDB:[1001,1002,2001,2002,3001,3002,3003],FurnitureShopDB:[11],
+    CompostData:[1],TumblerData:[21],pocketData:[31]}[name] || []);
+  const fresh=lf.state.newSave();
+  assert.equal(lf.state.data,previous);
+  for(const id of [2001,2002,3001,3002,3003]) {
+    assert.equal(lf.rules.items.ownedCount(fresh,id),fresh.header.starterKit.items[id]);
+  }
+});
+
+test('backup recovery never replaces good backup with corrupt primary', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.wallet.clover=55; lf.store.save('seed'); lf.store.save('backup');
+  const backup = r.saved.get(lf.SAVE_BACKUP_KEY);
+  r.saved.set(lf.SAVE_KEY,'broken'); r.reload();
+  assert.equal(lf.state.data.wallet.clover,55);
+  assert.equal(lf.store.save('recover'),true);
+  assert.equal(r.saved.get(lf.SAVE_BACKUP_KEY),backup);
+});
+
+test('same request returns original result once; restarted session can buy again', () => {
+  const r=runtime(); const {lf,c}=r;
+  const replies=[];
+  c.ProtocolList={protocolList:{test_buy:[[],true]}};
+  lf.server.respond=(req,data)=>replies.push(data);
+  lf.server.emitEffects=()=>{};
+  lf.server.handlers.test_buy={idempotent:true,apply(w){w.wallet.clover++;return {ok:true,response:{code:0,value:w.wallet.clover}};}};
+  const req={cmd:'test.buy',session:1,data:{}};
+  lf.server.dispatch(req); lf.server.dispatch(req);
+  assert.equal(lf.state.data.wallet.clover,1);
+  assert.deepEqual(JSON.parse(JSON.stringify(replies)),[{code:0,value:1},{code:0,value:1}]);
+  const second=runtime(r.saved); second.reload();
+  second.c.ProtocolList=c.ProtocolList;
+  second.lf.server.respond=()=>{}; second.lf.server.emitEffects=()=>{};
+  second.lf.server.handlers.test_buy=lf.server.handlers.test_buy;
+  second.lf.server.dispatch(req);
+  assert.equal(second.lf.state.data.wallet.clover,2);
+});
+
+test('protocol failure neither emits success effects nor returns success', () => {
+  const r=runtime(); const {lf,c}=r;
+  lf.store.save('seed'); r.storage.fail=lf.SAVE_KEY;
+  c.ProtocolList={protocolList:{test_buy:[[],true]}};
+  let response, pushes=0;
+  lf.server.respond=(req,data)=>response=data;
+  lf.server.emitEffects=()=>pushes++;
+  lf.server.handlers.test_buy={apply(w,p,e){w.wallet.clover++;e.wallet=true;return {ok:true};}};
+  lf.server.dispatch({cmd:'test.buy',session:1,data:{}});
+  assert.notEqual(response.code,0); assert.equal(pushes,0); assert.equal(lf.state.data.wallet.clover,0);
+});
+
+test('error trap survives repeated wrapping and calls client handler once', () => {
+  const {lf,c}=runtime(); let calls=0;
+  c.onerror=()=>{calls++;return true;};
+  lf.boot.installErrorTrap();
+  lf.boot.wrapClientErrorHandler(); lf.boot.wrapClientErrorHandler();
+  assert.equal(c.onerror('test','file',1,1,new Error('test')),true);
+  assert.equal(calls,1);
+  assert.equal(lf.boot.errorLog.length,1);
+});
+
+test('more than 200 queued commands all drain without another incoming command', () => {
+  const r=runtime(); let count=0;
+  r.lf.server.dispatch=()=>count++;
+  for(let i=0;i<205;i++)r.lf.server.receive('{}');
+  while(r.timers.length)r.timers.shift()();
+  assert.equal(count,205);
+});
+
+
+test('travel loop persists, catches up offline, and settles once', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.items.bag = [1001, -1, -1, -1];
+  lf.state.data.items.bagCompleted = true;
+  let effects = {};
+  let out = r.commit(w => lf.rules.travel.prepareAndStart(w, {destinationId: 7, duration: 60}, effects));
+  assert.equal(out.ok, true);
+  assert.equal(lf.state.data.travel.status, 'traveling');
+  assert.equal(lf.state.data.items.bag[0], -1);
+  r.commit(w => { w.clock.timeTravelSeconds += 120; return {ok: true, changed: lf.rules.travel.advance(w, effects)}; });
+  assert.equal(lf.state.data.travel.status, 'result');
+  assert.equal(lf.state.data.events.pending.length, 2);
+  const eventId = lf.state.data.events.pending[1].id;
+  const before = lf.state.data.wallet.clover;
+  out = r.commit(w => lf.rules.travel.confirmEvent(w, eventId, effects));
+  assert.equal(out.ok, true);
+  assert.equal(lf.state.data.travel.status, 'home');
+  assert.equal(lf.state.data.wallet.clover, before + 12);
+  assert.equal(lf.state.data.mail.pictures.length, 1);
+  assert.equal(r.commit(w => lf.rules.travel.claim(w, {}, {})).ok, false);
+  r.reload();
+  assert.equal(lf.state.data.travel.status, 'home');
+  assert.equal(lf.state.data.wallet.clover, before + 12);
+});
+
+test('completed bag starts a trip through the protocol handler', () => {
+  const r = runtime(); const {lf, c} = r;
+  c.ProtocolList = {protocolList: {item_set_bag_completed: [['completed'], false]}};
+  lf.server.respond = () => {}; lf.server.emitEffects = () => {};
+  lf.state.data.items.bag = [1001, -1, -1, -1];
+  lf.server.dispatch({cmd: 'item.set_bag_completed', data: {completed: true}});
+  assert.equal(lf.state.data.travel.status, 'traveling');
+  assert.equal(lf.state.data.items.bagCompleted, false);
+});
+
+test('album stores, pages, deletes, recovers, and saves new pictures', () => {
+  const r = runtime(); const {lf} = r; const effects = {};
+  lf.state.data.album.newPictures = [{id:'new-1', layers:[]}];
+  assert.equal(r.commit(w => lf.rules.album.saveNew(w, 'new-1', effects)).ok, true);
+  assert.equal(lf.rules.album.load(lf.state.data, 1, 1).total, 1);
+  assert.equal(r.commit(w => lf.rules.album.remove(w, 'new-1', effects)).ok, true);
+  assert.equal(lf.state.data.album.pictures.length, 0);
+  assert.equal(r.commit(w => lf.rules.album.recover(w, 'new-1', effects)).ok, true);
+  assert.equal(lf.state.data.album.pictures.length, 1);
+  r.reload(); assert.equal(lf.state.data.album.pictures[0].id, 'new-1');
+});
+
+test('album starts at 30 pages and expansion consumes clovers', () => {
+  const r = runtime(); const {lf} = r; const effects = {};
+  assert.equal(lf.rules.album.snapshot(lf.state.data).capacity, 30);
+  for (let i = 0; i < 180; i++) {
+    lf.state.data.album.newPictures.push({id: `p-${i}`, layers: []});
+    assert.equal(r.commit(w => lf.rules.album.saveNew(w, `p-${i}`, effects)).ok, true);
+  }
+  lf.state.data.album.newPictures.push({id: 'p-180', layers: []});
+  assert.equal(r.commit(w => lf.rules.album.saveNew(w, 'p-180', effects)).code, 75);
+  lf.state.data.wallet.clover = 1000;
+  assert.equal(r.commit(w => lf.rules.album.expand(w, {pages: 1}, effects)).ok, true);
+  assert.equal(lf.state.data.album.capacity, 31);
+  assert.equal(lf.state.data.wallet.clover, 0);
+  assert.equal(lf.state.data.album.deleted.length, 1);
+  r.reload();
+  assert.equal(lf.state.data.album.capacity, 31);
+});
+
+test('flowerpot harvest returns mature reward and clears plant slot', () => {
+  const r = runtime(); const {lf} = r; const effects = {};
+  lf.state.data.flowerpot.plant_list = [{state: 'done', reward_id: 1001, reward_count: 2}];
+  assert.equal(r.commit(w => lf.rules.flowerpot.harvest(w, 1, effects)).ok, true);
+  assert.equal(lf.rules.items.ownedCount(lf.state.data, 1001), 2);
+  assert.equal(lf.state.data.flowerpot.plant_list[0], null);
+});
+
+test('compost processes filled slots and pays reward after deadline', () => {
+  const r=runtime(); const {lf}=r; const effects={};
+  lf.state.data.compost.show_index=1; lf.state.data.compost.compost_list=[1]; lf.state.data.compost.box_list[0]=5001;
+  assert.equal(r.commit(w=>lf.rules.compost.start(w,effects)).ok,true);
+  lf.state.data.clock.timeTravelSeconds += 3601;
+  assert.equal(r.commit(w=>({ok:true,changed:lf.scheduler.catchUp(w,effects)})).ok,true);
+  assert.equal(r.commit(w=>lf.rules.compost.collect(w,effects)).ok,true);
+  assert.equal(lf.state.data.wallet.clover,10); assert.equal(lf.state.data.compost.box_list[0],-1);
+});
+
+test('tasks progress and reward persist locally', () => {
+  const r=runtime(); const {lf}=r; const effects={};
+  lf.state.data.tasks.list=[{id:7,progress:0,target:2,reward_clover:5,claimed:false}];
+  assert.equal(r.commit(w=>lf.rules.tasks.update(w,7,2,effects)).ok,true);
+  assert.equal(r.commit(w=>lf.rules.tasks.claim(w,7,effects)).ok,true);
+  assert.equal(lf.state.data.wallet.clover,5); r.reload(); assert.equal(lf.state.data.tasks.list[0].claimed,true);
+});
+
+test('calendar task protocol reads and updates local task state', () => {
+  const r=runtime(); const {lf,c}=r; c.ProtocolList={protocolList:{calendar_task_update:[['id','num'],true]}};
+  lf.state.data.tasks.list=[{id:3,progress:0,target:1,claimed:false}]; lf.server.respond=()=>{}; lf.server.emitEffects=()=>{};
+  lf.server.dispatch({cmd:'calendar_task_update',session:99,data:{id:3,num:1}});
+  assert.equal(lf.state.data.tasks.list[0].progress,1);
+});
+
+test('claiming a task can unlock and persist an achievement', () => {
+  const r=runtime(); const {lf}=r, effects={};
+  lf.state.data.tasks.list=[{id:8,progress:1,target:1,claimed:false,achieve_id:42}];
+  assert.equal(r.commit(w=>lf.rules.tasks.claim(w,8,effects)).ok,true);
+  assert.deepEqual(Array.from(lf.state.data.role.achieveList),[42]); r.reload(); assert.deepEqual(Array.from(lf.state.data.role.achieveList),[42]);
+});
+
+test('annual, share, and encyclopedia reads derive from local state', () => {
+  const r=runtime(); const {lf}=r;
+  lf.state.data.items.house={1001:2}; lf.state.data.album.pictures=[{id:'p1',pic_id:77,layers:[]}];
+  assert.equal(lf.server.handlers.annual_load.read(lf.state.data).picture_count,1);
+  assert.equal(lf.server.handlers.share_load.read(lf.state.data).pic_list.length,1);
+  assert.deepEqual(Array.from(lf.server.handlers.encyclopedia_load.read(lf.state.data).unlock_list),[1001]);
+});
+
+test('item gift opens once and persists cleared state', () => {
+  const r=runtime(); const {lf}=r, effects={};
+  lf.state.data.items.selectGift=[{item_id:1001,count:2}];
+  assert.equal(r.commit(w=>lf.server.handlers.item_gift_open.apply(w,{},effects)).ok,true);
+  assert.equal(lf.rules.items.ownedCount(lf.state.data,1001),2); assert.equal(lf.state.data.items.selectGift.length,0);
+  assert.equal(r.commit(w=>lf.server.handlers.item_gift_open.apply(w,{},effects)).ok,false); r.reload(); assert.equal(lf.state.data.items.selectGift.length,0);
+});
+
+test('mail remains available during offline scheduler catch-up', () => {
+  const r=runtime(); const {lf}=r, effects={};
+  lf.state.data.mail.mails=[{id:1,expire_at:lf.clock.now()-1,opened:false},{id:2,expire_at:lf.clock.now()+999,opened:false}];
+  r.commit(w=>({ok:true,changed:lf.scheduler.catchUp(w,effects)}));
+  assert.equal(lf.state.data.mail.mails.length,2);
+});
+
+test('guest state survives validation and guest_load returns local visitor', () => {
+  const r=runtime(); const {lf}=r; lf.state.data.guests.current={id:9,name:'local-guest'};
+  const validated=lf.state.validate(lf.state.data).data; assert.equal(validated.guests.current.id,9);
+  assert.equal(lf.server.handlers.guest_load.read(validated).guest_list[0].name,'local-guest');
+});
+
+test('guest confirm, serve, and finish are local atomic operations', () => {
+  const r=runtime(); const {lf}=r, effects={}; lf.state.data.items.house[1001]=1;
+  assert.equal(r.commit(w=>lf.server.handlers.guest_confirm.apply(w,{id:5},effects)).ok,true);
+  assert.equal(r.commit(w=>lf.server.handlers.guest_serve.apply(w,{item_id:1001},effects)).ok,true);
+  assert.equal(lf.rules.items.ownedCount(lf.state.data,1001),0);
+  assert.equal(r.commit(w=>lf.server.handlers.guest_finish.apply(w,{},effects)).ok,true);
+  assert.equal(lf.state.data.guests.current,null); assert.equal(lf.state.data.guests.history.length,1);
+});

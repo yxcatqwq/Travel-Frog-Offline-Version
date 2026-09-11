@@ -1,0 +1,35 @@
+# Local/build inputs and large unpacked assets
+*.apk
+offline_build/native_inspect/
+offline_build/eab_raw/
+offline_build/eab/
+offline_build/recon/
+offline_build/diag/
+offline_build/*.png
+offline_build/*.log
+offline_build/web_game/resource/
+offline_build/web_game/js/main.min.js
+offline_build/web_game/dev/
+tools/android-sdk/
+tools/build-tools/
+tools/build-tools-extract/
+tools/platform-tools/
+tools/*.zip
+tools/*.jar
+tools/__pycache__/
+alignment_review/
+generated_photos/
+offline_build/*
+!offline_build/travel_frog_local_service.apk
+!offline_build/web_game/
+offline_build/web_game/*
+!offline_build/web_game/manifest.json
+!offline_build/web_game/js/
+offline_build/web_game/js/*
+!offline_build/web_game/js/local_service.js
+
+# Keep the final install package in Git LFS.
+!offline_build/travel_frog_local_service.apk
+
+# Temporary source APK copied into the build directory.
+efdf*.apk.1

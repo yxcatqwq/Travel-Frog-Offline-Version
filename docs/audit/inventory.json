@@ -1,0 +1,6686 @@
+{
+  "metadata": {
+    "apk": "travel_frog_local_native.apk",
+    "manifest": {
+      "initial": [
+        "js/egret.min.js",
+        "js/egret.web.min.js",
+        "js/eui.min.js",
+        "js/assetsmanager.min.js",
+        "js/tween.min.js",
+        "js/game.min.js",
+        "js/dragonBones.min.js",
+        "js/socket.min.js",
+        "js/promise.min.js",
+        "js/howler.min.js",
+        "js/index.min.js",
+        "js/ejoySDK.min.js",
+        "js/jszip.min.js",
+        "js/spine.min.js",
+        "js/particle.min.js"
+      ],
+      "game": [
+        "js/default.thm.js",
+        "js/main.min.js"
+      ],
+      "version": "1001"
+    },
+    "main_js_sha256": "2d97bef8ddd3c0814cb25cf4b06367061387d0b93ccd42e92066bb17d581c269",
+    "method": "Static literal protocol definitions, send calls and callback registrations in bundled main.min.js",
+    "limitations": "No live-account capture; request argument names only, no complete response schemas. Dynamic names and native SDK endpoints need separate verification.",
+    "defined_protocol_count": 245,
+    "registered_callback_count": 95,
+    "extra_callback_count": 17,
+    "literal_send_protocol_count": 185,
+    "union_count": 262,
+    "registered_model_count": 39,
+    "timer_event_type_count": 30,
+    "protocol_group_counts": {
+      "client": 29,
+      "clover": 5,
+      "hall": 7,
+      "item": 16,
+      "guest": 10,
+      "album": 9,
+      "mail": 5,
+      "story": 4,
+      "tutorial": 4,
+      "visit": 4,
+      "rank": 3,
+      "travel": 8,
+      "pray": 3,
+      "cooking": 7,
+      "museum": 1,
+      "furniture": 15,
+      "annual": 2,
+      "museumday": 10,
+      "koto": 9,
+      "recharge": 7,
+      "task": 5,
+      "greetcard": 14,
+      "capsule": 7,
+      "share": 2,
+      "partycake": 12,
+      "springcard": 12,
+      "adsmgr": 5,
+      "encyclopedia": 2,
+      "encytravel": 2,
+      "lottery": 4,
+      "calendar": 7,
+      "misc": 2,
+      "animpicture": 10,
+      "wishingpool": 2,
+      "other": 1
+    }
+  },
+  "protocols": [
+    {
+      "name": "adsmgr_ads_notify",
+      "group": "广告与奖励",
+      "priority": "P3",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "AdsModel.initModel",
+          "character_offset": 73199
+        }
+      ],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "adsmgr_load",
+      "group": "广告与奖励",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381875,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "AdsModel.initModel",
+          "character_offset": 73199
+        }
+      ],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "adsmgr_refuse",
+      "group": "广告与奖励",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381926,
+      "send_sites": [
+        {
+          "symbol": "AdsModel.req_refuse",
+          "character_offset": 74297
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "adsmgr_share",
+      "group": "广告与奖励",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [
+        "ads_type"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 381895,
+      "send_sites": [
+        {
+          "symbol": "AdsModel.req_share",
+          "character_offset": 73681
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "adsmgr_share_ads",
+      "group": "广告与奖励",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [
+        "ads_id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 381948,
+      "send_sites": [
+        {
+          "symbol": "AdsModel.share_ads",
+          "character_offset": 74550
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "adsmgr_shop_free",
+      "group": "广告与奖励",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381981,
+      "send_sites": [
+        {
+          "symbol": "AdsModel.req_shop_free",
+          "character_offset": 74654
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "album_delete",
+      "group": "照片与相册",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 377619,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.deletePictureInfo",
+          "character_offset": 196461
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "album_delete_new",
+      "group": "照片与相册",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 377590,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.deleteAllAdsPicture",
+          "character_offset": 198368
+        },
+        {
+          "symbol": "TravelModel.deleteNewPictureInfo",
+          "character_offset": 199385
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "album_load",
+      "group": "照片与相册",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "start",
+        "count"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 377417,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.checkPictureInfoPage",
+          "character_offset": 196239
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "album_load_all",
+      "group": "照片与相册",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 377451,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.requestAlbum",
+          "character_offset": 194727
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "album_load_by_id_list",
+      "group": "照片与相册",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "id_list"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 377474,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.checkPictureByIds",
+          "character_offset": 195758
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "album_load_new",
+      "group": "照片与相册",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 377513,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "album_load_recover",
+      "group": "照片与相册",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 377536,
+      "send_sites": [
+        {
+          "symbol": "AlbumView.on_RecoverBtn",
+          "character_offset": 473738
+        },
+        {
+          "symbol": "PictureRecover.onComplete",
+          "character_offset": 493549
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "album_recover",
+      "group": "照片与相册",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 377644,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.recoverPictureInfo",
+          "character_offset": 199694
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "album_save_new",
+      "group": "照片与相册",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 377563,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.saveNewPictureInfo",
+          "character_offset": 198832
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "animpicture_add_pic",
+      "group": "动态照片",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "anim_index",
+        "ids"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 382629,
+      "send_sites": [
+        {
+          "symbol": "AnimPictureModel.req_add_pic",
+          "character_offset": 81238
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "animpicture_album_add_pic",
+      "group": "动态照片",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "anim_index",
+        "pic_index",
+        "pic_uid"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 382780,
+      "send_sites": [
+        {
+          "symbol": "AnimPictureModel.req_album_add_pic",
+          "character_offset": 82402
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "animpicture_album_remove_pic",
+      "group": "动态照片",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "anim_index",
+        "pic_index",
+        "is_delete"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 382848,
+      "send_sites": [
+        {
+          "symbol": "AnimPictureModel.req_album_remove_pic",
+          "character_offset": 82825
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "animpicture_get_item",
+      "group": "动态照片",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382565,
+      "send_sites": [
+        {
+          "symbol": "AnimPictureModel.req_get_item",
+          "character_offset": 80204
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "animpicture_guide",
+      "group": "动态照片",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382539,
+      "send_sites": [
+        {
+          "symbol": "AnimPictureModel.req_guide",
+          "character_offset": 80025
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "animpicture_load",
+      "group": "动态照片",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382514,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "AnimPictureModel.initModel",
+          "character_offset": 79636
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "animpicture_open_album",
+      "group": "动态照片",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "index"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 382742,
+      "send_sites": [
+        {
+          "symbol": "AnimPictureModel.req_open_album",
+          "character_offset": 82048
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "animpicture_remove_pic",
+      "group": "动态照片",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "anim_index",
+        "pic_index",
+        "is_delete"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 382675,
+      "send_sites": [
+        {
+          "symbol": "AnimPictureModel.req_remove_pic",
+          "character_offset": 81622
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "animpicture_select_pic",
+      "group": "动态照片",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 382594,
+      "send_sites": [
+        {
+          "symbol": "AnimPictureModel.req_select_pic",
+          "character_offset": 80484
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "animpicture_use_item",
+      "group": "动态照片",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "anim_index",
+        "item_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 382921,
+      "send_sites": [
+        {
+          "symbol": "AnimPictureModel.req_use_item",
+          "character_offset": 83270
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "annual_load",
+      "group": "年度回顾",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379465,
+      "send_sites": [
+        {
+          "symbol": "AnnualReviewModel.request",
+          "character_offset": 84306
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "annual_share",
+      "group": "年度回顾",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379485,
+      "send_sites": [
+        {
+          "symbol": "o.showShare",
+          "character_offset": 521184
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "calendar_get_beginer_reward",
+      "group": "日历与签到",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382320,
+      "send_sites": [
+        {
+          "symbol": "CalendarModel.req_beginer_reward",
+          "character_offset": 85593
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "calendar_get_code_reward",
+      "group": "日历与签到",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "day"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 382356,
+      "send_sites": [
+        {
+          "symbol": "CalendarModel.req_code_reward",
+          "character_offset": 86051
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "calendar_get_luck_reward",
+      "group": "日历与签到",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382425,
+      "send_sites": [
+        {
+          "symbol": "CalendarModel.req_luck_reward",
+          "character_offset": 86947
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "calendar_get_st_reward",
+      "group": "日历与签到",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382394,
+      "send_sites": [
+        {
+          "symbol": "CalendarModel.req_st_reward",
+          "character_offset": 86513
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "calendar_load",
+      "group": "日历与签到",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382242,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "CalendarModel.initModel",
+          "character_offset": 84853
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "calendar_load_note",
+      "group": "日历与签到",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382264,
+      "send_sites": [
+        {
+          "symbol": "CalendarView.childrenCreated",
+          "character_offset": 532835
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "CalendarModel.initModel",
+          "character_offset": 84853
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "calendar_task_update",
+      "group": "日历与签到",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382291,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "CalendarModel.initModel",
+          "character_offset": 84853
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "capsule_fast_task",
+      "group": "扭蛋活动",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "index"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 381024,
+      "send_sites": [
+        {
+          "symbol": "CapsuleModel.req_fast_task",
+          "character_offset": 91145
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "capsule_get_coin",
+      "group": "扭蛋活动",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381057,
+      "send_sites": [
+        {
+          "symbol": "CapsuleModel.req_get_coin",
+          "character_offset": 91311
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "capsule_load",
+      "group": "扭蛋活动",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380907,
+      "send_sites": [
+        {
+          "symbol": "CapsuleModel.req_load",
+          "character_offset": 90476
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "CapsuleModel.initModel",
+          "character_offset": 89508
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "capsule_load_coin",
+      "group": "扭蛋活动",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380928,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "CapsuleModel.initModel",
+          "character_offset": 89508
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "capsule_load_task",
+      "group": "扭蛋活动",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380954,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "CapsuleModel.initModel",
+          "character_offset": 89508
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "capsule_patch",
+      "group": "扭蛋活动",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381002,
+      "send_sites": [
+        {
+          "symbol": "CapsuleModel.req_patch",
+          "character_offset": 90813
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "capsule_twist",
+      "group": "扭蛋活动",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380980,
+      "send_sites": [
+        {
+          "symbol": "CapsuleModel.req_twist",
+          "character_offset": 90575
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_add_push_id",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "push_id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 376315,
+      "send_sites": [
+        {
+          "symbol": "WXgameChannel.pushMessage",
+          "character_offset": 65540
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_change_decorate",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376139,
+      "send_sites": [
+        {
+          "symbol": "RoleModel.changeDecoration",
+          "character_offset": 176759
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_confirm_event",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 375784,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.readTraveEvents",
+          "character_offset": 194129
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_draw_taobao",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "draw"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376048,
+      "send_sites": [
+        {
+          "symbol": "TaobaoImportView.drawTaobao",
+          "character_offset": 1129134
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_get_my_wx_reward",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 376382,
+      "send_sites": [
+        {
+          "symbol": "UserModel.client_load_role",
+          "character_offset": 218768
+        },
+        {
+          "symbol": "GuideMiniView.onComplete",
+          "character_offset": 722908
+        },
+        {
+          "symbol": "GuideMiniView.onComplete",
+          "character_offset": 723708
+        },
+        {
+          "symbol": "MainOutView.onComplete",
+          "character_offset": 854722
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_get_push_reward",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 376351,
+      "send_sites": [
+        {
+          "symbol": "WXgameChannel.tryGetPushReward",
+          "character_offset": 66040
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_gm",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "cmd"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 375670,
+      "send_sites": [
+        {
+          "symbol": "GMView.execute",
+          "character_offset": 675949
+        },
+        {
+          "symbol": "GMView.execute",
+          "character_offset": 676069
+        },
+        {
+          "symbol": "GMView.execute",
+          "character_offset": 676159
+        },
+        {
+          "symbol": "GMView.execute",
+          "character_offset": 676252
+        },
+        {
+          "symbol": "GMView.execute",
+          "character_offset": 676575
+        },
+        {
+          "symbol": "GMView.commitProperties",
+          "character_offset": 683156
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "MessageModel (constructor)",
+          "character_offset": 149065
+        }
+      ],
+      "disposition": "本地诊断/设置或明确停用；不复制远端运营机制",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_hello",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 375523,
+      "send_sites": [
+        {
+          "symbol": "NetworkControl.createPint",
+          "character_offset": 1269232
+        },
+        {
+          "symbol": "NetworkControl.createPint",
+          "character_offset": 1269517
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "UserModel.initModel",
+          "character_offset": 212072
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_load_all_info",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 376081,
+      "send_sites": [
+        {
+          "symbol": "NetworkControl.totalEvents",
+          "character_offset": 1264526
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_load_decorate",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 376110,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "RoleModel.initModel",
+          "character_offset": 170077
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_load_events",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 375757,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_load_publicity",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "NoticeModel.initModel",
+          "character_offset": 157160
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_load_role",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 375544,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "UserModel.initModel",
+          "character_offset": 212072
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_notice",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "RoleModel.initModel",
+          "character_offset": 170077
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_rename_cost",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 375887,
+      "send_sites": [
+        {
+          "symbol": "RoleModel.setName",
+          "character_offset": 170588
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_set_achieve",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 375639,
+      "send_sites": [
+        {
+          "symbol": "RoleModel.setUseAchieveID",
+          "character_offset": 171403
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_set_ads",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "support"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 376174,
+      "send_sites": [
+        {
+          "symbol": "NetworkControl.totalEvents",
+          "character_offset": 1263539
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "本地诊断/设置或明确停用；不复制远端运营机制",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_set_channel",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "channel"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 376206,
+      "send_sites": [
+        {
+          "symbol": "NetworkControl.totalEvents",
+          "character_offset": 1263701
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "本地诊断/设置或明确停用；不复制远端运营机制",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_set_channel_id",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 376242,
+      "send_sites": [
+        {
+          "symbol": "NetworkControl.totalEvents",
+          "character_offset": 1263767
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "本地诊断/设置或明确停用；不复制远端运营机制",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_set_client",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "client"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 375723,
+      "send_sites": [
+        {
+          "symbol": "UserModel.setClientSettings",
+          "character_offset": 215374
+        },
+        {
+          "symbol": "UserModel.setClientSettings",
+          "character_offset": 215546
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_set_client_envinfo",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "info"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 375599,
+      "send_sites": [
+        {
+          "symbol": "NetworkControl.totalEvents",
+          "character_offset": 1263421
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "本地诊断/设置或明确停用；不复制远端运营机制",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_set_icon",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 375947,
+      "send_sites": [
+        {
+          "symbol": "RoleModel.setIconID",
+          "character_offset": 174558
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_set_lang",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "lang"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 375693,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_set_name",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "name"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 375569,
+      "send_sites": [
+        {
+          "symbol": "RoleModel.setName",
+          "character_offset": 170745
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_set_pic_show",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 375975,
+      "send_sites": [
+        {
+          "symbol": "RoleModel.setPictureID",
+          "character_offset": 174874
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_set_wx_open_id",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "open_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376276,
+      "send_sites": [
+        {
+          "symbol": "NetworkControl.totalEvents",
+          "character_offset": 1263926
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_share_publicity",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376414,
+      "send_sites": [
+        {
+          "symbol": "NoticeModel.req_share_publicity",
+          "character_offset": 159746
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_switch_push",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "turnon"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 375817,
+      "send_sites": [
+        {
+          "symbol": "UserModel.setPushSwitch",
+          "character_offset": 215796
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_switch_rank",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "turnon"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 375852,
+      "send_sites": [
+        {
+          "symbol": "UserModel.setRankSwitch",
+          "character_offset": 216065
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_taobao_import",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "taobao_uid"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376007,
+      "send_sites": [
+        {
+          "symbol": "GMView.commitProperties",
+          "character_offset": 682934
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "client_user_action",
+      "group": "基础状态/设置/事件",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "name"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 375914,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "本地诊断/设置或明确停用；不复制远端运营机制",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "clover_harvest",
+      "group": "三叶草与生长",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "clover_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376477,
+      "send_sites": [
+        {
+          "symbol": "RoleModel.harvestClover",
+          "character_offset": 172637
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "clover_harvest_resend",
+      "group": "三叶草与生长",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "list"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376511,
+      "send_sites": [
+        {
+          "symbol": "RoleModel.syncHarvestClover",
+          "character_offset": 173848
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "clover_load_clovers",
+      "group": "三叶草与生长",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 376449,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "RoleModel.initModel",
+          "character_offset": 170077
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "clover_notice_get",
+      "group": "三叶草与生长",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 376569,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "ItemModel.initModel",
+          "character_offset": 134723
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "clover_update",
+      "group": "三叶草与生长",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 376547,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "ItemModel.initModel",
+          "character_offset": 134723
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "cooking_complete_task",
+      "group": "料理",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378690,
+      "send_sites": [
+        {
+          "symbol": "CookingModel.requestCookReward",
+          "character_offset": 94559
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "cooking_load_cooking",
+      "group": "料理",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 378800,
+      "send_sites": [
+        {
+          "symbol": "CookingModel.request",
+          "character_offset": 92992
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "CookingModel.initModel",
+          "character_offset": 92863
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "cooking_look_ad",
+      "group": "料理",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 378724,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "cooking_refresh_task",
+      "group": "料理",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378657,
+      "send_sites": [
+        {
+          "symbol": "CookingModel.requestCookRefresh",
+          "character_offset": 94198
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "cooking_select",
+      "group": "料理",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "index"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378829,
+      "send_sites": [
+        {
+          "symbol": "CookingModel.selectTheme",
+          "character_offset": 95883
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "cooking_share",
+      "group": "料理",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 378748,
+      "send_sites": [
+        {
+          "symbol": "GMView.execute",
+          "character_offset": 680778
+        },
+        {
+          "symbol": "ShareView.share_callback",
+          "character_offset": 1077187
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "cooking_start_cooking",
+      "group": "料理",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 378770,
+      "send_sites": [
+        {
+          "symbol": "CookingModel.requestStartCooking",
+          "character_offset": 94952
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "cooking_task_update",
+      "group": "料理",
+      "priority": "P2",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "CookingModel.initModel",
+          "character_offset": 92863
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "easteregg_load",
+      "group": "彩蛋",
+      "priority": "P2",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "EasterEggModel.initModel",
+          "character_offset": 98892
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "encyclopedia_load",
+      "group": "百科图鉴",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382006,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "EncyModel.initModel",
+          "character_offset": 15569
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "encyclopedia_set_show_sub",
+      "group": "百科图鉴",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "long_id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 382032,
+      "send_sites": [
+        {
+          "symbol": "EncyModel.req_set_show_sub",
+          "character_offset": 16129
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "encytravel_load",
+      "group": "旅行图鉴",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382075,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "EncyTravelModel.initModel",
+          "character_offset": 102669
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "encytravel_set_show_sub",
+      "group": "旅行图鉴",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "long_id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 382099,
+      "send_sites": [
+        {
+          "symbol": "EncyTravelModel.req_set_show_sub",
+          "character_offset": 103231
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_buy_shop",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "shop_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378952,
+      "send_sites": [
+        {
+          "symbol": "FurnitureModel.requestBuy",
+          "character_offset": 104701
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "FurnitureModel.initModel",
+          "character_offset": 103751
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_flowerpot_harvest",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "type",
+        "index"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379415,
+      "send_sites": [
+        {
+          "symbol": "FurnitureModel.req_flowerpot_harvest",
+          "character_offset": 113940
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_load_compost",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379212,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "FurnitureModel.initModel",
+          "character_offset": 103751
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_load_flowerpot",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "FurnitureModel.initModel",
+          "character_offset": 103751
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_load_furniture",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 378919,
+      "send_sites": [
+        {
+          "symbol": "o.checkCameraMoment",
+          "character_offset": 904006
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "FurnitureModel.initModel",
+          "character_offset": 103751
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_load_pocket",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379243,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "FurnitureModel.initModel",
+          "character_offset": 103751
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_load_tumbler",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379181,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "FurnitureModel.initModel",
+          "character_offset": 103751
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_pocket_get",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379273,
+      "send_sites": [
+        {
+          "symbol": "FurnitureModel.request_pocket_get",
+          "character_offset": 113715
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_putin_bench",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "pos",
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378988,
+      "send_sites": [
+        {
+          "symbol": "FurnitureModel.setBenchTool",
+          "character_offset": 108982
+        },
+        {
+          "symbol": "FurnitureModel.setBenchTool",
+          "character_offset": 109059
+        },
+        {
+          "symbol": "FurnitureModel.setBenchItem",
+          "character_offset": 109779
+        },
+        {
+          "symbol": "FurnitureModel.setBenchItem",
+          "character_offset": 109860
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "FurnitureModel.initModel",
+          "character_offset": 103751
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_putin_box",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "pos",
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379302,
+      "send_sites": [
+        {
+          "symbol": "FurnitureModel.setCompostItem",
+          "character_offset": 113498
+        },
+        {
+          "symbol": "FurnitureModel.setCompostItem",
+          "character_offset": 113569
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_replace_compost",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "index"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379140,
+      "send_sites": [
+        {
+          "symbol": "FurnitureModel.replaceFurniture",
+          "character_offset": 111350
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_replace_fur",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379065,
+      "send_sites": [
+        {
+          "symbol": "FurnitureModel.replaceFurniture",
+          "character_offset": 110374
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_replace_pocket",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "index"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379375,
+      "send_sites": [
+        {
+          "symbol": "FurnitureModel.replaceFurniture",
+          "character_offset": 111730
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_replace_tumbler",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "index"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379099,
+      "send_sites": [
+        {
+          "symbol": "FurnitureModel.replaceFurniture",
+          "character_offset": 110970
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_takeout_bench",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "pos"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379028,
+      "send_sites": [
+        {
+          "symbol": "FurnitureModel.setBenchTool",
+          "character_offset": 108789
+        },
+        {
+          "symbol": "FurnitureModel.setBenchTool",
+          "character_offset": 108888
+        },
+        {
+          "symbol": "FurnitureModel.setBenchItem",
+          "character_offset": 109582
+        },
+        {
+          "symbol": "FurnitureModel.setBenchItem",
+          "character_offset": 109685
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "FurnitureModel.initModel",
+          "character_offset": 103751
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "furniture_takeout_box",
+      "group": "家具/工作台/庭院设施",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "pos"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379340,
+      "send_sites": [
+        {
+          "symbol": "FurnitureModel.setCompostItem",
+          "character_offset": 113307
+        },
+        {
+          "symbol": "FurnitureModel.setCompostItem",
+          "character_offset": 113406
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_buy",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 380526,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_buy",
+          "character_offset": 122182
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_change_bg",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 380552,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_change_bg",
+          "character_offset": 122366
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_change_bless",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 380584,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_change_bless",
+          "character_offset": 122706
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_feedback_gift",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 380820,
+      "send_sites": [
+        {
+          "symbol": "MailItemView.acceptTouchEvents",
+          "character_offset": 807566
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_get_reward",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 380679,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_get_reward",
+          "character_offset": 123664
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_get_task_item",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380712,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_get_task_item",
+          "character_offset": 123889
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "GreetCardModel.initModel",
+          "character_offset": 120991
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_get_task_reward",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380744,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_get_task_reward",
+          "character_offset": 124008
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_load",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380474,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_load",
+          "character_offset": 121882
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "GreetCardModel.initModel",
+          "character_offset": 120991
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_load_count",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380497,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_load_count",
+          "character_offset": 121988
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_put_tags",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "pos",
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 380619,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_put_tags",
+          "character_offset": 122970
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_read_new",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": false,
+      "definition_character_offset": 380856,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_read_new",
+          "character_offset": 124776
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_send",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380656,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_send",
+          "character_offset": 123318
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_send_gift",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "index",
+        "gift"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 380778,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_send_gift",
+          "character_offset": 124931
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "greetcard_stock",
+      "group": "贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380883,
+      "send_sites": [
+        {
+          "symbol": "GreetCardModel.req_stock",
+          "character_offset": 124463
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "guest_accept_invit",
+      "group": "来客/绘本邀请",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "is_accept"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379533,
+      "send_sites": [
+        {
+          "symbol": "DrawingModel.request_accept_invit",
+          "character_offset": 96623
+        },
+        {
+          "symbol": "DrawingModel.request_reject_invit",
+          "character_offset": 96875
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "DrawingModel.initModel",
+          "character_offset": 96332
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "guest_confirm",
+      "group": "来客/绘本邀请",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 377300,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.sendGuestConfirmed",
+          "character_offset": 194378
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "guest_finish",
+      "group": "来客/绘本邀请",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": false,
+      "definition_character_offset": 377396,
+      "send_sites": [
+        {
+          "symbol": "MainOutView.checkGameplay",
+          "character_offset": 881184
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "guest_load",
+      "group": "来客/绘本邀请",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 377281,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "guest_load_drawing",
+      "group": "来客/绘本邀请",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379506,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "DrawingModel.initModel",
+          "character_offset": 96332
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "guest_lock_bag",
+      "group": "来客/绘本邀请",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379636,
+      "send_sites": [
+        {
+          "symbol": "DrawingModel.lockBag",
+          "character_offset": 98059
+        },
+        {
+          "symbol": "DrawingModel.unlockBag",
+          "character_offset": 98299
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "guest_putin_bag",
+      "group": "来客/绘本邀请",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "pos",
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379571,
+      "send_sites": [
+        {
+          "symbol": "DrawingModel.changeItem",
+          "character_offset": 97736
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "DrawingModel.initModel",
+          "character_offset": 96332
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "guest_serve",
+      "group": "来客/绘本邀请",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id",
+        "item_id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 377326,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.sendGuestServed",
+          "character_offset": 194611
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "guest_set_expire_time",
+      "group": "来客/绘本邀请",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "time"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 377360,
+      "send_sites": [
+        {
+          "symbol": "MainOutView.checkFriend",
+          "character_offset": 884273
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "guest_takeout_bag",
+      "group": "来客/绘本邀请",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "pos"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379605,
+      "send_sites": [
+        {
+          "symbol": "DrawingModel.changeItem",
+          "character_offset": 97480
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "DrawingModel.initModel",
+          "character_offset": 96332
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "hall_enter_game",
+      "group": "本地会话与启动",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 376672,
+      "send_sites": [
+        {
+          "symbol": "NetworkControl.totalEvents",
+          "character_offset": 1262677
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "UserModel.initModel",
+          "character_offset": 212072
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "hall_gen_token",
+      "group": "本地会话与启动",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "account"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376614,
+      "send_sites": [
+        {
+          "symbol": "NetworkControl.totalEvents",
+          "character_offset": 1261278
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "UserModel.initModel",
+          "character_offset": 212072
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "hall_hello",
+      "group": "本地会话与启动",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 376595,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "hall_leave_game",
+      "group": "本地会话与启动",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": false,
+      "definition_character_offset": 376696,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "hall_login",
+      "group": "本地会话与启动",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "token"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376646,
+      "send_sites": [
+        {
+          "symbol": "NetworkControl.totalEvents",
+          "character_offset": 1261551
+        },
+        {
+          "symbol": "NetworkControl.totalEvents",
+          "character_offset": 1261706
+        },
+        {
+          "symbol": "NetworkControl.totalEvents",
+          "character_offset": 1262340
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "UserModel.initModel",
+          "character_offset": 212072
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "hall_reconnect",
+      "group": "本地会话与启动",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "token",
+        "account"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378859,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "UserModel.initModel",
+          "character_offset": 212072
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "hall_report_remote_addr",
+      "group": "本地会话与启动",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [
+        "remote_addr",
+        "local_addr"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 376720,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "本地诊断/设置或明确停用；不复制远端运营机制",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_buy",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "shop_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376967,
+      "send_sites": [
+        {
+          "symbol": "t.buyItem",
+          "character_offset": 440114
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "ItemModel.initModel",
+          "character_offset": 134723
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_gacha",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "is_reward"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376993,
+      "send_sites": [
+        {
+          "symbol": "RaffleView.raffle",
+          "character_offset": 990930
+        },
+        {
+          "symbol": "RaffleView.reward_raffle",
+          "character_offset": 991384
+        },
+        {
+          "symbol": "RaffleView.nextReward",
+          "character_offset": 991549
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "ItemModel.initModel",
+          "character_offset": 134723
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_gift_open",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "ItemModel.initModel",
+          "character_offset": 134723
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_load_handbook",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 376940,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "ItemModel.initModel",
+          "character_offset": 134723
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_load_items",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 376778,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "ItemModel.initModel",
+          "character_offset": 134723
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_load_select_gift",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 377214,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "ItemModel.initModel",
+          "character_offset": 134723
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_load_shop_info",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 377139,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "ItemModel.initModel",
+          "character_offset": 134723
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_putin_bag",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "pos",
+        "item_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376802,
+      "send_sites": [
+        {
+          "symbol": "ItemModel.setBagData",
+          "character_offset": 135580
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_putin_desk",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "pos",
+        "item_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376870,
+      "send_sites": [
+        {
+          "symbol": "ItemModel.setDeskData",
+          "character_offset": 136240
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_redeem_prize",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "prize_id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 377023,
+      "send_sites": [
+        {
+          "symbol": "RaffleView.updateGachaColorBall",
+          "character_offset": 992444
+        },
+        {
+          "symbol": "PrizeSelector.selectItem",
+          "character_offset": 998536
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_select_gift",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "index_list"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 377244,
+      "send_sites": [
+        {
+          "symbol": "ItemModel.req_select_gift",
+          "character_offset": 144251
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_set_bag_completed",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "completed"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 377059,
+      "send_sites": [
+        {
+          "symbol": "ItemModel.setBagLock",
+          "character_offset": 141594
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_takeout_bag",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "pos"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376840,
+      "send_sites": [
+        {
+          "symbol": "ItemModel.setBagData",
+          "character_offset": 135393
+        },
+        {
+          "symbol": "ItemModel.setBagData",
+          "character_offset": 135489
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_takeout_desk",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "pos"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 376909,
+      "send_sites": [
+        {
+          "symbol": "ItemModel.setDeskData",
+          "character_offset": 136048
+        },
+        {
+          "symbol": "ItemModel.setDeskData",
+          "character_offset": 136148
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_update",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 377167,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "ItemModel.initModel",
+          "character_offset": 134723
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_update_ticket",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 377187,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "ItemModel.initModel",
+          "character_offset": 134723
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "item_use_gift_code",
+      "group": "库存/行囊/桌子/商店/抽奖",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "gift_code"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 377101,
+      "send_sites": [
+        {
+          "symbol": "CdkeyView.totalTouchEvent",
+          "character_offset": 544744
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "koto_arrive",
+      "group": "koto 兼容接口（未见直接调用）",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380062,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "定义存在，未见直接发送/注册；确认版本用途后兼容",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "koto_dir_compass",
+      "group": "koto 兼容接口（未见直接调用）",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [
+        "dir"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 380009,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "定义存在，未见直接发送/注册；确认版本用途后兼容",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "koto_get_items",
+      "group": "koto 兼容接口（未见直接调用）",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380039,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "定义存在，未见直接发送/注册；确认版本用途后兼容",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "koto_info",
+      "group": "koto 兼容接口（未见直接调用）",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": false,
+      "definition_character_offset": 380136,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "定义存在，未见直接发送/注册；确认版本用途后兼容",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "koto_load",
+      "group": "koto 兼容接口（未见直接调用）",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379942,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "定义存在，未见直接发送/注册；确认版本用途后兼容",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "koto_load_path",
+      "group": "koto 兼容接口（未见直接调用）",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380113,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "定义存在，未见直接发送/注册；确认版本用途后兼容",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "koto_random_compass",
+      "group": "koto 兼容接口（未见直接调用）",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379981,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "定义存在，未见直接发送/注册；确认版本用途后兼容",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "koto_refresh",
+      "group": "koto 兼容接口（未见直接调用）",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379960,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "定义存在，未见直接发送/注册；确认版本用途后兼容",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "koto_start_advance",
+      "group": "koto 兼容接口（未见直接调用）",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 380082,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "定义存在，未见直接发送/注册；确认版本用途后兼容",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "lottery_confirm_reward",
+      "group": "选取式抽奖",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382211,
+      "send_sites": [
+        {
+          "symbol": "LotteryModel.req_confirm_reward",
+          "character_offset": 147980
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "lottery_load",
+      "group": "选取式抽奖",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382140,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "LotteryModel.initModel",
+          "character_offset": 146837
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "lottery_open",
+      "group": "选取式抽奖",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382161,
+      "send_sites": [
+        {
+          "symbol": "LotteryModel.req_open",
+          "character_offset": 147244
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "lottery_select",
+      "group": "选取式抽奖",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "list"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 382182,
+      "send_sites": [
+        {
+          "symbol": "LotteryModel.req_select",
+          "character_offset": 147750
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "mail_ejoy_active_code",
+      "group": "邮件与附件",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "ticket"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 377782,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "mail_load",
+      "group": "邮件与附件",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 377720,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.requestMail",
+          "character_offset": 200059
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "mail_load_mails",
+      "group": "邮件与附件",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "start",
+        "count",
+        "is_clear"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 377670,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.mail_load_mails",
+          "character_offset": 205171
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "mail_open",
+      "group": "邮件与附件",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 377738,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.openMailInfo",
+          "character_offset": 200781
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "mail_read",
+      "group": "邮件与附件",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 377760,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.readMailInfo",
+          "character_offset": 201122
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "misc_moment_load",
+      "group": "瞬间收藏",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382458,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "MomentModel.initModel",
+          "character_offset": 150537
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "misc_moment_unlock",
+      "group": "瞬间收藏",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 382483,
+      "send_sites": [
+        {
+          "symbol": "MomentModel.req_unlock",
+          "character_offset": 150782
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "museum_load",
+      "group": "博物馆",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 378899,
+      "send_sites": [
+        {
+          "symbol": "MuseumModel.requestMuseum",
+          "character_offset": 156585
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "MuseumModel.initModel",
+          "character_offset": 156481
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "museumday_arrive",
+      "group": "博物馆主题探索",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379804,
+      "send_sites": [
+        {
+          "symbol": "MuseumDayModel.arrive",
+          "character_offset": 154445
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "MuseumDayModel.initModel",
+          "character_offset": 151380
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "museumday_dir_compass",
+      "group": "博物馆主题探索",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "dir"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379741,
+      "send_sites": [
+        {
+          "symbol": "MuseumDayModel.dirCompass",
+          "character_offset": 154996
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "museumday_get_items",
+      "group": "博物馆主题探索",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379776,
+      "send_sites": [
+        {
+          "symbol": "MuseumDayModel.getItems",
+          "character_offset": 153488
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "museumday_info",
+      "group": "博物馆主题探索",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": false,
+      "definition_character_offset": 379893,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "MuseumDayModel.initModel",
+          "character_offset": 151380
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "museumday_inspire",
+      "group": "博物馆主题探索",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379916,
+      "send_sites": [
+        {
+          "symbol": "MuseumDayModel.req_inspire",
+          "character_offset": 155223
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "museumday_load",
+      "group": "博物馆主题探索",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379659,
+      "send_sites": [
+        {
+          "symbol": "MuseumDayModel.request",
+          "character_offset": 152887
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "MuseumDayModel.initModel",
+          "character_offset": 151380
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "museumday_load_path",
+      "group": "博物馆主题探索",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379865,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "museumday_random_compass",
+      "group": "博物馆主题探索",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379708,
+      "send_sites": [
+        {
+          "symbol": "MuseumDayModel.randomCompass",
+          "character_offset": 154609
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "museumday_refresh",
+      "group": "博物馆主题探索",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 379682,
+      "send_sites": [
+        {
+          "symbol": "MuseumDayModel.refresh",
+          "character_offset": 154255
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "museumday_start_advance",
+      "group": "博物馆主题探索",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 379829,
+      "send_sites": [
+        {
+          "symbol": "MuseumDayModel.request_start_advance",
+          "character_offset": 153269
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "notify_kick",
+      "group": "推送/事件/系统通知",
+      "priority": "P0",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "MessageModel (constructor)",
+          "character_offset": 149065
+        }
+      ],
+      "disposition": "本地诊断/设置或明确停用；不复制远端运营机制",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "notify_marquee",
+      "group": "推送/事件/系统通知",
+      "priority": "P0",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "MessageModel (constructor)",
+          "character_offset": 149065
+        }
+      ],
+      "disposition": "本地诊断/设置或明确停用；不复制远端运营机制",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "notify_new_event",
+      "group": "推送/事件/系统通知",
+      "priority": "P0",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "notify_new_mail",
+      "group": "推送/事件/系统通知",
+      "priority": "P0",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "notify_redmsg",
+      "group": "推送/事件/系统通知",
+      "priority": "P0",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "TravelModel.initModel",
+          "character_offset": 193223
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "notify_reload",
+      "group": "推送/事件/系统通知",
+      "priority": "P0",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "UserModel.initModel",
+          "character_offset": 212072
+        }
+      ],
+      "disposition": "本地诊断/设置或明确停用；不复制远端运营机制",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "notify_reward",
+      "group": "推送/事件/系统通知",
+      "priority": "P0",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "MessageModel (constructor)",
+          "character_offset": 149065
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "other_load_touch",
+      "group": "其他点击触发内容",
+      "priority": "P2",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "OtherModel.initModel",
+          "character_offset": 160220
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "other_req_touch",
+      "group": "其他点击触发内容",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 383022,
+      "send_sites": [
+        {
+          "symbol": "OtherModel.req_touch",
+          "character_offset": 160455
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_answer",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "index"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 381331,
+      "send_sites": [
+        {
+          "symbol": "PartyCakeModel.req_answer",
+          "character_offset": 163618
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_get_mate",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381244,
+      "send_sites": [
+        {
+          "symbol": "PartyCakeModel.req_get_mate",
+          "character_offset": 162682
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_light",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381391,
+      "send_sites": [
+        {
+          "symbol": "PartyCakeModel.req_light",
+          "character_offset": 164004
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_load",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381139,
+      "send_sites": [
+        {
+          "symbol": "PartyCakeModel.req_load",
+          "character_offset": 162484
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "PartyCakeModel.initModel",
+          "character_offset": 161083
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_load_mate",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381162,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "PartyCakeModel.initModel",
+          "character_offset": 161083
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_load_qa",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381218,
+      "send_sites": [
+        {
+          "symbol": "PartyCakeModel.req_load_qa",
+          "character_offset": 162575
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "PartyCakeModel.initModel",
+          "character_offset": 161083
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_load_task",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381190,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "PartyCakeModel.initModel",
+          "character_offset": 161083
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_make",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "layer"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 381271,
+      "send_sites": [
+        {
+          "symbol": "PartyCakeModel.req_make",
+          "character_offset": 162960
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_reward_light",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381415,
+      "send_sites": [
+        {
+          "symbol": "PartyCakeModel.req_reward_light",
+          "character_offset": 164197
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_reward_make",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381301,
+      "send_sites": [
+        {
+          "symbol": "PartyCakeModel.req_make_reward",
+          "character_offset": 163337
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_reward_qa",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381363,
+      "send_sites": [
+        {
+          "symbol": "PartyCakeModel.req_reward_qa",
+          "character_offset": 163811
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "partycake_reward_share",
+      "group": "庆典蛋糕",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "index"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 381446,
+      "send_sites": [
+        {
+          "symbol": "PartyCakeModel.req_reward_share",
+          "character_offset": 164428
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "pray_compose",
+      "group": "祈福/手作/合成",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378632,
+      "send_sites": [
+        {
+          "symbol": "HandCraftModel.req_compose",
+          "character_offset": 133630
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "pray_confirm_make_box",
+      "group": "祈福/手作/合成",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": false,
+      "definition_character_offset": 378602,
+      "send_sites": [
+        {
+          "symbol": "HandCraftModel.confirm_make_box",
+          "character_offset": 133528
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "pray_load_grays",
+      "group": "祈福/手作/合成",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 378578,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "HandCraftModel.initModel",
+          "character_offset": 131125
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "rank_get_intro",
+      "group": "排行榜/他人资料",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [
+        "type",
+        "duration",
+        "uid"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378262,
+      "send_sites": [
+        {
+          "symbol": "RankingModel.getOtherInfo",
+          "character_offset": 70166
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "RankingModel.initModel",
+          "character_offset": 69231
+        }
+      ],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "rank_like",
+      "group": "排行榜/他人资料",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [
+        "type",
+        "duration",
+        "uid"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 378221,
+      "send_sites": [
+        {
+          "symbol": "RankingModel.setLike",
+          "character_offset": 70595
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "rank_load",
+      "group": "排行榜/他人资料",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [
+        "type",
+        "duration",
+        "start",
+        "count"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378170,
+      "send_sites": [
+        {
+          "symbol": "RankingModel.checkRankListInfo",
+          "character_offset": 69837
+        },
+        {
+          "symbol": "RankingModel.checkRankListInfo",
+          "character_offset": 69949
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "RankingModel.initModel",
+          "character_offset": 69231
+        }
+      ],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "recharge_cancel_pay",
+      "group": "付费权益/水与兑换",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 380309,
+      "send_sites": [
+        {
+          "symbol": "RechargeModel.cancelPay",
+          "character_offset": 167269
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "recharge_change",
+      "group": "付费权益/水与兑换",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380226,
+      "send_sites": [
+        {
+          "symbol": "RechargeModel.request_change",
+          "character_offset": 167620
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "recharge_load",
+      "group": "付费权益/水与兑换",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380154,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "RechargeModel.initModel",
+          "character_offset": 166877
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "recharge_load_gift",
+      "group": "付费权益/水与兑换",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380176,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "RechargeModel.initModel",
+          "character_offset": 166877
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "recharge_ready_pay",
+      "group": "付费权益/水与兑换",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 380278,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "recharge_update_num",
+      "group": "付费权益/水与兑换",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380250,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "RechargeModel.initModel",
+          "character_offset": 166877
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "recharge_water",
+      "group": "付费权益/水与兑换",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380203,
+      "send_sites": [
+        {
+          "symbol": "RechargeModel.request_water",
+          "character_offset": 167418
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "share_get_reward",
+      "group": "分享奖励",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [
+        "id",
+        "is_get"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 381101,
+      "send_sites": [
+        {
+          "symbol": "ShareModel.req_get_reward",
+          "character_offset": 178139
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "share_load",
+      "group": "分享奖励",
+      "priority": "P3",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381082,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "ShareModel.initModel",
+          "character_offset": 177822
+        }
+      ],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_buy",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381538,
+      "send_sites": [
+        {
+          "symbol": "SpringCardModel.req_buy",
+          "character_offset": 184380
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_change_bg",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 381561,
+      "send_sites": [
+        {
+          "symbol": "SpringCardModel.req_change_bg",
+          "character_offset": 184806
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_change_bless",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 381594,
+      "send_sites": [
+        {
+          "symbol": "SpringCardModel.req_change_bless",
+          "character_offset": 185068
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_get_reward",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381692,
+      "send_sites": [
+        {
+          "symbol": "SpringCardModel.req_get_reward",
+          "character_offset": 185927
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_get_share_tags",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "share_code"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 381829,
+      "send_sites": [
+        {
+          "symbol": "SpringCardModel.req_get_share_tags",
+          "character_offset": 186625
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_get_task_item",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381722,
+      "send_sites": [],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_get_task_reward",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381755,
+      "send_sites": [
+        {
+          "symbol": "SpringCardModel.req_get_task_reward",
+          "character_offset": 183920
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_load",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381484,
+      "send_sites": [
+        {
+          "symbol": "SpringCardModel.req_load",
+          "character_offset": 183569
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "SpringCardModel.initModel",
+          "character_offset": 182357
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_load_count",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381508,
+      "send_sites": [
+        {
+          "symbol": "SpringCardModel.req_load_count",
+          "character_offset": 183676
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_load_task_item",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "SpringCardModel.initModel",
+          "character_offset": 182357
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_put_tags",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "pos",
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 381630,
+      "send_sites": [
+        {
+          "symbol": "SpringCardModel.req_put_tags",
+          "character_offset": 185334
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_send",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 381668,
+      "send_sites": [
+        {
+          "symbol": "SpringCardModel.req_send",
+          "character_offset": 185684
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "springcard_share_tags",
+      "group": "新春贺卡",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "tags_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 381790,
+      "send_sites": [
+        {
+          "symbol": "SpringCardModel.req_share_tags",
+          "character_offset": 186244
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "需单机替代策略/离线停用；保留已有权益与记录",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "story_feedback_gift",
+      "group": "朋友故事",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 377874,
+      "send_sites": [
+        {
+          "symbol": "MailItemView.acceptTouchEvents",
+          "character_offset": 807204
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "story_load",
+      "group": "朋友故事",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 377820,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "StoryModel.initModel",
+          "character_offset": 190174
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "story_read_new_story",
+      "group": "朋友故事",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": false,
+      "definition_character_offset": 377906,
+      "send_sites": [
+        {
+          "symbol": "StoryModel.readNewStory",
+          "character_offset": 190350
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "story_send_gift",
+      "group": "朋友故事",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id",
+        "gift"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 377839,
+      "send_sites": [
+        {
+          "symbol": "StoryModel.sendGift",
+          "character_offset": 190956
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "task_client_pro",
+      "group": "任务与里程碑",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "param"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 380443,
+      "send_sites": [
+        {
+          "symbol": "GuideTaskModel.req_client_pro",
+          "character_offset": 129711
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "task_get_list_reward",
+      "group": "任务与里程碑",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 380410,
+      "send_sites": [
+        {
+          "symbol": "GuideTaskModel.req_list_reward",
+          "character_offset": 129517
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "task_get_reward",
+      "group": "任务与里程碑",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 380382,
+      "send_sites": [
+        {
+          "symbol": "GuideTaskModel.request_reward",
+          "character_offset": 128639
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "task_load",
+      "group": "任务与里程碑",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380341,
+      "send_sites": [
+        {
+          "symbol": "GuideTaskViewControl.open",
+          "character_offset": 745704
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "GuideTaskModel.initModel",
+          "character_offset": 128217
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "task_load_list",
+      "group": "任务与里程碑",
+      "priority": "P1",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 380359,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "GuideTaskModel.initModel",
+          "character_offset": 128217
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "travel_album_to_gift",
+      "group": "礼品盒/旅行手账",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "picture_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378405,
+      "send_sites": [
+        {
+          "symbol": "TravelModel.putPicturesToGiftBox",
+          "character_offset": 197038
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "travel_bag_to_gift",
+      "group": "礼品盒/旅行手账",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "item_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378333,
+      "send_sites": [
+        {
+          "symbol": "ItemModel.moveItemToGiftBox",
+          "character_offset": 140443
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "travel_gift_delete_album",
+      "group": "礼品盒/旅行手账",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378541,
+      "send_sites": [
+        {
+          "symbol": "GiftBoxModel.delete_album",
+          "character_offset": 117060
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "travel_gift_to_album",
+      "group": "礼品盒/旅行手账",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "picture_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378446,
+      "send_sites": [
+        {
+          "symbol": "GiftBoxModel.gift_to_album",
+          "character_offset": 118373
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "travel_gift_to_bag",
+      "group": "礼品盒/旅行手账",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "item_id"
+      ],
+      "tracks_response_session": true,
+      "definition_character_offset": 378369,
+      "send_sites": [
+        {
+          "symbol": "GiftBoxModel.gift_to_bag",
+          "character_offset": 117628
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "travel_load_gift",
+      "group": "礼品盒/旅行手账",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 378308,
+      "send_sites": [
+        {
+          "symbol": "GiftBoxModel.requestData",
+          "character_offset": 116952
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "GiftBoxModel.initModel",
+          "character_offset": 116842
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "travel_load_note",
+      "group": "礼品盒/旅行手账",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 378487,
+      "send_sites": [
+        {
+          "symbol": "TravelNoteModel.loadNote",
+          "character_offset": 208286
+        }
+      ],
+      "callback_sites": [
+        {
+          "symbol": "TravelNoteModel.initModel",
+          "character_offset": 208181
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "travel_read_note",
+      "group": "礼品盒/旅行手账",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 378512,
+      "send_sites": [
+        {
+          "symbol": "TravelNoteModel.sendReadNote",
+          "character_offset": 209409
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "tutorial_step_ask_award",
+      "group": "新手初始化",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": false,
+      "definition_character_offset": 378001,
+      "send_sites": [
+        {
+          "symbol": "MainOutView.checkGuide",
+          "character_offset": 872502
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "tutorial_step_ask_award_q",
+      "group": "新手初始化",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 378033,
+      "send_sites": [
+        {
+          "symbol": "MainOutView.checkGuide",
+          "character_offset": 872566
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "tutorial_step_open_door",
+      "group": "新手初始化",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": false,
+      "definition_character_offset": 377935,
+      "send_sites": [
+        {
+          "symbol": "MainOutView.checkGuide",
+          "character_offset": 872336
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "tutorial_step_open_door_q",
+      "group": "新手初始化",
+      "priority": "P0",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 377967,
+      "send_sites": [
+        {
+          "symbol": "MainOutView.checkGuide",
+          "character_offset": 872400
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "visit_load",
+      "group": "来访与接待",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 378067,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "VisitorModel.initModel",
+          "character_offset": 219944
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "visit_open",
+      "group": "来访与接待",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": false,
+      "definition_character_offset": 378086,
+      "send_sites": [
+        {
+          "symbol": "VisitorModel.open",
+          "character_offset": 220689
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "visit_set_carpet",
+      "group": "来访与接待",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "id"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 378141,
+      "send_sites": [
+        {
+          "symbol": "VisitorModel.visit_load",
+          "character_offset": 221461
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "visit_set_expire_time",
+      "group": "来访与接待",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [
+        "time"
+      ],
+      "tracks_response_session": false,
+      "definition_character_offset": 378105,
+      "send_sites": [
+        {
+          "symbol": "MainOutView.updateVisitor",
+          "character_offset": 882222
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "weather_load",
+      "group": "天气与时段",
+      "priority": "P1",
+      "defined": false,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "WeatherModel.initModel",
+          "character_offset": 221987
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "wishingpool_load",
+      "group": "许愿池",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382972,
+      "send_sites": [],
+      "callback_sites": [
+        {
+          "symbol": "WishingPoolModel.initModel",
+          "character_offset": 223525
+        }
+      ],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    },
+    {
+      "name": "wishingpool_wish",
+      "group": "许愿池",
+      "priority": "P2",
+      "defined": true,
+      "parameters": [],
+      "tracks_response_session": true,
+      "definition_character_offset": 382997,
+      "send_sites": [
+        {
+          "symbol": "WishingPoolModel.req_wish",
+          "character_offset": 223881
+        }
+      ],
+      "callback_sites": [],
+      "disposition": "实现本地状态/规则及兼容响应",
+      "status": "未实现本地服务；已有客户端消费/界面逻辑不能等同本地权威状态"
+    }
+  ],
+  "models": [
+    {
+      "name": "EncyModel",
+      "methods": [
+        "initModel",
+        "encyclopedia_load",
+        "req_set_show_sub",
+        "isOpen",
+        "isDescUnlock"
+      ],
+      "callbacks": [
+        "encyclopedia_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data"
+      ],
+      "excerpt_line": 5,
+      "character_offset": 15364
+    },
+    {
+      "name": "NetworkModel",
+      "methods": [],
+      "callbacks": [],
+      "properties_observed": [],
+      "excerpt_line": 19,
+      "character_offset": 22726
+    },
+    {
+      "name": "RankingModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "clearData",
+        "loadingRankDataComplete",
+        "getRankAllInfo",
+        "checkRankListInfo",
+        "getOtherInfo",
+        "getPlayerInfo",
+        "setLike",
+        "getStepDescribe",
+        "rank_load",
+        "rank_get_intro"
+      ],
+      "callbacks": [
+        "rank_get_intro",
+        "rank_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "dispatchEvent",
+        "loadRankCount",
+        "loadingRankDataCount",
+        "playerOtherInfoList",
+        "rankInfoList"
+      ],
+      "excerpt_line": 23,
+      "character_offset": 68928
+    },
+    {
+      "name": "ActivityModel",
+      "methods": [
+        "addActivity",
+        "getActivity"
+      ],
+      "callbacks": [],
+      "properties_observed": [
+        "activityMap"
+      ],
+      "excerpt_line": 51,
+      "character_offset": 72096
+    },
+    {
+      "name": "AdsModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "clearData",
+        "adsmgr_load",
+        "adsmgr_ads_notify",
+        "req_share",
+        "req_refuse",
+        "share_ads",
+        "req_shop_free",
+        "on_get_gift",
+        "can_get_gift",
+        "getGiftLeftTime",
+        "canPopAds",
+        "canBannerAds",
+        "FrogBack",
+        "isValidAds",
+        "getAdsPlace",
+        "takeAdsPlace",
+        "playAds",
+        "promptNewAds",
+        "doPlayAds",
+        "loadToPlay",
+        "refresh_status",
+        "loadAds"
+      ],
+      "callbacks": [
+        "adsmgr_ads_notify",
+        "adsmgr_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "adsPlaces",
+        "data",
+        "getModel",
+        "isFreshed",
+        "isFreshing",
+        "isFrogBack",
+        "is_try_to_play"
+      ],
+      "excerpt_line": 59,
+      "character_offset": 72751
+    },
+    {
+      "name": "AnimPictureModel",
+      "methods": [
+        "initModel",
+        "animpicture_load",
+        "req_guide",
+        "req_get_item",
+        "req_select_pic",
+        "req_add_pic",
+        "req_remove_pic",
+        "req_open_album",
+        "req_album_add_pic",
+        "req_album_remove_pic",
+        "req_use_item",
+        "getShowPageIndex",
+        "getMaxShowPage"
+      ],
+      "callbacks": [
+        "animpicture_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "getModel"
+      ],
+      "excerpt_line": 111,
+      "character_offset": 79408
+    },
+    {
+      "name": "AnnualReviewModel",
+      "methods": [
+        "request",
+        "updateRedot"
+      ],
+      "callbacks": [],
+      "properties_observed": [
+        "cacheData"
+      ],
+      "excerpt_line": 141,
+      "character_offset": 84094
+    },
+    {
+      "name": "CalendarModel",
+      "methods": [
+        "initModel",
+        "calendar_load",
+        "calendar_load_note",
+        "calendar_task_update",
+        "req_beginer_reward",
+        "req_code_reward",
+        "req_st_reward",
+        "req_luck_reward",
+        "checkRedot",
+        "canShowMainOutBtn",
+        "canGetBeginnerReward",
+        "canGetStReward",
+        "canGetLuckyReward",
+        "getMonthFirstWeek",
+        "getMonthMaxDay",
+        "checkBeginnerCode"
+      ],
+      "callbacks": [
+        "calendar_load",
+        "calendar_load_note",
+        "calendar_task_update"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "getModel"
+      ],
+      "excerpt_line": 149,
+      "character_offset": 84623
+    },
+    {
+      "name": "CapsuleModel",
+      "methods": [
+        "initModel",
+        "capsule_load",
+        "capsule_load_coin",
+        "capsule_load_task",
+        "req_load",
+        "req_twist",
+        "req_patch",
+        "req_fast_task",
+        "req_get_coin",
+        "checkRedot",
+        "getActivityTime",
+        "isOpen",
+        "closeActivity"
+      ],
+      "callbacks": [
+        "capsule_load",
+        "capsule_load_coin",
+        "capsule_load_task"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "dispatchEvent",
+        "timerActivity"
+      ],
+      "excerpt_line": 185,
+      "character_offset": 89273
+    },
+    {
+      "name": "CookingModel",
+      "methods": [
+        "initModel",
+        "request",
+        "getTaskList",
+        "getWeek",
+        "getMonth",
+        "getSelectMonth",
+        "getRefreshTime",
+        "getMonthProgress",
+        "getMonthComplete",
+        "getMonthTheme",
+        "getCookingActivity",
+        "updateRedot",
+        "requestCookRefresh",
+        "requestCookReward",
+        "requestStartCooking",
+        "cooking_load_cooking",
+        "cooking_task_update",
+        "selectTheme",
+        "invalidateRedot"
+      ],
+      "callbacks": [
+        "cooking_load_cooking",
+        "cooking_task_update"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "dispatchEvent",
+        "flag_updateRedot",
+        "getModel",
+        "serverData"
+      ],
+      "excerpt_line": 215,
+      "character_offset": 92560
+    },
+    {
+      "name": "DrawingModel",
+      "methods": [
+        "initModel",
+        "request_accept_invit",
+        "request_reject_invit",
+        "guest_load_drawing",
+        "guest_accept_invit",
+        "changeItem",
+        "lockBag",
+        "unlockBag",
+        "isOpen",
+        "guest_takeout_bag",
+        "guest_putin_bag"
+      ],
+      "callbacks": [
+        "guest_accept_invit",
+        "guest_load_drawing",
+        "guest_putin_bag",
+        "guest_takeout_bag"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "dispatchEvent",
+        "getModel"
+      ],
+      "excerpt_line": 257,
+      "character_offset": 96183
+    },
+    {
+      "name": "EasterEggModel",
+      "methods": [
+        "initModel",
+        "easteregg_load",
+        "hasEgg",
+        "hasFrogEgg"
+      ],
+      "callbacks": [
+        "easteregg_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data"
+      ],
+      "excerpt_line": 283,
+      "character_offset": 98712
+    },
+    {
+      "name": "EncyTravelModel",
+      "methods": [
+        "initModel",
+        "encytravel_load",
+        "req_set_show_sub",
+        "isOpen",
+        "isDescUnlock"
+      ],
+      "callbacks": [
+        "encytravel_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data"
+      ],
+      "excerpt_line": 295,
+      "character_offset": 102458
+    },
+    {
+      "name": "FurnitureModel",
+      "methods": [
+        "initModel",
+        "requestBuy",
+        "furniture_load_tumbler",
+        "furniture_load_compost",
+        "furniture_load_pocket",
+        "furniture_load_flowerpot",
+        "furniture_load_furniture",
+        "loadFurnitureRes",
+        "furniture_buy_shop",
+        "furniture_putin_bench",
+        "furniture_takeout_bench",
+        "getOwnedFurnitures",
+        "getHomeFurnitures",
+        "getHomeFurniture",
+        "hasPutHomeFurniture",
+        "getBenchTools",
+        "setBenchTool",
+        "getBenchItems",
+        "setBenchItem",
+        "resetReplaceData",
+        "replaceFurniture",
+        "updateRedot",
+        "updatePocketRedot",
+        "setCompostItem",
+        "request_pocket_get",
+        "req_flowerpot_harvest",
+        "getMateList",
+        "getShopData",
+        "isLockBench",
+        "isOpen",
+        "isOpenShop",
+        "getReplaced"
+      ],
+      "callbacks": [
+        "furniture_buy_shop",
+        "furniture_load_compost",
+        "furniture_load_flowerpot",
+        "furniture_load_furniture",
+        "furniture_load_pocket",
+        "furniture_load_tumbler",
+        "furniture_putin_bench",
+        "furniture_takeout_bench"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "compostData",
+        "dispatchEvent",
+        "flagloadFurnitureRes",
+        "flowerpotData",
+        "getModel",
+        "pocketData",
+        "replaceData",
+        "serverData",
+        "timerShopClose",
+        "tumblerData"
+      ],
+      "excerpt_line": 309,
+      "character_offset": 103566
+    },
+    {
+      "name": "GameplayModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "clearData",
+        "getGameplayInfo",
+        "getGameplayList"
+      ],
+      "callbacks": [],
+      "properties_observed": [
+        "getModel"
+      ],
+      "excerpt_line": 377,
+      "character_offset": 115416
+    },
+    {
+      "name": "GiftBoxModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "requestData",
+        "delete_album",
+        "onMovePicture",
+        "onMoveItem",
+        "gift_to_bag",
+        "gift_to_album",
+        "getSpecialtyList",
+        "getPictureList",
+        "isOpen",
+        "travel_load_gift"
+      ],
+      "callbacks": [
+        "travel_load_gift"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "dispatchEvent",
+        "getModel",
+        "isOpenCache",
+        "pictureList",
+        "specialityList"
+      ],
+      "excerpt_line": 391,
+      "character_offset": 116530
+    },
+    {
+      "name": "GreetCardModel",
+      "methods": [
+        "initModel",
+        "greetcard_load",
+        "greetcard_get_task_item",
+        "req_load",
+        "req_load_count",
+        "req_buy",
+        "req_change_bg",
+        "req_change_bless",
+        "req_put_tags",
+        "req_send",
+        "req_get_reward",
+        "req_get_task_item",
+        "req_get_task_reward",
+        "req_stock",
+        "req_read_new",
+        "req_send_gift",
+        "checkRedot",
+        "changeItems",
+        "getActivityTime",
+        "isOpen",
+        "isFirstBuyBg",
+        "isBuyBg",
+        "getCanStockNum",
+        "canStock",
+        "isSendBg",
+        "getItemNum",
+        "getTagsNum",
+        "canSendCardid",
+        "getNewCard",
+        "closeActivity"
+      ],
+      "callbacks": [
+        "greetcard_get_task_item",
+        "greetcard_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "dispatchEvent",
+        "timerActivity"
+      ],
+      "excerpt_line": 419,
+      "character_offset": 120648
+    },
+    {
+      "name": "GuideTaskModel",
+      "methods": [
+        "initModel",
+        "getNextListReward",
+        "getCompleteListNum",
+        "request_reward",
+        "task_load",
+        "task_load_list",
+        "req_list_reward",
+        "req_client_pro",
+        "updateRedot"
+      ],
+      "callbacks": [
+        "task_load",
+        "task_load_list"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "dataList",
+        "dataReward",
+        "dispatchEvent",
+        "redotMap"
+      ],
+      "excerpt_line": 483,
+      "character_offset": 127984
+    },
+    {
+      "name": "HandCraftModel",
+      "methods": [
+        "initModel",
+        "loadPrayCraftList",
+        "loadStampCraftList",
+        "onNewStampCraft",
+        "comfrimNewStampCraft",
+        "getMakingPrayCraft",
+        "getMakingStampCraft",
+        "getBoxCraft",
+        "onNewPrayCraft",
+        "comfrimNewPrayCraft",
+        "getPrayCraftList",
+        "getStampCraftList",
+        "updateRedot",
+        "updateComposeRedot",
+        "pray_load_grays",
+        "confirm_make_box",
+        "req_compose"
+      ],
+      "callbacks": [
+        "pray_load_grays"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "boxCraftList",
+        "getModel",
+        "makingPrayCraftConfirmed",
+        "makingPraycraft",
+        "makingStampCraftConfirmed",
+        "makingStampcraft",
+        "prayCraftList",
+        "stampCraftList"
+      ],
+      "excerpt_line": 505,
+      "character_offset": 130869
+    },
+    {
+      "name": "ItemModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "clearData",
+        "getCollectionsList",
+        "getSpecialtysList",
+        "setBagData",
+        "getBagDataList",
+        "setDeskData",
+        "getDeskDataList",
+        "getGachaColorBall",
+        "cleanGachaColorBall",
+        "hasDeskItem",
+        "hasBagItem",
+        "getHouseItemCount",
+        "getHouseDataAll",
+        "getHouseList",
+        "getHouseTypeList",
+        "getHouseItemsByType",
+        "checkHouseItem",
+        "checkHaveItem",
+        "getHaveItem",
+        "getShopItemBuynums",
+        "isShopItemBuyLimit",
+        "addHouseItem",
+        "doAddHouseItem",
+        "consumeHouseItem",
+        "doConsumeHouseItem",
+        "moveItemToGiftBox",
+        "getItemInfo",
+        "getBagLock",
+        "setBagLock",
+        "getInventory",
+        "item_load_shop_info",
+        "item_update_ticket",
+        "clover_update",
+        "clover_notice_get",
+        "item_update",
+        "item_gift_open",
+        "item_load_select_gift",
+        "check_select_gift",
+        "req_select_gift",
+        "item_load_items",
+        "item_load_handbook",
+        "item_gacha",
+        "item_buy",
+        "decodeDropArr"
+      ],
+      "callbacks": [
+        "clover_notice_get",
+        "clover_update",
+        "item_buy",
+        "item_gacha",
+        "item_gift_open",
+        "item_load_handbook",
+        "item_load_items",
+        "item_load_select_gift",
+        "item_load_shop_info",
+        "item_update",
+        "item_update_ticket"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "bagConflict",
+        "bagDataList",
+        "bagLock",
+        "collectionsList",
+        "deskConflict",
+        "deskDataList",
+        "dispatchEvent",
+        "gachaColorBall",
+        "getModel",
+        "itemDataAll",
+        "itemDataList",
+        "purchasedMap",
+        "selectGiftList",
+        "specialtysList"
+      ],
+      "excerpt_line": 543,
+      "character_offset": 134242
+    },
+    {
+      "name": "LotteryModel",
+      "methods": [
+        "initModel",
+        "lottery_load",
+        "req_open",
+        "req_select",
+        "req_confirm_reward",
+        "isRewardState",
+        "onGetExtraItem",
+        "getLeftTime"
+      ],
+      "callbacks": [
+        "lottery_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "dispatchEvent"
+      ],
+      "excerpt_line": 639,
+      "character_offset": 146552
+    },
+    {
+      "name": "MessageModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "clearData",
+        "getFirstMessageInfo",
+        "getErrorInfo",
+        "notify_marquee",
+        "notify_kick",
+        "client_gm",
+        "notify_reward"
+      ],
+      "callbacks": [
+        "client_gm",
+        "notify_kick",
+        "notify_marquee",
+        "notify_reward"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "dispatchEvent",
+        "errorInfoList",
+        "massegeList"
+      ],
+      "excerpt_line": 659,
+      "character_offset": 148972
+    },
+    {
+      "name": "MomentModel",
+      "methods": [
+        "initModel",
+        "misc_moment_load",
+        "req_unlock",
+        "hasMoment"
+      ],
+      "callbacks": [
+        "misc_moment_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data"
+      ],
+      "excerpt_line": 681,
+      "character_offset": 150361
+    },
+    {
+      "name": "MuseumDayModel",
+      "methods": [
+        "initModel",
+        "museumday_arrive",
+        "museumday_info",
+        "museumday_load",
+        "closeActivity",
+        "request",
+        "request_start_advance",
+        "getItems",
+        "refresh",
+        "arrive",
+        "setEmail",
+        "randomCompass",
+        "dirCompass",
+        "req_inspire",
+        "getActivityTime",
+        "isOpen",
+        "canInspire",
+        "checkRedot"
+      ],
+      "callbacks": [
+        "museumday_arrive",
+        "museumday_info",
+        "museumday_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "dispatchEvent",
+        "getModel",
+        "hasExploreEmail",
+        "timerActivity"
+      ],
+      "excerpt_line": 693,
+      "character_offset": 151016
+    },
+    {
+      "name": "MuseumModel",
+      "methods": [
+        "initModel",
+        "requestMuseum",
+        "museum_load"
+      ],
+      "callbacks": [
+        "museum_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "dispatchEvent",
+        "museum_list"
+      ],
+      "excerpt_line": 733,
+      "character_offset": 156308
+    },
+    {
+      "name": "NoticeModel",
+      "methods": [
+        "initModel",
+        "addAnns",
+        "checkRedot",
+        "readNotice",
+        "isReadNotice",
+        "getNotices",
+        "checkPublicityRedot",
+        "addPublicityMaps",
+        "canPublicityPop",
+        "getPublicityMaps",
+        "getPublicityReward",
+        "canShowPublicityMap",
+        "client_load_publicity",
+        "req_share_publicity"
+      ],
+      "callbacks": [
+        "client_load_publicity"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "dispatchEvent",
+        "getModel",
+        "notices",
+        "publicityMaps",
+        "publicityReward"
+      ],
+      "excerpt_line": 743,
+      "character_offset": 156951
+    },
+    {
+      "name": "OtherModel",
+      "methods": [
+        "initModel",
+        "other_load_touch",
+        "req_touch"
+      ],
+      "callbacks": [
+        "other_load_touch"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data"
+      ],
+      "excerpt_line": 775,
+      "character_offset": 160029
+    },
+    {
+      "name": "PartyCakeModel",
+      "methods": [
+        "initModel",
+        "partycake_load",
+        "partycake_load_mate",
+        "partycake_load_task",
+        "partycake_load_qa",
+        "req_load",
+        "req_load_qa",
+        "req_get_mate",
+        "req_make",
+        "req_make_reward",
+        "req_answer",
+        "req_reward_qa",
+        "req_light",
+        "req_reward_light",
+        "req_reward_share",
+        "checkMakePart",
+        "isMakeLayer",
+        "checkRedot",
+        "getActivityTime",
+        "isOpen",
+        "closeActivity"
+      ],
+      "callbacks": [
+        "partycake_load",
+        "partycake_load_mate",
+        "partycake_load_qa",
+        "partycake_load_task"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "dispatchEvent",
+        "timerActivity"
+      ],
+      "excerpt_line": 785,
+      "character_offset": 160773
+    },
+    {
+      "name": "RechargeModel",
+      "methods": [
+        "initModel",
+        "pay",
+        "cancelPay",
+        "request_water",
+        "request_change",
+        "recharge_load_gift",
+        "recharge_load",
+        "recharge_reset",
+        "recharge_update_num",
+        "hasGift",
+        "onBuy",
+        "setMerchData"
+      ],
+      "callbacks": [
+        "recharge_load",
+        "recharge_load_gift",
+        "recharge_update_num"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "dispatchEvent",
+        "giftCache",
+        "giftData",
+        "merchData",
+        "readyPayId"
+      ],
+      "excerpt_line": 831,
+      "character_offset": 166617
+    },
+    {
+      "name": "RoleModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "clearData",
+        "client_notice",
+        "setName",
+        "getName",
+        "getNameEncode",
+        "setUseAchieveID",
+        "getUseAchieveID",
+        "getAchieveList",
+        "getAchieveTime",
+        "isAchieveExpire",
+        "getFrogStatus",
+        "getFrogMotion",
+        "isFrogSleep",
+        "canShowMini",
+        "getCloverGrowList",
+        "harvestClover",
+        "syncCookieHarvestClover",
+        "syncHarvestClover",
+        "getIconID",
+        "setIconID",
+        "getTodayStep",
+        "getPictureInfo",
+        "setPictureID",
+        "getAchieveInfo",
+        "getAchieveInfoList",
+        "getDecorationList",
+        "drawTaobaoData",
+        "getDecorationInfo",
+        "getCreateDay",
+        "client_load_role",
+        "client_load_decorate",
+        "clover_load_clovers",
+        "changeDecoration"
+      ],
+      "callbacks": [
+        "client_load_decorate",
+        "client_notice",
+        "clover_load_clovers"
+      ],
+      "properties_observed": [
+        "achieveList",
+        "achieveTime",
+        "addProtocolCallback",
+        "cloverGrowList",
+        "decorationList",
+        "decorationPutID",
+        "decorationStatus",
+        "dispatchEvent",
+        "frogMotion",
+        "frogStatus",
+        "getModel",
+        "harvestCloverList",
+        "iconID",
+        "name",
+        "pictureInfo",
+        "taobaoData",
+        "timerHarvestResend",
+        "todayStep",
+        "useAchieveID",
+        "wxMyReward"
+      ],
+      "excerpt_line": 859,
+      "character_offset": 169548
+    },
+    {
+      "name": "ShareModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "share_load",
+        "req_get_reward",
+        "GetShareReward",
+        "clearData",
+        "refresh_support",
+        "isSupport",
+        "quickShare",
+        "getUnionShareStr",
+        "share",
+        "reportJF",
+        "reportBlog"
+      ],
+      "callbacks": [
+        "share_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "isRefresh",
+        "rewardData",
+        "supportPlatforms"
+      ],
+      "excerpt_line": 933,
+      "character_offset": 177449
+    },
+    {
+      "name": "SpringCardModel",
+      "methods": [
+        "initModel",
+        "springcard_load",
+        "springcard_load_task_item",
+        "req_load",
+        "req_load_count",
+        "req_get_task_reward",
+        "req_buy",
+        "req_change_bg",
+        "req_change_bless",
+        "req_put_tags",
+        "req_send",
+        "req_get_reward",
+        "req_share_tags",
+        "req_get_share_tags",
+        "checkRedot",
+        "changeItems",
+        "getActivityTime",
+        "isOpen",
+        "getItemNum",
+        "getTagsNum",
+        "canSendCardid",
+        "closeActivity"
+      ],
+      "callbacks": [
+        "springcard_load",
+        "springcard_load_task_item"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "dispatchEvent",
+        "timerActivity"
+      ],
+      "excerpt_line": 963,
+      "character_offset": 182003
+    },
+    {
+      "name": "StoryModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "clearData",
+        "readNewStory",
+        "getNewStoryID",
+        "getStoryData",
+        "getStoryList",
+        "getStoryInfo",
+        "sendGift",
+        "story_load"
+      ],
+      "callbacks": [
+        "story_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "getModel",
+        "newStoryID",
+        "storyList"
+      ],
+      "excerpt_line": 1011,
+      "character_offset": 189947
+    },
+    {
+      "name": "TravelModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "clearData",
+        "getTravelEventList",
+        "getFirstTravelEvent",
+        "createTravelEvent",
+        "pushTravelEvent",
+        "pushNewPictureIDs",
+        "readTraveEvents",
+        "getGuestData",
+        "sendGuestConfirmed",
+        "sendGuestServed",
+        "requestAlbum",
+        "getPictureCount",
+        "setPictureCount",
+        "getPictureInfoList",
+        "getDeletePictureInfoList",
+        "getPictureByPicId",
+        "getPictureById",
+        "getFullPictures",
+        "checkPictureByIds",
+        "checkPictureLastes",
+        "checkPictureInfoPage",
+        "deletePictureInfo",
+        "putPicturesToGiftBox",
+        "handleAdsPicture",
+        "handleSharePicture",
+        "getFirstNewPictureInfo",
+        "getFirstVisitPictureInfo",
+        "getFirstNewAdsPictureInfo",
+        "deleteAllAdsPicture",
+        "getAllAdsPicture",
+        "saveNewPictureInfo",
+        "deleteNewPictureInfo",
+        "recoverPictureInfo",
+        "requestMail",
+        "getMailInfoList",
+        "getMailStage",
+        "openMailInfo",
+        "readMailInfo",
+        "checkMailItemType",
+        "getRedpointState",
+        "openActivityShop",
+        "filtrateEvent",
+        "client_load_events",
+        "guest_load",
+        "album_load",
+        "album_load_all",
+        "album_load_by_id_list",
+        "revice_mails",
+        "mail_load",
+        "mail_load_mails",
+        "mail_ejoy_active_code",
+        "album_load_new",
+        "album_load_recover",
+        "saveNewPictureNow",
+        "notify_new_event",
+        "notify_redmsg",
+        "notify_new_mail"
+      ],
+      "callbacks": [
+        "album_load",
+        "album_load_all",
+        "album_load_by_id_list",
+        "album_load_new",
+        "album_load_recover",
+        "client_load_events",
+        "guest_load",
+        "mail_ejoy_active_code",
+        "mail_load",
+        "mail_load_mails",
+        "notify_new_event",
+        "notify_new_mail",
+        "notify_redmsg"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "deletePictureInfoList",
+        "dispatchEvent",
+        "eventUpdateNewAlbum",
+        "getModel",
+        "guestData",
+        "hasAds",
+        "isShare",
+        "mailInfoList",
+        "newAdsPictureInfoList",
+        "newPictureIDs",
+        "newPictureInfoList",
+        "pictureCount",
+        "pictureInfoList",
+        "redpointState",
+        "travelEventList"
+      ],
+      "excerpt_line": 1035,
+      "character_offset": 192719
+    },
+    {
+      "name": "TravelNoteModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "loadNote",
+        "getNoteList",
+        "getNoteListByType",
+        "getNoteMaxByType",
+        "getNoteNumsByType",
+        "getAttachNote",
+        "getNoteById",
+        "getNoteConfig",
+        "sendReadNote",
+        "hasUnreadNote",
+        "updateRedot",
+        "isOpen",
+        "travel_load_note"
+      ],
+      "callbacks": [
+        "travel_load_note"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "dispatchEvent",
+        "noteCountMax",
+        "travelNodeList"
+      ],
+      "excerpt_line": 1157,
+      "character_offset": 207913
+    },
+    {
+      "name": "UserModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "clearData",
+        "setBagayalu",
+        "getNextGuideStep",
+        "getActivateExitBtn",
+        "getShowGM",
+        "getShowPay",
+        "getShowActiveShop",
+        "getShowShareBtn",
+        "getChannel",
+        "getSubChannel",
+        "getUserInfo",
+        "setUserInfo",
+        "getUName",
+        "getToken",
+        "getAccount",
+        "setToken",
+        "isTokenExpire",
+        "setMometToken",
+        "set_moment_token_signature",
+        "set_ejoytoken",
+        "get_ejoytoken",
+        "getMomentInfo",
+        "getMomentToken",
+        "getUID",
+        "getClover",
+        "addClover",
+        "setClover",
+        "checkClover",
+        "consumeClover",
+        "subClover",
+        "AddCloverTween",
+        "getTicket",
+        "addTicket",
+        "setTicket",
+        "consumeTicket",
+        "setClientSettings",
+        "getClientSettings",
+        "setPushSwitch",
+        "getPushSwitch",
+        "setRankSwitch",
+        "getRankSwitch",
+        "client_hello",
+        "hall_gen_token",
+        "hall_login",
+        "hall_reconnect",
+        "hall_enter_game",
+        "client_load_role",
+        "notify_reload"
+      ],
+      "callbacks": [
+        "client_hello",
+        "client_load_role",
+        "hall_enter_game",
+        "hall_gen_token",
+        "hall_login",
+        "hall_reconnect",
+        "notify_reload"
+      ],
+      "properties_observed": [
+        "account",
+        "activateExitBtn",
+        "addProtocolCallback",
+        "ch",
+        "clientSettings",
+        "clover",
+        "dispatchEvent",
+        "ejoy_token",
+        "getModel",
+        "guideStepNameList",
+        "isBagayalu",
+        "moment_token",
+        "moment_token_signature",
+        "push_switch",
+        "rank_switch",
+        "showActiveShop",
+        "showGM",
+        "showPay",
+        "showShareBtn",
+        "subCh",
+        "sub_clover",
+        "syncSettingsIndex",
+        "ticket",
+        "token",
+        "tokenExpireTime",
+        "uid",
+        "userInfo"
+      ],
+      "excerpt_line": 1195,
+      "character_offset": 211446
+    },
+    {
+      "name": "VisitorModel",
+      "methods": [
+        "destroy",
+        "initModel",
+        "clearData",
+        "getVisitorData",
+        "getAcquireList",
+        "getVisitorInfoList",
+        "getVisitorInfo",
+        "getVisitorResInfo",
+        "open",
+        "visit_load"
+      ],
+      "callbacks": [
+        "visit_load"
+      ],
+      "properties_observed": [
+        "acquireList",
+        "addProtocolCallback",
+        "dispatchEvent",
+        "getModel",
+        "visitorData"
+      ],
+      "excerpt_line": 1299,
+      "character_offset": 219728
+    },
+    {
+      "name": "WeatherModel",
+      "methods": [
+        "initModel",
+        "weather_load",
+        "getSeasonKey",
+        "getSeasonCover",
+        "getSeasonPartical",
+        "getSeasonSpine"
+      ],
+      "callbacks": [
+        "weather_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data",
+        "getModel"
+      ],
+      "excerpt_line": 1323,
+      "character_offset": 221789
+    },
+    {
+      "name": "WishingPoolModel",
+      "methods": [
+        "initModel",
+        "wishingpool_load",
+        "req_wish",
+        "isOpen",
+        "getLeftTime"
+      ],
+      "callbacks": [
+        "wishingpool_load"
+      ],
+      "properties_observed": [
+        "addProtocolCallback",
+        "data"
+      ],
+      "excerpt_line": 1339,
+      "character_offset": 223328
+    }
+  ],
+  "timer_events": [
+    {
+      "name": "NONE",
+      "id": 0
+    },
+    {
+      "name": "GoTravel",
+      "id": 1
+    },
+    {
+      "name": "BackHome",
+      "id": 2
+    },
+    {
+      "name": "Picture",
+      "id": 3
+    },
+    {
+      "name": "Drift",
+      "id": 4
+    },
+    {
+      "name": "Return",
+      "id": 5
+    },
+    {
+      "name": "Guest",
+      "id": 6
+    },
+    {
+      "name": "Gift",
+      "id": 7
+    },
+    {
+      "name": "Story",
+      "id": 8
+    },
+    {
+      "name": "StoryGift",
+      "id": 9
+    },
+    {
+      "name": "StoryFeedback",
+      "id": 10
+    },
+    {
+      "name": "Visitor",
+      "id": 11
+    },
+    {
+      "name": "Recharge",
+      "id": 12
+    },
+    {
+      "name": "Decoration",
+      "id": 13
+    },
+    {
+      "name": "AntiAddition",
+      "id": 14
+    },
+    {
+      "name": "NewNote",
+      "id": 15
+    },
+    {
+      "name": "VisitFriend",
+      "id": 16
+    },
+    {
+      "name": "DropReward",
+      "id": 17
+    },
+    {
+      "name": "Consume",
+      "id": 18
+    },
+    {
+      "name": "DriftBottle",
+      "id": 19
+    },
+    {
+      "name": "MuseumMiss",
+      "id": 20
+    },
+    {
+      "name": "FurnitureFinish",
+      "id": 21
+    },
+    {
+      "name": "FurniturePut",
+      "id": 22
+    },
+    {
+      "name": "PartyGo",
+      "id": 23
+    },
+    {
+      "name": "PartyResult",
+      "id": 24
+    },
+    {
+      "name": "CardGift",
+      "id": 25
+    },
+    {
+      "name": "CardFeedback",
+      "id": 26
+    },
+    {
+      "name": "CardNew",
+      "id": 27
+    },
+    {
+      "name": "FurnitureVersion",
+      "id": 1022
+    },
+    {
+      "name": "AunnalReview",
+      "id": 1023
+    }
+  ]
+}

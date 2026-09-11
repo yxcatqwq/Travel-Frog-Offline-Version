@@ -1,0 +1,307 @@
+[
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "Achieve_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "animpictureData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "benchData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "calendarData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "capsuleData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "Character_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "Collection_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "compostData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "cookingData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "cookingTaskData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "copyrightInfo_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "decoration_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "drawingCollectData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "drawingCommonData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "drawingPageData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "encyclopedia_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "encytravel_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "flowerData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "flowerpotData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "furnitureCommon_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "furnitureData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "furnitureShopData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "gameplay_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "GiftData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "GoalNumber_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "greetCard_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "Item_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "lotteryData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "MailEvent_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "momentData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "museumData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "museumDayCommon_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "museumDayData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "museumDayDesc_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "Note_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "origin_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "PartyCakeData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "Picture_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "PictureTag_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "pocketCommonData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "pocketData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "prayBodyData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "prayData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "prayNoteData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "Prize_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "recharge_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "resources_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "Shop_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "shopData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "Specialty_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "springCard_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "stampData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "step_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "story_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "taskData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "TravelFriends_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "tumblerData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "tumblerPathData_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "visitors_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "Word_json"
+  },
+  {
+    "url": "config_eab",
+    "type": "eab_asset",
+    "name": "zh-CN_json"
+  }
+]

@@ -1,0 +1,263 @@
+﻿协议,功能域,优先级,在协议表,请求参数,跟踪响应session,直接调用处,注册回调处,处理方式
+adsmgr_ads_notify,广告与奖励,P3,False,,,,AdsModel.initModel,需单机替代策略/离线停用；保留已有权益与记录
+adsmgr_load,广告与奖励,P3,True,,True,,AdsModel.initModel,需单机替代策略/离线停用；保留已有权益与记录
+adsmgr_refuse,广告与奖励,P3,True,,True,AdsModel.req_refuse,,需单机替代策略/离线停用；保留已有权益与记录
+adsmgr_share,广告与奖励,P3,True,ads_type,True,AdsModel.req_share,,需单机替代策略/离线停用；保留已有权益与记录
+adsmgr_share_ads,广告与奖励,P3,True,ads_id,False,AdsModel.share_ads,,需单机替代策略/离线停用；保留已有权益与记录
+adsmgr_shop_free,广告与奖励,P3,True,,True,AdsModel.req_shop_free,,需单机替代策略/离线停用；保留已有权益与记录
+album_delete,照片与相册,P1,True,id,True,TravelModel.deletePictureInfo,,实现本地状态/规则及兼容响应
+album_delete_new,照片与相册,P1,True,id,True,TravelModel.deleteAllAdsPicture; TravelModel.deleteNewPictureInfo,,实现本地状态/规则及兼容响应
+album_load,照片与相册,P1,True,"start, count",True,TravelModel.checkPictureInfoPage,TravelModel.initModel,实现本地状态/规则及兼容响应
+album_load_all,照片与相册,P1,True,,True,TravelModel.requestAlbum,TravelModel.initModel,实现本地状态/规则及兼容响应
+album_load_by_id_list,照片与相册,P1,True,id_list,True,TravelModel.checkPictureByIds,TravelModel.initModel,实现本地状态/规则及兼容响应
+album_load_new,照片与相册,P1,True,,True,,TravelModel.initModel,实现本地状态/规则及兼容响应
+album_load_recover,照片与相册,P1,True,,True,AlbumView.on_RecoverBtn; PictureRecover.onComplete,TravelModel.initModel,实现本地状态/规则及兼容响应
+album_recover,照片与相册,P1,True,id,True,TravelModel.recoverPictureInfo,,实现本地状态/规则及兼容响应
+album_save_new,照片与相册,P1,True,id,True,TravelModel.saveNewPictureInfo,,实现本地状态/规则及兼容响应
+animpicture_add_pic,动态照片,P2,True,"anim_index, ids",True,AnimPictureModel.req_add_pic,,实现本地状态/规则及兼容响应
+animpicture_album_add_pic,动态照片,P2,True,"anim_index, pic_index, pic_uid",True,AnimPictureModel.req_album_add_pic,,实现本地状态/规则及兼容响应
+animpicture_album_remove_pic,动态照片,P2,True,"anim_index, pic_index, is_delete",True,AnimPictureModel.req_album_remove_pic,,实现本地状态/规则及兼容响应
+animpicture_get_item,动态照片,P2,True,,True,AnimPictureModel.req_get_item,,实现本地状态/规则及兼容响应
+animpicture_guide,动态照片,P2,True,,True,AnimPictureModel.req_guide,,实现本地状态/规则及兼容响应
+animpicture_load,动态照片,P2,True,,True,,AnimPictureModel.initModel,实现本地状态/规则及兼容响应
+animpicture_open_album,动态照片,P2,True,index,True,AnimPictureModel.req_open_album,,实现本地状态/规则及兼容响应
+animpicture_remove_pic,动态照片,P2,True,"anim_index, pic_index, is_delete",True,AnimPictureModel.req_remove_pic,,实现本地状态/规则及兼容响应
+animpicture_select_pic,动态照片,P2,True,id,True,AnimPictureModel.req_select_pic,,实现本地状态/规则及兼容响应
+animpicture_use_item,动态照片,P2,True,"anim_index, item_id",True,AnimPictureModel.req_use_item,,实现本地状态/规则及兼容响应
+annual_load,年度回顾,P3,True,,True,AnnualReviewModel.request,,实现本地状态/规则及兼容响应
+annual_share,年度回顾,P3,True,,True,o.showShare,,实现本地状态/规则及兼容响应
+calendar_get_beginer_reward,日历与签到,P2,True,,True,CalendarModel.req_beginer_reward,,实现本地状态/规则及兼容响应
+calendar_get_code_reward,日历与签到,P2,True,day,True,CalendarModel.req_code_reward,,实现本地状态/规则及兼容响应
+calendar_get_luck_reward,日历与签到,P2,True,,True,CalendarModel.req_luck_reward,,实现本地状态/规则及兼容响应
+calendar_get_st_reward,日历与签到,P2,True,,True,CalendarModel.req_st_reward,,实现本地状态/规则及兼容响应
+calendar_load,日历与签到,P2,True,,True,,CalendarModel.initModel,实现本地状态/规则及兼容响应
+calendar_load_note,日历与签到,P2,True,,True,CalendarView.childrenCreated,CalendarModel.initModel,实现本地状态/规则及兼容响应
+calendar_task_update,日历与签到,P2,True,,True,,CalendarModel.initModel,实现本地状态/规则及兼容响应
+capsule_fast_task,扭蛋活动,P2,True,index,True,CapsuleModel.req_fast_task,,实现本地状态/规则及兼容响应
+capsule_get_coin,扭蛋活动,P2,True,,True,CapsuleModel.req_get_coin,,实现本地状态/规则及兼容响应
+capsule_load,扭蛋活动,P2,True,,True,CapsuleModel.req_load,CapsuleModel.initModel,实现本地状态/规则及兼容响应
+capsule_load_coin,扭蛋活动,P2,True,,True,,CapsuleModel.initModel,实现本地状态/规则及兼容响应
+capsule_load_task,扭蛋活动,P2,True,,True,,CapsuleModel.initModel,实现本地状态/规则及兼容响应
+capsule_patch,扭蛋活动,P2,True,,True,CapsuleModel.req_patch,,实现本地状态/规则及兼容响应
+capsule_twist,扭蛋活动,P2,True,,True,CapsuleModel.req_twist,,实现本地状态/规则及兼容响应
+client_add_push_id,基础状态/设置/事件,P0,True,push_id,False,WXgameChannel.pushMessage,,需单机替代策略/离线停用；保留已有权益与记录
+client_change_decorate,基础状态/设置/事件,P0,True,id,True,RoleModel.changeDecoration,,实现本地状态/规则及兼容响应
+client_confirm_event,基础状态/设置/事件,P0,True,id,False,TravelModel.readTraveEvents,,实现本地状态/规则及兼容响应
+client_draw_taobao,基础状态/设置/事件,P0,True,draw,True,TaobaoImportView.drawTaobao,,需单机替代策略/离线停用；保留已有权益与记录
+client_get_my_wx_reward,基础状态/设置/事件,P0,True,,True,UserModel.client_load_role; GuideMiniView.onComplete; GuideMiniView.onComplete; MainOutView.onComplete,,需单机替代策略/离线停用；保留已有权益与记录
+client_get_push_reward,基础状态/设置/事件,P0,True,,True,WXgameChannel.tryGetPushReward,,需单机替代策略/离线停用；保留已有权益与记录
+client_gm,基础状态/设置/事件,P0,True,cmd,True,GMView.execute; GMView.execute; GMView.execute; GMView.execute; GMView.execute; GMView.commitProperties,MessageModel (constructor),本地诊断/设置或明确停用；不复制远端运营机制
+client_hello,基础状态/设置/事件,P0,True,,True,NetworkControl.createPint; NetworkControl.createPint,UserModel.initModel,实现本地状态/规则及兼容响应
+client_load_all_info,基础状态/设置/事件,P0,True,,True,NetworkControl.totalEvents,,实现本地状态/规则及兼容响应
+client_load_decorate,基础状态/设置/事件,P0,True,,True,,RoleModel.initModel,实现本地状态/规则及兼容响应
+client_load_events,基础状态/设置/事件,P0,True,,True,,TravelModel.initModel,实现本地状态/规则及兼容响应
+client_load_publicity,基础状态/设置/事件,P0,False,,,,NoticeModel.initModel,实现本地状态/规则及兼容响应
+client_load_role,基础状态/设置/事件,P0,True,,True,,UserModel.initModel,实现本地状态/规则及兼容响应
+client_notice,基础状态/设置/事件,P0,False,,,,RoleModel.initModel,实现本地状态/规则及兼容响应
+client_rename_cost,基础状态/设置/事件,P0,True,,True,RoleModel.setName,,实现本地状态/规则及兼容响应
+client_set_achieve,基础状态/设置/事件,P0,True,id,False,RoleModel.setUseAchieveID,,实现本地状态/规则及兼容响应
+client_set_ads,基础状态/设置/事件,P0,True,support,False,NetworkControl.totalEvents,,本地诊断/设置或明确停用；不复制远端运营机制
+client_set_channel,基础状态/设置/事件,P0,True,channel,False,NetworkControl.totalEvents,,本地诊断/设置或明确停用；不复制远端运营机制
+client_set_channel_id,基础状态/设置/事件,P0,True,id,False,NetworkControl.totalEvents,,本地诊断/设置或明确停用；不复制远端运营机制
+client_set_client,基础状态/设置/事件,P0,True,client,False,UserModel.setClientSettings; UserModel.setClientSettings,,实现本地状态/规则及兼容响应
+client_set_client_envinfo,基础状态/设置/事件,P0,True,info,False,NetworkControl.totalEvents,,本地诊断/设置或明确停用；不复制远端运营机制
+client_set_icon,基础状态/设置/事件,P0,True,id,False,RoleModel.setIconID,,实现本地状态/规则及兼容响应
+client_set_lang,基础状态/设置/事件,P0,True,lang,False,,,实现本地状态/规则及兼容响应
+client_set_name,基础状态/设置/事件,P0,True,name,True,RoleModel.setName,,实现本地状态/规则及兼容响应
+client_set_pic_show,基础状态/设置/事件,P0,True,id,False,RoleModel.setPictureID,,实现本地状态/规则及兼容响应
+client_set_wx_open_id,基础状态/设置/事件,P0,True,open_id,True,NetworkControl.totalEvents,,需单机替代策略/离线停用；保留已有权益与记录
+client_share_publicity,基础状态/设置/事件,P0,True,id,True,NoticeModel.req_share_publicity,,需单机替代策略/离线停用；保留已有权益与记录
+client_switch_push,基础状态/设置/事件,P0,True,turnon,True,UserModel.setPushSwitch,,实现本地状态/规则及兼容响应
+client_switch_rank,基础状态/设置/事件,P0,True,turnon,True,UserModel.setRankSwitch,,实现本地状态/规则及兼容响应
+client_taobao_import,基础状态/设置/事件,P0,True,taobao_uid,True,GMView.commitProperties,,需单机替代策略/离线停用；保留已有权益与记录
+client_user_action,基础状态/设置/事件,P0,True,name,False,,,本地诊断/设置或明确停用；不复制远端运营机制
+clover_harvest,三叶草与生长,P1,True,clover_id,True,RoleModel.harvestClover,,实现本地状态/规则及兼容响应
+clover_harvest_resend,三叶草与生长,P1,True,list,True,RoleModel.syncHarvestClover,,实现本地状态/规则及兼容响应
+clover_load_clovers,三叶草与生长,P1,True,,True,,RoleModel.initModel,实现本地状态/规则及兼容响应
+clover_notice_get,三叶草与生长,P1,True,,True,,ItemModel.initModel,实现本地状态/规则及兼容响应
+clover_update,三叶草与生长,P1,True,,True,,ItemModel.initModel,实现本地状态/规则及兼容响应
+cooking_complete_task,料理,P2,True,id,True,CookingModel.requestCookReward,,实现本地状态/规则及兼容响应
+cooking_load_cooking,料理,P2,True,,True,CookingModel.request,CookingModel.initModel,实现本地状态/规则及兼容响应
+cooking_look_ad,料理,P2,True,,True,,,实现本地状态/规则及兼容响应
+cooking_refresh_task,料理,P2,True,id,True,CookingModel.requestCookRefresh,,实现本地状态/规则及兼容响应
+cooking_select,料理,P2,True,index,True,CookingModel.selectTheme,,实现本地状态/规则及兼容响应
+cooking_share,料理,P2,True,,True,GMView.execute; ShareView.share_callback,,实现本地状态/规则及兼容响应
+cooking_start_cooking,料理,P2,True,,True,CookingModel.requestStartCooking,,实现本地状态/规则及兼容响应
+cooking_task_update,料理,P2,False,,,,CookingModel.initModel,实现本地状态/规则及兼容响应
+easteregg_load,彩蛋,P2,False,,,,EasterEggModel.initModel,实现本地状态/规则及兼容响应
+encyclopedia_load,百科图鉴,P2,True,,True,,EncyModel.initModel,实现本地状态/规则及兼容响应
+encyclopedia_set_show_sub,百科图鉴,P2,True,long_id,False,EncyModel.req_set_show_sub,,实现本地状态/规则及兼容响应
+encytravel_load,旅行图鉴,P2,True,,True,,EncyTravelModel.initModel,实现本地状态/规则及兼容响应
+encytravel_set_show_sub,旅行图鉴,P2,True,long_id,False,EncyTravelModel.req_set_show_sub,,实现本地状态/规则及兼容响应
+furniture_buy_shop,家具/工作台/庭院设施,P1,True,shop_id,True,FurnitureModel.requestBuy,FurnitureModel.initModel,实现本地状态/规则及兼容响应
+furniture_flowerpot_harvest,家具/工作台/庭院设施,P1,True,"type, index",True,FurnitureModel.req_flowerpot_harvest,,实现本地状态/规则及兼容响应
+furniture_load_compost,家具/工作台/庭院设施,P1,True,,True,,FurnitureModel.initModel,实现本地状态/规则及兼容响应
+furniture_load_flowerpot,家具/工作台/庭院设施,P1,False,,,,FurnitureModel.initModel,实现本地状态/规则及兼容响应
+furniture_load_furniture,家具/工作台/庭院设施,P1,True,,True,o.checkCameraMoment,FurnitureModel.initModel,实现本地状态/规则及兼容响应
+furniture_load_pocket,家具/工作台/庭院设施,P1,True,,True,,FurnitureModel.initModel,实现本地状态/规则及兼容响应
+furniture_load_tumbler,家具/工作台/庭院设施,P1,True,,True,,FurnitureModel.initModel,实现本地状态/规则及兼容响应
+furniture_pocket_get,家具/工作台/庭院设施,P1,True,,True,FurnitureModel.request_pocket_get,,实现本地状态/规则及兼容响应
+furniture_putin_bench,家具/工作台/庭院设施,P1,True,"pos, id",True,FurnitureModel.setBenchTool; FurnitureModel.setBenchTool; FurnitureModel.setBenchItem; FurnitureModel.setBenchItem,FurnitureModel.initModel,实现本地状态/规则及兼容响应
+furniture_putin_box,家具/工作台/庭院设施,P1,True,"pos, id",True,FurnitureModel.setCompostItem; FurnitureModel.setCompostItem,,实现本地状态/规则及兼容响应
+furniture_replace_compost,家具/工作台/庭院设施,P1,True,index,True,FurnitureModel.replaceFurniture,,实现本地状态/规则及兼容响应
+furniture_replace_fur,家具/工作台/庭院设施,P1,True,id,True,FurnitureModel.replaceFurniture,,实现本地状态/规则及兼容响应
+furniture_replace_pocket,家具/工作台/庭院设施,P1,True,index,True,FurnitureModel.replaceFurniture,,实现本地状态/规则及兼容响应
+furniture_replace_tumbler,家具/工作台/庭院设施,P1,True,index,True,FurnitureModel.replaceFurniture,,实现本地状态/规则及兼容响应
+furniture_takeout_bench,家具/工作台/庭院设施,P1,True,pos,True,FurnitureModel.setBenchTool; FurnitureModel.setBenchTool; FurnitureModel.setBenchItem; FurnitureModel.setBenchItem,FurnitureModel.initModel,实现本地状态/规则及兼容响应
+furniture_takeout_box,家具/工作台/庭院设施,P1,True,pos,True,FurnitureModel.setCompostItem; FurnitureModel.setCompostItem,,实现本地状态/规则及兼容响应
+greetcard_buy,贺卡,P2,True,id,True,GreetCardModel.req_buy,,实现本地状态/规则及兼容响应
+greetcard_change_bg,贺卡,P2,True,id,True,GreetCardModel.req_change_bg,,实现本地状态/规则及兼容响应
+greetcard_change_bless,贺卡,P2,True,id,True,GreetCardModel.req_change_bless,,实现本地状态/规则及兼容响应
+greetcard_feedback_gift,贺卡,P2,True,id,False,MailItemView.acceptTouchEvents,,实现本地状态/规则及兼容响应
+greetcard_get_reward,贺卡,P2,True,id,True,GreetCardModel.req_get_reward,,实现本地状态/规则及兼容响应
+greetcard_get_task_item,贺卡,P2,True,,True,GreetCardModel.req_get_task_item,GreetCardModel.initModel,实现本地状态/规则及兼容响应
+greetcard_get_task_reward,贺卡,P2,True,,True,GreetCardModel.req_get_task_reward,,实现本地状态/规则及兼容响应
+greetcard_load,贺卡,P2,True,,True,GreetCardModel.req_load,GreetCardModel.initModel,实现本地状态/规则及兼容响应
+greetcard_load_count,贺卡,P2,True,,True,GreetCardModel.req_load_count,,实现本地状态/规则及兼容响应
+greetcard_put_tags,贺卡,P2,True,"pos, id",True,GreetCardModel.req_put_tags,,实现本地状态/规则及兼容响应
+greetcard_read_new,贺卡,P2,True,,False,GreetCardModel.req_read_new,,实现本地状态/规则及兼容响应
+greetcard_send,贺卡,P2,True,,True,GreetCardModel.req_send,,实现本地状态/规则及兼容响应
+greetcard_send_gift,贺卡,P2,True,"index, gift",False,GreetCardModel.req_send_gift,,实现本地状态/规则及兼容响应
+greetcard_stock,贺卡,P2,True,,True,GreetCardModel.req_stock,,实现本地状态/规则及兼容响应
+guest_accept_invit,来客/绘本邀请,P2,True,is_accept,True,DrawingModel.request_accept_invit; DrawingModel.request_reject_invit,DrawingModel.initModel,实现本地状态/规则及兼容响应
+guest_confirm,来客/绘本邀请,P2,True,id,False,TravelModel.sendGuestConfirmed,,实现本地状态/规则及兼容响应
+guest_finish,来客/绘本邀请,P2,True,,False,MainOutView.checkGameplay,,实现本地状态/规则及兼容响应
+guest_load,来客/绘本邀请,P2,True,,True,,TravelModel.initModel,实现本地状态/规则及兼容响应
+guest_load_drawing,来客/绘本邀请,P2,True,,True,,DrawingModel.initModel,实现本地状态/规则及兼容响应
+guest_lock_bag,来客/绘本邀请,P2,True,,True,DrawingModel.lockBag; DrawingModel.unlockBag,,实现本地状态/规则及兼容响应
+guest_putin_bag,来客/绘本邀请,P2,True,"pos, id",True,DrawingModel.changeItem,DrawingModel.initModel,实现本地状态/规则及兼容响应
+guest_serve,来客/绘本邀请,P2,True,"id, item_id",False,TravelModel.sendGuestServed,,实现本地状态/规则及兼容响应
+guest_set_expire_time,来客/绘本邀请,P2,True,time,False,MainOutView.checkFriend,,实现本地状态/规则及兼容响应
+guest_takeout_bag,来客/绘本邀请,P2,True,pos,True,DrawingModel.changeItem,DrawingModel.initModel,实现本地状态/规则及兼容响应
+hall_enter_game,本地会话与启动,P0,True,,True,NetworkControl.totalEvents,UserModel.initModel,实现本地状态/规则及兼容响应
+hall_gen_token,本地会话与启动,P0,True,account,True,NetworkControl.totalEvents,UserModel.initModel,实现本地状态/规则及兼容响应
+hall_hello,本地会话与启动,P0,True,,True,,,实现本地状态/规则及兼容响应
+hall_leave_game,本地会话与启动,P0,True,,False,,,实现本地状态/规则及兼容响应
+hall_login,本地会话与启动,P0,True,token,True,NetworkControl.totalEvents; NetworkControl.totalEvents; NetworkControl.totalEvents,UserModel.initModel,实现本地状态/规则及兼容响应
+hall_reconnect,本地会话与启动,P0,True,"token, account",True,,UserModel.initModel,实现本地状态/规则及兼容响应
+hall_report_remote_addr,本地会话与启动,P0,True,"remote_addr, local_addr",False,,,本地诊断/设置或明确停用；不复制远端运营机制
+item_buy,库存/行囊/桌子/商店/抽奖,P1,True,shop_id,True,t.buyItem,ItemModel.initModel,实现本地状态/规则及兼容响应
+item_gacha,库存/行囊/桌子/商店/抽奖,P1,True,is_reward,True,RaffleView.raffle; RaffleView.reward_raffle; RaffleView.nextReward,ItemModel.initModel,实现本地状态/规则及兼容响应
+item_gift_open,库存/行囊/桌子/商店/抽奖,P1,False,,,,ItemModel.initModel,实现本地状态/规则及兼容响应
+item_load_handbook,库存/行囊/桌子/商店/抽奖,P1,True,,True,,ItemModel.initModel,实现本地状态/规则及兼容响应
+item_load_items,库存/行囊/桌子/商店/抽奖,P1,True,,True,,ItemModel.initModel,实现本地状态/规则及兼容响应
+item_load_select_gift,库存/行囊/桌子/商店/抽奖,P1,True,,True,,ItemModel.initModel,实现本地状态/规则及兼容响应
+item_load_shop_info,库存/行囊/桌子/商店/抽奖,P1,True,,True,,ItemModel.initModel,实现本地状态/规则及兼容响应
+item_putin_bag,库存/行囊/桌子/商店/抽奖,P1,True,"pos, item_id",True,ItemModel.setBagData,,实现本地状态/规则及兼容响应
+item_putin_desk,库存/行囊/桌子/商店/抽奖,P1,True,"pos, item_id",True,ItemModel.setDeskData,,实现本地状态/规则及兼容响应
+item_redeem_prize,库存/行囊/桌子/商店/抽奖,P1,True,prize_id,False,RaffleView.updateGachaColorBall; PrizeSelector.selectItem,,实现本地状态/规则及兼容响应
+item_select_gift,库存/行囊/桌子/商店/抽奖,P1,True,index_list,True,ItemModel.req_select_gift,,实现本地状态/规则及兼容响应
+item_set_bag_completed,库存/行囊/桌子/商店/抽奖,P1,True,completed,False,ItemModel.setBagLock,,实现本地状态/规则及兼容响应
+item_takeout_bag,库存/行囊/桌子/商店/抽奖,P1,True,pos,True,ItemModel.setBagData; ItemModel.setBagData,,实现本地状态/规则及兼容响应
+item_takeout_desk,库存/行囊/桌子/商店/抽奖,P1,True,pos,True,ItemModel.setDeskData; ItemModel.setDeskData,,实现本地状态/规则及兼容响应
+item_update,库存/行囊/桌子/商店/抽奖,P1,True,,True,,ItemModel.initModel,实现本地状态/规则及兼容响应
+item_update_ticket,库存/行囊/桌子/商店/抽奖,P1,True,,True,,ItemModel.initModel,实现本地状态/规则及兼容响应
+item_use_gift_code,库存/行囊/桌子/商店/抽奖,P1,True,gift_code,True,CdkeyView.totalTouchEvent,,需单机替代策略/离线停用；保留已有权益与记录
+koto_arrive,koto 兼容接口（未见直接调用）,P3,True,,True,,,定义存在，未见直接发送/注册；确认版本用途后兼容
+koto_dir_compass,koto 兼容接口（未见直接调用）,P3,True,dir,True,,,定义存在，未见直接发送/注册；确认版本用途后兼容
+koto_get_items,koto 兼容接口（未见直接调用）,P3,True,,True,,,定义存在，未见直接发送/注册；确认版本用途后兼容
+koto_info,koto 兼容接口（未见直接调用）,P3,True,,False,,,定义存在，未见直接发送/注册；确认版本用途后兼容
+koto_load,koto 兼容接口（未见直接调用）,P3,True,,True,,,定义存在，未见直接发送/注册；确认版本用途后兼容
+koto_load_path,koto 兼容接口（未见直接调用）,P3,True,,True,,,定义存在，未见直接发送/注册；确认版本用途后兼容
+koto_random_compass,koto 兼容接口（未见直接调用）,P3,True,,True,,,定义存在，未见直接发送/注册；确认版本用途后兼容
+koto_refresh,koto 兼容接口（未见直接调用）,P3,True,,True,,,定义存在，未见直接发送/注册；确认版本用途后兼容
+koto_start_advance,koto 兼容接口（未见直接调用）,P3,True,id,True,,,定义存在，未见直接发送/注册；确认版本用途后兼容
+lottery_confirm_reward,选取式抽奖,P2,True,,True,LotteryModel.req_confirm_reward,,实现本地状态/规则及兼容响应
+lottery_load,选取式抽奖,P2,True,,True,,LotteryModel.initModel,实现本地状态/规则及兼容响应
+lottery_open,选取式抽奖,P2,True,,True,LotteryModel.req_open,,实现本地状态/规则及兼容响应
+lottery_select,选取式抽奖,P2,True,list,True,LotteryModel.req_select,,实现本地状态/规则及兼容响应
+mail_ejoy_active_code,邮件与附件,P1,True,ticket,True,,TravelModel.initModel,需单机替代策略/离线停用；保留已有权益与记录
+mail_load,邮件与附件,P1,True,,True,TravelModel.requestMail,TravelModel.initModel,实现本地状态/规则及兼容响应
+mail_load_mails,邮件与附件,P1,True,"start, count, is_clear",True,TravelModel.mail_load_mails,TravelModel.initModel,实现本地状态/规则及兼容响应
+mail_open,邮件与附件,P1,True,id,False,TravelModel.openMailInfo,,实现本地状态/规则及兼容响应
+mail_read,邮件与附件,P1,True,id,False,TravelModel.readMailInfo,,实现本地状态/规则及兼容响应
+misc_moment_load,瞬间收藏,P2,True,,True,,MomentModel.initModel,实现本地状态/规则及兼容响应
+misc_moment_unlock,瞬间收藏,P2,True,id,True,MomentModel.req_unlock,,实现本地状态/规则及兼容响应
+museum_load,博物馆,P2,True,,True,MuseumModel.requestMuseum,MuseumModel.initModel,实现本地状态/规则及兼容响应
+museumday_arrive,博物馆主题探索,P2,True,,True,MuseumDayModel.arrive,MuseumDayModel.initModel,实现本地状态/规则及兼容响应
+museumday_dir_compass,博物馆主题探索,P2,True,dir,True,MuseumDayModel.dirCompass,,实现本地状态/规则及兼容响应
+museumday_get_items,博物馆主题探索,P2,True,,True,MuseumDayModel.getItems,,实现本地状态/规则及兼容响应
+museumday_info,博物馆主题探索,P2,True,,False,,MuseumDayModel.initModel,实现本地状态/规则及兼容响应
+museumday_inspire,博物馆主题探索,P2,True,,True,MuseumDayModel.req_inspire,,实现本地状态/规则及兼容响应
+museumday_load,博物馆主题探索,P2,True,,True,MuseumDayModel.request,MuseumDayModel.initModel,实现本地状态/规则及兼容响应
+museumday_load_path,博物馆主题探索,P2,True,,True,,,实现本地状态/规则及兼容响应
+museumday_random_compass,博物馆主题探索,P2,True,,True,MuseumDayModel.randomCompass,,实现本地状态/规则及兼容响应
+museumday_refresh,博物馆主题探索,P2,True,,True,MuseumDayModel.refresh,,实现本地状态/规则及兼容响应
+museumday_start_advance,博物馆主题探索,P2,True,id,True,MuseumDayModel.request_start_advance,,实现本地状态/规则及兼容响应
+notify_kick,推送/事件/系统通知,P0,False,,,,MessageModel (constructor),本地诊断/设置或明确停用；不复制远端运营机制
+notify_marquee,推送/事件/系统通知,P0,False,,,,MessageModel (constructor),本地诊断/设置或明确停用；不复制远端运营机制
+notify_new_event,推送/事件/系统通知,P0,False,,,,TravelModel.initModel,实现本地状态/规则及兼容响应
+notify_new_mail,推送/事件/系统通知,P0,False,,,,TravelModel.initModel,实现本地状态/规则及兼容响应
+notify_redmsg,推送/事件/系统通知,P0,False,,,,TravelModel.initModel,实现本地状态/规则及兼容响应
+notify_reload,推送/事件/系统通知,P0,False,,,,UserModel.initModel,本地诊断/设置或明确停用；不复制远端运营机制
+notify_reward,推送/事件/系统通知,P0,False,,,,MessageModel (constructor),实现本地状态/规则及兼容响应
+other_load_touch,其他点击触发内容,P2,False,,,,OtherModel.initModel,实现本地状态/规则及兼容响应
+other_req_touch,其他点击触发内容,P2,True,id,True,OtherModel.req_touch,,实现本地状态/规则及兼容响应
+partycake_answer,庆典蛋糕,P2,True,index,True,PartyCakeModel.req_answer,,实现本地状态/规则及兼容响应
+partycake_get_mate,庆典蛋糕,P2,True,,True,PartyCakeModel.req_get_mate,,实现本地状态/规则及兼容响应
+partycake_light,庆典蛋糕,P2,True,,True,PartyCakeModel.req_light,,实现本地状态/规则及兼容响应
+partycake_load,庆典蛋糕,P2,True,,True,PartyCakeModel.req_load,PartyCakeModel.initModel,实现本地状态/规则及兼容响应
+partycake_load_mate,庆典蛋糕,P2,True,,True,,PartyCakeModel.initModel,实现本地状态/规则及兼容响应
+partycake_load_qa,庆典蛋糕,P2,True,,True,PartyCakeModel.req_load_qa,PartyCakeModel.initModel,实现本地状态/规则及兼容响应
+partycake_load_task,庆典蛋糕,P2,True,,True,,PartyCakeModel.initModel,实现本地状态/规则及兼容响应
+partycake_make,庆典蛋糕,P2,True,layer,True,PartyCakeModel.req_make,,实现本地状态/规则及兼容响应
+partycake_reward_light,庆典蛋糕,P2,True,,True,PartyCakeModel.req_reward_light,,实现本地状态/规则及兼容响应
+partycake_reward_make,庆典蛋糕,P2,True,,True,PartyCakeModel.req_make_reward,,实现本地状态/规则及兼容响应
+partycake_reward_qa,庆典蛋糕,P2,True,,True,PartyCakeModel.req_reward_qa,,实现本地状态/规则及兼容响应
+partycake_reward_share,庆典蛋糕,P2,True,index,True,PartyCakeModel.req_reward_share,,实现本地状态/规则及兼容响应
+pray_compose,祈福/手作/合成,P2,True,id,True,HandCraftModel.req_compose,,实现本地状态/规则及兼容响应
+pray_confirm_make_box,祈福/手作/合成,P2,True,,False,HandCraftModel.confirm_make_box,,实现本地状态/规则及兼容响应
+pray_load_grays,祈福/手作/合成,P2,True,,True,,HandCraftModel.initModel,实现本地状态/规则及兼容响应
+rank_get_intro,排行榜/他人资料,P3,True,"type, duration, uid",True,RankingModel.getOtherInfo,RankingModel.initModel,需单机替代策略/离线停用；保留已有权益与记录
+rank_like,排行榜/他人资料,P3,True,"type, duration, uid",False,RankingModel.setLike,,需单机替代策略/离线停用；保留已有权益与记录
+rank_load,排行榜/他人资料,P3,True,"type, duration, start, count",True,RankingModel.checkRankListInfo; RankingModel.checkRankListInfo,RankingModel.initModel,需单机替代策略/离线停用；保留已有权益与记录
+recharge_cancel_pay,付费权益/水与兑换,P3,True,id,False,RechargeModel.cancelPay,,需单机替代策略/离线停用；保留已有权益与记录
+recharge_change,付费权益/水与兑换,P3,True,,True,RechargeModel.request_change,,实现本地状态/规则及兼容响应
+recharge_load,付费权益/水与兑换,P3,True,,True,,RechargeModel.initModel,实现本地状态/规则及兼容响应
+recharge_load_gift,付费权益/水与兑换,P3,True,,True,,RechargeModel.initModel,实现本地状态/规则及兼容响应
+recharge_ready_pay,付费权益/水与兑换,P3,True,id,True,,,需单机替代策略/离线停用；保留已有权益与记录
+recharge_update_num,付费权益/水与兑换,P3,True,,True,,RechargeModel.initModel,实现本地状态/规则及兼容响应
+recharge_water,付费权益/水与兑换,P3,True,,True,RechargeModel.request_water,,实现本地状态/规则及兼容响应
+share_get_reward,分享奖励,P3,True,"id, is_get",True,ShareModel.req_get_reward,,需单机替代策略/离线停用；保留已有权益与记录
+share_load,分享奖励,P3,True,,True,,ShareModel.initModel,需单机替代策略/离线停用；保留已有权益与记录
+springcard_buy,新春贺卡,P2,True,,True,SpringCardModel.req_buy,,实现本地状态/规则及兼容响应
+springcard_change_bg,新春贺卡,P2,True,id,True,SpringCardModel.req_change_bg,,实现本地状态/规则及兼容响应
+springcard_change_bless,新春贺卡,P2,True,id,True,SpringCardModel.req_change_bless,,实现本地状态/规则及兼容响应
+springcard_get_reward,新春贺卡,P2,True,,True,SpringCardModel.req_get_reward,,实现本地状态/规则及兼容响应
+springcard_get_share_tags,新春贺卡,P2,True,share_code,True,SpringCardModel.req_get_share_tags,,需单机替代策略/离线停用；保留已有权益与记录
+springcard_get_task_item,新春贺卡,P2,True,,True,,,实现本地状态/规则及兼容响应
+springcard_get_task_reward,新春贺卡,P2,True,,True,SpringCardModel.req_get_task_reward,,实现本地状态/规则及兼容响应
+springcard_load,新春贺卡,P2,True,,True,SpringCardModel.req_load,SpringCardModel.initModel,实现本地状态/规则及兼容响应
+springcard_load_count,新春贺卡,P2,True,,True,SpringCardModel.req_load_count,,实现本地状态/规则及兼容响应
+springcard_load_task_item,新春贺卡,P2,False,,,,SpringCardModel.initModel,实现本地状态/规则及兼容响应
+springcard_put_tags,新春贺卡,P2,True,"pos, id",True,SpringCardModel.req_put_tags,,实现本地状态/规则及兼容响应
+springcard_send,新春贺卡,P2,True,,True,SpringCardModel.req_send,,实现本地状态/规则及兼容响应
+springcard_share_tags,新春贺卡,P2,True,tags_id,True,SpringCardModel.req_share_tags,,需单机替代策略/离线停用；保留已有权益与记录
+story_feedback_gift,朋友故事,P2,True,id,False,MailItemView.acceptTouchEvents,,实现本地状态/规则及兼容响应
+story_load,朋友故事,P2,True,,True,,StoryModel.initModel,实现本地状态/规则及兼容响应
+story_read_new_story,朋友故事,P2,True,,False,StoryModel.readNewStory,,实现本地状态/规则及兼容响应
+story_send_gift,朋友故事,P2,True,"id, gift",False,StoryModel.sendGift,,实现本地状态/规则及兼容响应
+task_client_pro,任务与里程碑,P1,True,param,False,GuideTaskModel.req_client_pro,,实现本地状态/规则及兼容响应
+task_get_list_reward,任务与里程碑,P1,True,id,True,GuideTaskModel.req_list_reward,,实现本地状态/规则及兼容响应
+task_get_reward,任务与里程碑,P1,True,id,True,GuideTaskModel.request_reward,,实现本地状态/规则及兼容响应
+task_load,任务与里程碑,P1,True,,True,GuideTaskViewControl.open,GuideTaskModel.initModel,实现本地状态/规则及兼容响应
+task_load_list,任务与里程碑,P1,True,,True,,GuideTaskModel.initModel,实现本地状态/规则及兼容响应
+travel_album_to_gift,礼品盒/旅行手账,P2,True,picture_id,True,TravelModel.putPicturesToGiftBox,,实现本地状态/规则及兼容响应
+travel_bag_to_gift,礼品盒/旅行手账,P2,True,item_id,True,ItemModel.moveItemToGiftBox,,实现本地状态/规则及兼容响应
+travel_gift_delete_album,礼品盒/旅行手账,P2,True,id,True,GiftBoxModel.delete_album,,实现本地状态/规则及兼容响应
+travel_gift_to_album,礼品盒/旅行手账,P2,True,picture_id,True,GiftBoxModel.gift_to_album,,实现本地状态/规则及兼容响应
+travel_gift_to_bag,礼品盒/旅行手账,P2,True,item_id,True,GiftBoxModel.gift_to_bag,,实现本地状态/规则及兼容响应
+travel_load_gift,礼品盒/旅行手账,P2,True,,True,GiftBoxModel.requestData,GiftBoxModel.initModel,实现本地状态/规则及兼容响应
+travel_load_note,礼品盒/旅行手账,P2,True,,True,TravelNoteModel.loadNote,TravelNoteModel.initModel,实现本地状态/规则及兼容响应
+travel_read_note,礼品盒/旅行手账,P2,True,id,False,TravelNoteModel.sendReadNote,,实现本地状态/规则及兼容响应
+tutorial_step_ask_award,新手初始化,P0,True,,False,MainOutView.checkGuide,,实现本地状态/规则及兼容响应
+tutorial_step_ask_award_q,新手初始化,P0,True,,True,MainOutView.checkGuide,,实现本地状态/规则及兼容响应
+tutorial_step_open_door,新手初始化,P0,True,,False,MainOutView.checkGuide,,实现本地状态/规则及兼容响应
+tutorial_step_open_door_q,新手初始化,P0,True,,True,MainOutView.checkGuide,,实现本地状态/规则及兼容响应
+visit_load,来访与接待,P2,True,,True,,VisitorModel.initModel,实现本地状态/规则及兼容响应
+visit_open,来访与接待,P2,True,,False,VisitorModel.open,,实现本地状态/规则及兼容响应
+visit_set_carpet,来访与接待,P2,True,id,False,VisitorModel.visit_load,,实现本地状态/规则及兼容响应
+visit_set_expire_time,来访与接待,P2,True,time,False,MainOutView.updateVisitor,,实现本地状态/规则及兼容响应
+weather_load,天气与时段,P1,False,,,,WeatherModel.initModel,实现本地状态/规则及兼容响应
+wishingpool_load,许愿池,P2,True,,True,,WishingPoolModel.initModel,实现本地状态/规则及兼容响应
+wishingpool_wish,许愿池,P2,True,,True,WishingPoolModel.req_wish,,实现本地状态/规则及兼容响应
