@@ -1027,6 +1027,16 @@
     server.handlers.lottery_open = {idempotent:true,apply:function(work,params,effects){ return rules.lottery.open(work,params,effects); }};
     server.handlers.lottery_select = {idempotent:true,apply:function(work,params,effects){ return rules.lottery.select(work,params,effects); }};
     server.handlers.lottery_confirm_reward = {idempotent:true,apply:function(work,params,effects){ return rules.lottery.confirm(work,params,effects); }};
+    server.handlers.springcard_load = {read:function(work){ return rules.springcard.snapshot(work); }};
+    server.handlers.springcard_load_count = {read:function(work){ return {count:rules.springcard.ensure(work).send_list.length}; }};
+    server.handlers.springcard_load_task_item = {read:function(work){ return {list:util.clone(rules.springcard.ensure(work).task_item)}; }};
+    server.handlers.springcard_buy = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.buy(work,params,effects); }};
+    server.handlers.springcard_change_bg = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.changeBg(work,params,effects); }};
+    server.handlers.springcard_change_bless = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.changeBless(work,params,effects); }};
+    server.handlers.springcard_put_tags = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.putTags(work,params,effects); }};
+    server.handlers.springcard_send = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.send(work,effects); }};
+    server.handlers.springcard_get_reward = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.getReward(work,params,effects); }};
+    server.handlers.springcard_get_task_reward = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.taskReward(work,effects); }};
 
     server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
     server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};

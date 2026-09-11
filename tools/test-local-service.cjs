@@ -733,6 +733,16 @@ test('lottery selection survives restart until reward confirmation', () => {
   assert.equal(r.commit(w => lf.server.handlers.lottery_confirm_reward.apply(w, {}, {})).ok, false);
 });
 
+test('spring card keeps its own inventory and sends rewards locally', () => {
+  const r = runtime(); const {lf} = r;
+  assert.equal(r.commit(w => lf.server.handlers.springcard_buy.apply(w, {id: 301}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.springcard_change_bg.apply(w, {id: 301}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.springcard_send.apply(w, {}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.springcard_get_reward.apply(w, {item_id: 9001}, {})).ok, true);
+  assert.equal(lf.state.data.items.house[9001], 1);
+  r.reload(); assert.equal(lf.state.data.activities.springcard.send_list.length, 1);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);
