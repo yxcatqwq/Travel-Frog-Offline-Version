@@ -5466,6 +5466,12 @@
     rules.story = rules.story || {};
     rules.story.read = function(work, params, effects) { var v=activities.ensure(work).story;var id=params&& (params.id||params.story_id);v.read_ids=Array.isArray(v.read_ids)?v.read_ids:[];if(id!==undefined&&v.read_ids.indexOf(id)<0)v.read_ids.push(id);v.story_id=id;v.new_story_id=0;rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
     rules.story.sendGift = function(work, params, effects) { var v=activities.ensure(work).story;var id=util.toInt(params&& (params.item_id||params.gift_id),-1);if(id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:"gift"};var take=rules.items.consume(work,id,1,effects);if(!take.ok)return take;v.gifts=Array.isArray(v.gifts)?v.gifts:[];v.gifts.push({story_id:params.story_id||params.id,item_id:id,at:clock.now()});rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
+    /* C07 ??????????????????????????? */
+    rules.cooking = rules.cooking || {};
+    rules.cooking.ensure = function(work) { var v=activities.ensure(work).cooking; if(!util.isObject(v)) v=activities.ensure(work).cooking={}; if(!Array.isArray(v.task_list))v.task_list=[]; return v; };
+    rules.cooking.start = function(work,params,effects) { params=util.isObject(params)?params:{}; var v=rules.cooking.ensure(work); if(v.process&&(v.process.state==='running'||v.process.state==='ready'))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-running'}; var output=util.toInt(params.output_id||params.item_id,-1), count=Math.max(1,util.toInt(params.output_count||params.count,1)); if(output<0||!rules.itemInfo(output))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-output'}; var inputs=Array.isArray(params.inputs)?params.inputs:[]; for(var i=0;i<inputs.length;i++){var id=util.toInt(inputs[i].item_id||inputs[i].id,-1),n=Math.max(1,util.toInt(inputs[i].count||inputs[i].num,1));if(id<0||!rules.itemInfo(id)||rules.items.count(work,id)<n)return {ok:false,code:LF.ERR.NO_ITEM,reason:'cooking-material:'+id};} for(var j=0;j<inputs.length;j++){var cid=util.toInt(inputs[j].item_id||inputs[j].id,-1);var take=rules.items.consume(work,cid,Math.max(1,util.toInt(inputs[j].count||inputs[j].num,1)),effects);if(!take.ok)return take;} var now=clock.now(),finish=now+Math.max(1,util.toInt(params.duration,1800));v.process={state:'running',output_id:output,output_count:count,started_at:now,finish_at:finish,inputs:util.clone(inputs)};v.select=util.toInt(params.theme||params.select,v.select||0);rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,finish_at:finish}; };
+    rules.cooking.finish = function(work,effects,now){var v=rules.cooking.ensure(work),p=v.process;if(!p||p.state!=='running'||util.toInt(p.finish_at,0)>now)return {ok:true,skipped:true};p.state='ready';rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK};};
+    rules.cooking.complete = function(work,effects){var v=rules.cooking.ensure(work),p=v.process;if(!p||p.state!=='ready'||p.finish_at>clock.now())return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-not-ready'};var add=rules.items.add(work,p.output_id,p.output_count,effects);if(!add.ok)return add;v.process=null;v.complete=true;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,item_list:[{item_id:p.output_id,count:p.output_count}]};};
     /* ---------------- C14 日历/签到 ----------------
      * 日历是一个独立的持久化分区。服务器原本会按自然日下发任务和
      * 幸运/特殊日结果；离线版在首次读取或提交时完成换日，并以 claim
@@ -6784,6 +6790,10 @@
     server.handlers.story_read_new_story = {idempotent:true,apply:function(work,params,effects){return rules.story.read(work,params,effects);}};
     server.handlers.story_send_gift = {idempotent:true,apply:function(work,params,effects){return rules.story.sendGift(work,params.gift||params,effects);}};
 
+    server.handlers.cooking_start_cooking = {idempotent:true,apply:function(work,params,effects){return rules.cooking.start(work,params,effects);}};
+    server.handlers.cooking_complete_task = {idempotent:true,apply:function(work,params,effects){return rules.cooking.complete(work,effects);}};
+    server.handlers.cooking_select = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"cooking",{select:util.toInt(params.index,0)},effects);}};
+
     var ackOnly = [
         "client_set_ads", "client_set_channel", "client_set_channel_id", "client_set_client_envinfo",
         "client_user_action", "hall_report_remote_addr", "client_set_lang", "client_add_push_id",
@@ -6989,6 +6999,12 @@
             dueAt: work.activities && work.activities.pray && work.activities.pray.process && work.activities.pray.process.state === "running"
                 ? util.toInt(work.activities.pray.process.finish_at, 0) : 0,
             run: function (effects) { return rules.pray ? rules.pray.finish(work, effects, now) : {ok:true, skipped:true}; }
+        });
+        list.push({
+            id: "cooking.finish",
+            dueAt: work.activities && work.activities.cooking && work.activities.cooking.process && work.activities.cooking.process.state === "running"
+                ? util.toInt(work.activities.cooking.process.finish_at, 0) : 0,
+            run: function (effects) { return rules.cooking ? rules.cooking.finish(work, effects, now) : {ok:true, skipped:true}; }
         });
         return list;
     };

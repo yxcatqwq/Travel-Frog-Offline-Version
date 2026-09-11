@@ -128,6 +128,12 @@
                 ? util.toInt(work.activities.pray.process.finish_at, 0) : 0,
             run: function (effects) { return rules.pray ? rules.pray.finish(work, effects, now) : {ok:true, skipped:true}; }
         });
+        list.push({
+            id: "cooking.finish",
+            dueAt: work.activities && work.activities.cooking && work.activities.cooking.process && work.activities.cooking.process.state === "running"
+                ? util.toInt(work.activities.cooking.process.finish_at, 0) : 0,
+            run: function (effects) { return rules.cooking ? rules.cooking.finish(work, effects, now) : {ok:true, skipped:true}; }
+        });
         return list;
     };
 

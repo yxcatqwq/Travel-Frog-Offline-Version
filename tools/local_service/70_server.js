@@ -979,6 +979,10 @@
     server.handlers.story_read_new_story = {idempotent:true,apply:function(work,params,effects){return rules.story.read(work,params,effects);}};
     server.handlers.story_send_gift = {idempotent:true,apply:function(work,params,effects){return rules.story.sendGift(work,params.gift||params,effects);}};
 
+    server.handlers.cooking_start_cooking = {idempotent:true,apply:function(work,params,effects){return rules.cooking.start(work,params,effects);}};
+    server.handlers.cooking_complete_task = {idempotent:true,apply:function(work,params,effects){return rules.cooking.complete(work,effects);}};
+    server.handlers.cooking_select = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"cooking",{select:util.toInt(params.index,0)},effects);}};
+
     var ackOnly = [
         "client_set_ads", "client_set_channel", "client_set_channel_id", "client_set_client_envinfo",
         "client_user_action", "hall_report_remote_addr", "client_set_lang", "client_add_push_id",

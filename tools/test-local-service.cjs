@@ -568,6 +568,17 @@ test('pray composition consumes materials and confirms one local result', () => 
   assert.equal(r.commit(w => lf.server.handlers.pray_confirm_make_box.apply(w, {}, effects)).ok, false);
 });
 
+test('cooking cycle consumes ingredients, completes offline, and rewards once', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.items.house[3001] = 1;
+  assert.equal(r.commit(w => lf.server.handlers.cooking_start_cooking.apply(w, {output_id: 9001, inputs: [{item_id: 3001, count: 1}], duration: 20}, {})).ok, true);
+  lf.state.data.clock.timeTravelSeconds += 21;
+  r.commit(w => ({ok:true, changed:lf.scheduler.catchUp(w,{})}));
+  assert.equal(r.commit(w => lf.server.handlers.cooking_complete_task.apply(w, {}, {})).ok, true);
+  assert.equal(lf.state.data.items.house[9001], 1);
+  assert.equal(r.commit(w => lf.server.handlers.cooking_complete_task.apply(w, {}, {})).ok, false);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);
