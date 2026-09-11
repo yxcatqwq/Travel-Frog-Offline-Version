@@ -619,10 +619,13 @@
     };
 
     rules.snapshot.flowerpot = function (work) {
+        var f = flowerpot.ensure(work);
         return {
             show_list: util.clone(util.toArray(work.flowerpot.show_list)),
             list: util.clone(util.toArray(work.flowerpot.list)),
-            plant_list: util.clone(util.toArray(work.flowerpot.plant_list))
+            plant_list: util.clone(util.toArray(work.flowerpot.plant_list)),
+            harvest_count: f.harvest_count,
+            harvested: util.clone(f.harvested)
         };
     };
     rules.flowerpot = rules.flowerpot || {};
@@ -632,6 +635,8 @@
         if (!Array.isArray(work.flowerpot.show_list)) work.flowerpot.show_list = [];
         if (!Array.isArray(work.flowerpot.list)) work.flowerpot.list = [];
         if (!Array.isArray(work.flowerpot.plant_list)) work.flowerpot.plant_list = [];
+        work.flowerpot.harvest_count = Math.max(0, util.toInt(work.flowerpot.harvest_count, 0));
+        if (!util.isObject(work.flowerpot.harvested)) work.flowerpot.harvested = {};
         return work.flowerpot;
     };
     flowerpot.pot = function (work, type) {
@@ -676,7 +681,10 @@
         var duration = util.toInt(params.duration !== undefined ? params.duration : (row.grow_time || row.growTime || row.need_time || row.duration), 3600);
         var rewardId = util.toInt(params.reward_id !== undefined ? params.reward_id : (row.reward_id !== undefined ? row.reward_id : (row.flower_id !== undefined ? row.flower_id : (row.item_id !== undefined ? row.item_id : seedId))), seedId);
         var rewardCount = Math.max(1, util.toInt(params.reward_count !== undefined ? params.reward_count : (row.reward_count !== undefined ? row.reward_count : (row.count !== undefined ? row.count : 1)), 1));
-        return {duration: Math.max(1, duration), reward_id: rewardId, reward_count: rewardCount};
+        var seedDrop = params.seed_drop_id !== undefined ? params.seed_drop_id : (row.seed_drop_id !== undefined ? row.seed_drop_id : (row.seedDropId !== undefined ? row.seedDropId : row.drop_seed_id));
+        seedDrop = seedDrop === undefined ? -1 : util.toInt(seedDrop, -1);
+        var category = params.category || row.category || row.type_name || "";
+        return {duration: Math.max(1, duration), reward_id: rewardId, reward_count: rewardCount, seed_drop_id: seedDrop, category: String(category || "")};
     };
     flowerpot.plant = function (work, params, effects) {
         params = util.isObject(params) ? params : {};
@@ -690,7 +698,7 @@
         if (rules.items.count(work, seedId) < amount) return {ok:false, code:LF.ERR.NO_ITEM, reason:"flowerpot-seed-not-owned"};
         var recipe = flowerpot.recipe(seedId, params), consumed = rules.items.consume(work, seedId, amount, effects);
         if (!consumed.ok) return consumed;
-        var now = clock.now(), plant = {type:type, index:index, id:seedId, seed_id:seedId, stage:1, state:"growing", started_at:now, finish_time:now + recipe.duration, reward_id:recipe.reward_id, reward_count:recipe.reward_count};
+        var now = clock.now(), plant = {type:type, index:index, id:seedId, seed_id:seedId, stage:1, state:"growing", started_at:now, finish_time:now + recipe.duration, reward_id:recipe.reward_id, reward_count:recipe.reward_count, seed_drop_id:recipe.seed_drop_id, category:recipe.category};
         f.plant_list.push(plant);
         rules.effect(effects, "flowerpot");
         if (rules.tasks && rules.tasks.update) rules.tasks.update(work, "flowerpot_plant", 1, effects);
@@ -716,6 +724,11 @@
         if (!(plant.state === "done" || util.toInt(plant.state, 0) >= 2 || (finish > 0 && finish <= clock.now()))) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"flowerpot-not-ready"};
         var itemId = util.toInt(plant.reward_id || plant.item_id || plant.seed_id, -1), count = Math.max(1, util.toInt(plant.reward_count || plant.count, 1));
         if (itemId >= 0) { var added = rules.items.add(work, itemId, count, effects); if (!added.ok) return added; }
+        var seedDrop = util.toInt(plant.seed_drop_id !== undefined ? plant.seed_drop_id : plant.next_seed_id, -1);
+        if (seedDrop >= 0) { var seedAdded = rules.items.add(work, seedDrop, 1, effects); if (!seedAdded.ok) return seedAdded; }
+        f.harvest_count += 1;
+        var category = String(plant.category || "");
+        if (category) f.harvested[category] = Math.max(0, util.toInt(f.harvested[category], 0)) + count;
         /* 客户端按固定槽位读取 plant_list，收获后保留空槽而不是缩短数组。 */
         f.plant_list[match.offset] = null; rules.effect(effects, "flowerpot");
         if (rules.tasks && rules.tasks.update) rules.tasks.update(work, "flowerpot_harvest", 1, effects);

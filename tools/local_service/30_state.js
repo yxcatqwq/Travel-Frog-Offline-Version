@@ -122,7 +122,7 @@
             mail: {mails: [], nextId: 1, pictures: [], specialtys: [], notes: []},
             events: {pending: [], settled: [], nextId: 1},
             guests: {current: null, history: [], drawing: {is_accept: false, bag: [-1, -1, -1, -1], locked: false, gifts: []}},
-            travel: {status: 'home', tripId: '', destinationId: 0, companionId: 0, startedAt: 0, etaAt: 0, returnedAt: 0, bag: [], result: null, settled: true, lastTripId: '', nextEventAt: 0},
+            travel: {status: 'home', tripId: '', destinationId: 0, companionId: 0, startedAt: 0, etaAt: 0, returnedAt: 0, bag: [], result: null, settled: true, lastTripId: '', nextEventAt: 0, options: {}},
             album: {pictures: [], newPictures: [], deleted: [], capacity: 30, expansionCount: 0},
             decorate: {list: [], put_id: 0, status: 0},
             journal: {

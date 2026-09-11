@@ -1083,7 +1083,7 @@
             return result;
         }
     };
-    server.handlers.furniture_compost_start = { apply: function (work, params, effects) { return rules.compost.start(work, effects); } };
+    server.handlers.furniture_compost_start = { apply: function (work, params, effects) { return rules.compost.start(work, effects, params || {}); } };
     server.handlers.furniture_compost_collect = { apply: function (work, params, effects) { return rules.compost.collect(work, effects); } };
 
     server.handlers.album_delete = {idempotent:true, apply:function(work, params, effects){return rules.album.remove(work, params.id, effects);}};

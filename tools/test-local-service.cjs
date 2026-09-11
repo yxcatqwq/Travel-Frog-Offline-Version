@@ -751,3 +751,42 @@ test('activity protocol handlers keep their own activity namespace', () => {
   assert.equal(lf.state.data.activities.visit.visitor_id, 3);
   assert.equal(lf.state.data.activities.pray.story_id, undefined);
 });
+
+test('travel applies configured specialties and lucky clover fills the first missing special photo', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.mail.pictures = [{id:'old', pic_id:'sp-a'}];
+  const effects = {};
+  assert.equal(r.commit(w => lf.rules.travel.prepareAndStart(w, {
+    destinationId: 9, duration: 60, lucky_clover: true,
+    special_picture_ids: ['sp-a', 'sp-b'],
+    specialtys: [{item_id: 9101, category: 'rare', count: 2}],
+    destination_items: [{item_id: 9001, count: 1}]
+  }, effects)).ok, true);
+  lf.state.data.clock.timeTravelSeconds += 61;
+  assert.equal(r.commit(w => ({ok:true, changed:lf.rules.travel.advance(w, effects)})).ok, true);
+  assert.equal(lf.state.data.travel.result.picture.pic_id, 'sp-b');
+  assert.equal(r.commit(w => lf.rules.travel.claim(w, {}, effects)).ok, true);
+  assert.equal(lf.state.data.items.house[9001], 1);
+  assert.equal(lf.state.data.items.specialtys.length, 1);
+  assert.equal(lf.state.data.items.specialty_counts.rare, 2);
+  r.reload(); assert.equal(lf.state.data.items.specialty_counts.rare, 2);
+});
+
+test('flowerpot mature harvest can return a seed and records cumulative produce', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.flowerpot.plant_list = [{state:'done', reward_id:1001, reward_count:2, seed_drop_id:1002, category:'vegetable'}];
+  assert.equal(r.commit(w => lf.rules.flowerpot.harvest(w, 1, {})).ok, true);
+  assert.equal(lf.state.data.items.house[1001], 2);
+  assert.equal(lf.state.data.items.house[1002], 1);
+  assert.equal(lf.state.data.flowerpot.harvest_count, 1);
+  assert.equal(lf.state.data.flowerpot.harvested.vegetable, 2);
+  r.reload(); assert.equal(lf.state.data.flowerpot.harvest_count, 1);
+});
+
+test('compost fertility shortens configured processing duration', () => {
+  const r=runtime(); const {lf}=r;
+  lf.state.data.compost.show_index=1; lf.state.data.compost.compost_list=[77]; lf.state.data.compost.box_list[0]=5001;
+  lf.config.get=(name,id)=> name==='CompostData' && id===77 ? {id:77, star:3} : null;
+  const result=r.commit(w=>lf.rules.compost.start(w, {}, {fertility:3}));
+  assert.equal(result.ok,true); assert.equal(result.duration,2400);
+});

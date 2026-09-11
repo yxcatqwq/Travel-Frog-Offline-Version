@@ -460,13 +460,25 @@
     compost.isOpen = function (work) {
         return work.compost.show_index > 0 && !!work.compost.compost_list[work.compost.show_index - 1];
     };
-    compost.start = function (work, effects) {
+    compost.start = function (work, effects, params) {
         if (!compost.isOpen(work)) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"compost-unavailable"};
         if (work.compost.process && work.compost.process.state === "running") return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"compost-running"};
         var filled=work.compost.box_list.filter(function(id){return util.toInt(id,-1)>=0;}).length;
         if (!filled) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"compost-empty"};
-        var now=clock.now(); work.compost.process={state:"running",started_at:now,finish_at:now+3600,reward_clover:filled*10};
-        work.compost.state=1; rules.effect(effects,"compost"); return {ok:true,code:LF.ERR.OK,finish_at:now+3600};
+        params = util.isObject(params) ? params : {};
+        var now=clock.now();
+        /* CompostData may expose a fertility/star speed multiplier. Keep the
+         * fallback at the legacy one-hour duration when imported configs do not. */
+        var compostId = util.toInt(work.compost.compost_list[work.compost.show_index - 1], -1);
+        var definition = config.get("CompostData", compostId) || config.get("compostData", compostId) || {};
+        var fertility = util.toInt(params.fertility !== undefined ? params.fertility : (definition.fertility !== undefined ? definition.fertility : (definition.star !== undefined ? definition.star : definition.level)), 1);
+        var speed = Number(params.speed_rate !== undefined ? params.speed_rate : (definition.speed_rate !== undefined ? definition.speed_rate : (definition.speedRate !== undefined ? definition.speedRate : 1)));
+        if (!(speed > 0)) speed = 1;
+        /* A three-star box is explicitly faster; config can override the rate. */
+        if (speed === 1 && fertility > 1) speed = 1 + Math.min(2, fertility - 1) * 0.25;
+        var duration = Math.max(60, Math.round(3600 / speed));
+        work.compost.process={state:"running",started_at:now,finish_at:now+duration,reward_clover:filled*10,fertility:fertility,speed_rate:speed};
+        work.compost.state=1; rules.effect(effects,"compost"); return {ok:true,code:LF.ERR.OK,finish_at:now+duration,duration:duration,fertility:fertility};
     };
     compost.collect = function (work, effects) {
         var p=work.compost.process;
