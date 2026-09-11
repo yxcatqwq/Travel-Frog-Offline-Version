@@ -123,6 +123,11 @@
             }
         });
         list.push({
+            id: "easteregg.finish",
+            dueAt: work.activities && work.activities.easteregg && work.activities.easteregg.active ? util.toInt(work.activities.easteregg.active.end_time, 0) : 0,
+            run: function (effects) { return rules.easteregg ? rules.easteregg.finish(work, effects, now) : {ok:true, skipped:true}; }
+        });
+        list.push({
             id: "pray.finish",
             dueAt: work.activities && work.activities.pray && work.activities.pray.process && work.activities.pray.process.state === "running"
                 ? util.toInt(work.activities.pray.process.finish_at, 0) : 0,

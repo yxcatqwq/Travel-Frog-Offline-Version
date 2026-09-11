@@ -660,6 +660,16 @@ test('dynamic picture moves photos across making and album slots with 1-based in
   r.reload(); assert.equal(lf.state.data.activities.animpicture.pic_list.length, 1);
 });
 
+test('easter egg activation expires through offline scheduler and keeps history', () => {
+  const r = runtime(); const {lf} = r;
+  const started = r.commit(w => lf.server.handlers.easteregg_trigger.apply(w, {egg_id: 9, duration: 20}, {}));
+  assert.equal(started.ok, true); assert.equal(started.active.id, 9);
+  lf.state.data.clock.timeTravelSeconds += 21;
+  r.commit(w => ({ok:true, changed:lf.scheduler.catchUp(w, {})}));
+  const loaded = lf.server.handlers.easteregg_load.read(lf.state.data);
+  assert.equal(loaded.active, null); assert.equal(loaded.egg_list.length, 1); assert.equal(loaded.egg_list[0], 9);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);

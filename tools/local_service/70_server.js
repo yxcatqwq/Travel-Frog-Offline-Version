@@ -979,6 +979,8 @@
     server.handlers.other_req_touch = {idempotent:true,apply:function(work,params,effects){ return rules.touch.request(work,params,effects); }};
     server.handlers.misc_moment_load = {read:function(work){ return rules.moment ? rules.moment.ensure(work) : LF.activities.read(work, "misc_moment"); }};
     server.handlers.misc_moment_unlock = {idempotent:true,apply:function(work,params,effects){ return rules.moment.unlock(work,params,effects); }};
+    server.handlers.easteregg_load = {read:function(work){ return rules.easteregg.snapshot(work); }};
+    server.handlers.easteregg_trigger = {idempotent:true,apply:function(work,params,effects){ return rules.easteregg.trigger(work,params,effects); }};
     server.handlers.animpicture_load = {read:function(work){ return rules.animpicture.snapshot(work); }};
     server.handlers.animpicture_guide = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.guide(work,effects); }};
     server.handlers.animpicture_get_item = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.getItem(work,params,effects); }};
