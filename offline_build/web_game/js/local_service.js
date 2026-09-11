@@ -793,7 +793,7 @@
             mail: {mails: [], nextId: 1, pictures: [], specialtys: [], notes: []},
             events: {pending: [], settled: [], nextId: 1},
             guests: {current: null, history: [], drawing: {is_accept: false, bag: [-1, -1, -1, -1], locked: false, gifts: []}},
-            travel: {status: 'home', tripId: '', destinationId: 0, companionId: 0, startedAt: 0, etaAt: 0, returnedAt: 0, bag: [], result: null, settled: true, lastTripId: '', nextEventAt: 0},
+            travel: {status: 'home', tripId: '', destinationId: 0, companionId: 0, startedAt: 0, etaAt: 0, returnedAt: 0, bag: [], result: null, settled: true, lastTripId: '', nextEventAt: 0, options: {}},
             album: {pictures: [], newPictures: [], deleted: [], capacity: 30, expansionCount: 0},
             decorate: {list: [], put_id: 0, status: 0},
             journal: {
@@ -4447,13 +4447,25 @@
     compost.isOpen = function (work) {
         return work.compost.show_index > 0 && !!work.compost.compost_list[work.compost.show_index - 1];
     };
-    compost.start = function (work, effects) {
+    compost.start = function (work, effects, params) {
         if (!compost.isOpen(work)) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"compost-unavailable"};
         if (work.compost.process && work.compost.process.state === "running") return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"compost-running"};
         var filled=work.compost.box_list.filter(function(id){return util.toInt(id,-1)>=0;}).length;
         if (!filled) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"compost-empty"};
-        var now=clock.now(); work.compost.process={state:"running",started_at:now,finish_at:now+3600,reward_clover:filled*10};
-        work.compost.state=1; rules.effect(effects,"compost"); return {ok:true,code:LF.ERR.OK,finish_at:now+3600};
+        params = util.isObject(params) ? params : {};
+        var now=clock.now();
+        /* CompostData may expose a fertility/star speed multiplier. Keep the
+         * fallback at the legacy one-hour duration when imported configs do not. */
+        var compostId = util.toInt(work.compost.compost_list[work.compost.show_index - 1], -1);
+        var definition = config.get("CompostData", compostId) || config.get("compostData", compostId) || {};
+        var fertility = util.toInt(params.fertility !== undefined ? params.fertility : (definition.fertility !== undefined ? definition.fertility : (definition.star !== undefined ? definition.star : definition.level)), 1);
+        var speed = Number(params.speed_rate !== undefined ? params.speed_rate : (definition.speed_rate !== undefined ? definition.speed_rate : (definition.speedRate !== undefined ? definition.speedRate : 1)));
+        if (!(speed > 0)) speed = 1;
+        /* A three-star box is explicitly faster; config can override the rate. */
+        if (speed === 1 && fertility > 1) speed = 1 + Math.min(2, fertility - 1) * 0.25;
+        var duration = Math.max(60, Math.round(3600 / speed));
+        work.compost.process={state:"running",started_at:now,finish_at:now+duration,reward_clover:filled*10,fertility:fertility,speed_rate:speed};
+        work.compost.state=1; rules.effect(effects,"compost"); return {ok:true,code:LF.ERR.OK,finish_at:now+duration,duration:duration,fertility:fertility};
     };
     compost.collect = function (work, effects) {
         var p=work.compost.process;
@@ -5234,10 +5246,13 @@
     };
 
     rules.snapshot.flowerpot = function (work) {
+        var f = flowerpot.ensure(work);
         return {
             show_list: util.clone(util.toArray(work.flowerpot.show_list)),
             list: util.clone(util.toArray(work.flowerpot.list)),
-            plant_list: util.clone(util.toArray(work.flowerpot.plant_list))
+            plant_list: util.clone(util.toArray(work.flowerpot.plant_list)),
+            harvest_count: f.harvest_count,
+            harvested: util.clone(f.harvested)
         };
     };
     rules.flowerpot = rules.flowerpot || {};
@@ -5247,6 +5262,8 @@
         if (!Array.isArray(work.flowerpot.show_list)) work.flowerpot.show_list = [];
         if (!Array.isArray(work.flowerpot.list)) work.flowerpot.list = [];
         if (!Array.isArray(work.flowerpot.plant_list)) work.flowerpot.plant_list = [];
+        work.flowerpot.harvest_count = Math.max(0, util.toInt(work.flowerpot.harvest_count, 0));
+        if (!util.isObject(work.flowerpot.harvested)) work.flowerpot.harvested = {};
         return work.flowerpot;
     };
     flowerpot.pot = function (work, type) {
@@ -5291,7 +5308,10 @@
         var duration = util.toInt(params.duration !== undefined ? params.duration : (row.grow_time || row.growTime || row.need_time || row.duration), 3600);
         var rewardId = util.toInt(params.reward_id !== undefined ? params.reward_id : (row.reward_id !== undefined ? row.reward_id : (row.flower_id !== undefined ? row.flower_id : (row.item_id !== undefined ? row.item_id : seedId))), seedId);
         var rewardCount = Math.max(1, util.toInt(params.reward_count !== undefined ? params.reward_count : (row.reward_count !== undefined ? row.reward_count : (row.count !== undefined ? row.count : 1)), 1));
-        return {duration: Math.max(1, duration), reward_id: rewardId, reward_count: rewardCount};
+        var seedDrop = params.seed_drop_id !== undefined ? params.seed_drop_id : (row.seed_drop_id !== undefined ? row.seed_drop_id : (row.seedDropId !== undefined ? row.seedDropId : row.drop_seed_id));
+        seedDrop = seedDrop === undefined ? -1 : util.toInt(seedDrop, -1);
+        var category = params.category || row.category || row.type_name || "";
+        return {duration: Math.max(1, duration), reward_id: rewardId, reward_count: rewardCount, seed_drop_id: seedDrop, category: String(category || "")};
     };
     flowerpot.plant = function (work, params, effects) {
         params = util.isObject(params) ? params : {};
@@ -5305,7 +5325,7 @@
         if (rules.items.count(work, seedId) < amount) return {ok:false, code:LF.ERR.NO_ITEM, reason:"flowerpot-seed-not-owned"};
         var recipe = flowerpot.recipe(seedId, params), consumed = rules.items.consume(work, seedId, amount, effects);
         if (!consumed.ok) return consumed;
-        var now = clock.now(), plant = {type:type, index:index, id:seedId, seed_id:seedId, stage:1, state:"growing", started_at:now, finish_time:now + recipe.duration, reward_id:recipe.reward_id, reward_count:recipe.reward_count};
+        var now = clock.now(), plant = {type:type, index:index, id:seedId, seed_id:seedId, stage:1, state:"growing", started_at:now, finish_time:now + recipe.duration, reward_id:recipe.reward_id, reward_count:recipe.reward_count, seed_drop_id:recipe.seed_drop_id, category:recipe.category};
         f.plant_list.push(plant);
         rules.effect(effects, "flowerpot");
         if (rules.tasks && rules.tasks.update) rules.tasks.update(work, "flowerpot_plant", 1, effects);
@@ -5331,6 +5351,11 @@
         if (!(plant.state === "done" || util.toInt(plant.state, 0) >= 2 || (finish > 0 && finish <= clock.now()))) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"flowerpot-not-ready"};
         var itemId = util.toInt(plant.reward_id || plant.item_id || plant.seed_id, -1), count = Math.max(1, util.toInt(plant.reward_count || plant.count, 1));
         if (itemId >= 0) { var added = rules.items.add(work, itemId, count, effects); if (!added.ok) return added; }
+        var seedDrop = util.toInt(plant.seed_drop_id !== undefined ? plant.seed_drop_id : plant.next_seed_id, -1);
+        if (seedDrop >= 0) { var seedAdded = rules.items.add(work, seedDrop, 1, effects); if (!seedAdded.ok) return seedAdded; }
+        f.harvest_count += 1;
+        var category = String(plant.category || "");
+        if (category) f.harvested[category] = Math.max(0, util.toInt(f.harvested[category], 0)) + count;
         /* 客户端按固定槽位读取 plant_list，收获后保留空槽而不是缩短数组。 */
         f.plant_list[match.offset] = null; rules.effect(effects, "flowerpot");
         if (rules.tasks && rules.tasks.update) rules.tasks.update(work, "flowerpot_harvest", 1, effects);
@@ -5758,6 +5783,7 @@
     travel.DURATION_SECONDS = 3600;
     travel.ensure = function (work) {
         if (!util.isObject(work.travel)) { work.travel = util.clone(LF.stateDefaults().travel); }
+        if (!util.isObject(work.travel.options)) work.travel.options = {};
         if (!Array.isArray(work.travel.bag)) { work.travel.bag = []; }
         if (!util.isObject(work.events)) { work.events = {pending: [], settled: [], nextId: 1}; }
         if (!Array.isArray(work.events.pending)) { work.events.pending = []; }
@@ -5770,7 +5796,7 @@
     };
     travel.snapshot = function (work) {
         var v = travel.ensure(work);
-        return {status:v.status, trip_id:v.tripId, destination_id:util.toInt(v.destinationId,0), companion_id:util.toInt(v.companionId,0), started_at:util.toInt(v.startedAt,0), eta_at:util.toInt(v.etaAt,0), returned_at:util.toInt(v.returnedAt,0), bag:util.clone(v.bag), result:util.clone(v.result), settled:!!v.settled, last_trip_id:v.lastTripId || '', next_event_at:util.toInt(v.nextEventAt,0)};
+        return {status:v.status, trip_id:v.tripId, destination_id:util.toInt(v.destinationId,0), companion_id:util.toInt(v.companionId,0), started_at:util.toInt(v.startedAt,0), eta_at:util.toInt(v.etaAt,0), returned_at:util.toInt(v.returnedAt,0), bag:util.clone(v.bag), result:util.clone(v.result), options:util.clone(v.options), settled:!!v.settled, last_trip_id:v.lastTripId || '', next_event_at:util.toInt(v.nextEventAt,0)};
     };
     travel.event = function (work, type, value, stringValue, picture) {
         var id = util.toInt(work.events.nextId,1); work.events.nextId = id + 1;
@@ -5786,6 +5812,13 @@
         if (params.requireBag && bag.length===0) return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'empty-bag'};
         var now=clock.now(); var tripId=String(params.tripId || (work.header.saveId+'-'+now+'-'+util.toInt(work.header.revision,0)));
         v.status='ready'; v.tripId=tripId; v.destinationId=util.toInt(params.destinationId,1); v.companionId=util.toInt(params.companionId,0); v.startedAt=0; v.etaAt=0; v.returnedAt=0; v.bag=bag; v.result=null; v.settled=false; v.nextEventAt=0;
+        v.options = {
+            specialtys: Array.isArray(params.specialtys) ? util.clone(params.specialtys) : [],
+            items: Array.isArray(params.destination_items) ? util.clone(params.destination_items) : [],
+            special_picture_ids: Array.isArray(params.special_picture_ids) ? util.clone(params.special_picture_ids) : [],
+            lucky_clover: params.lucky_clover === true,
+            museum: params.museum === true
+        };
         work.items.bag=[-1,-1,-1,-1]; work.items.bagCompleted=false; work.role.frogStatus=0; work.role.frogMotion=0;
         rules.effect(effects,'travel'); rules.effect(effects,'container'); rules.effect(effects,'role');
         return {ok:true,code:LF.ERR.OK,changed:{status:v.status,tripId:tripId,bag:bag}};
@@ -5800,19 +5833,49 @@
     travel.prepareAndStart = function(work,params,effects){var a=travel.prepare(work,params,effects); if(!a.ok)return a; var b=travel.start(work,params,effects); if(!b.ok)return b; return {ok:true,code:LF.ERR.OK,changed:{prepared:a.changed,started:b.changed}};};
     travel.advance = function(work,effects,now){
         var v=travel.ensure(work); now=now || clock.now(); if(v.status!=='traveling' || !v.etaAt || now<v.etaAt)return {ok:true,skipped:true};
-        var reward=10+Math.min(20,v.bag.length*2); var picture={id:v.tripId+'-picture',pic_id:v.destinationId,long_id:v.tripId,destination_id:v.destinationId,layers:[],created_at:now};
-        v.status='result'; v.returnedAt=now; v.nextEventAt=0; v.result={clover:reward,ticket:0,items:[],picture:picture,source:'local'}; v.settled=false; work.role.frogStatus=0; work.role.frogMotion=0;
+        var reward=10+Math.min(20,v.bag.length*2), options=util.isObject(v.options)?v.options:{};
+        var pictureId = v.tripId+'-picture';
+        /* With an explicit special-photo table, lucky clover chooses the first
+         * missing photo only after the series already has one owned photo. */
+        if (options.lucky_clover && Array.isArray(options.special_picture_ids) && options.special_picture_ids.length) {
+            var owned = util.toArray(work.mail.pictures).concat(util.toArray(work.album && work.album.pictures));
+            var hasSeries = options.special_picture_ids.some(function(id){ return owned.some(function(pic){ return String(pic.pic_id !== undefined ? pic.pic_id : pic.id) === String(id); }); });
+            if (hasSeries) {
+                for (var si=0;si<options.special_picture_ids.length;si++) {
+                    var candidate=options.special_picture_ids[si], exists=owned.some(function(pic){ return String(pic.pic_id !== undefined ? pic.pic_id : pic.id) === String(candidate); });
+                    if (!exists) { pictureId = candidate; break; }
+                }
+            }
+        }
+        var picture={id:v.tripId+'-picture',pic_id:pictureId,long_id:v.tripId,destination_id:v.destinationId,layers:[],created_at:now};
+        v.status='result'; v.returnedAt=now; v.nextEventAt=0; v.result={clover:reward,ticket:0,items:util.clone(options.items),specialtys:util.clone(options.specialtys),picture:picture,source:'local'}; v.settled=false; work.role.frogStatus=0; work.role.frogMotion=0;
         travel.addEvent(work,travel.event(work,2,[reward,0,-1],[v.tripId],picture),effects); rules.effect(effects,'travel'); rules.effect(effects,'role');
         return {ok:true,changed:{status:v.status,reward:reward}};
     };
     travel.claim = function(work,params,effects){
         var v=travel.ensure(work); params=params || {}; if(v.status!=='result' || v.settled || !v.result)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'travel-result-unavailable'}; if(params.tripId && String(params.tripId)!==String(v.tripId))return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'trip-id'};
         var result=v.result; var grant=rules.wallet.grant(work,{clover:util.toInt(result.clover,0),ticket:util.toInt(result.ticket,0)},effects); if(!grant.ok)return grant;
+        var grantedItems = [];
+        util.toArray(result.items).forEach(function(entry){
+            var id=util.toInt(entry && (entry.item_id !== undefined ? entry.item_id : entry.id),-1), count=Math.max(1,util.toInt(entry && (entry.count !== undefined ? entry.count : entry.num),1));
+            if(id>=0){ var added=rules.items.add(work,id,count,effects); if(added.ok) grantedItems.push({item_id:id,count:count}); }
+        });
+        var grantedSpecialtys = [];
+        util.toArray(result.specialtys).forEach(function(entry){
+            var row=util.clone(entry); if(!util.isObject(row)) row={item_id:util.toInt(entry,-1),count:1};
+            var sid=util.toInt(row.item_id !== undefined ? row.item_id : row.id,-1); if(sid<0)return;
+            row.item_id=sid; row.count=Math.max(1,util.toInt(row.count || row.num,1));
+            work.items.specialtys=util.toArray(work.items.specialtys); work.items.specialtys.push(row); grantedSpecialtys.push(row);
+            work.items.specialty_counts=util.isObject(work.items.specialty_counts)?work.items.specialty_counts:{};
+            var kind=String(row.category || row.rarity || 'normal'); work.items.specialty_counts[kind]=Math.max(0,util.toInt(work.items.specialty_counts[kind],0))+row.count;
+        });
+        if (grantedItems.length) rules.effect(effects,'container');
+        if (grantedSpecialtys.length) rules.effect(effects,'items');
         if(result.picture) { work.mail.pictures.push(util.clone(result.picture)); }
         if (rules.tasks && rules.tasks.update) { rules.tasks.update(work, 'travel_return', 1, effects); }
         var pending=work.events.pending; for(var i=pending.length-1;i>=0;i--){if(pending[i] && pending[i].evt_pic && pending[i].evt_pic.long_id===v.tripId){work.events.settled.push(pending[i]);pending.splice(i,1);}}
         v.status='home'; v.lastTripId=v.tripId; v.settled=true; v.result=null; v.bag=[]; v.tripId=''; rules.effect(effects,'travel'); rules.effect(effects,'events');
-        return {ok:true,code:LF.ERR.OK,changed:{status:v.status,clover:result.clover,picture:!!result.picture}};
+        return {ok:true,code:LF.ERR.OK,changed:{status:v.status,clover:result.clover,picture:!!result.picture,items:grantedItems,specialtys:grantedSpecialtys}};
     };
     travel.confirmEvent = function(work,id,effects){
         var target=util.toInt(id,-1), pending=util.toArray(work.events.pending); for(var i=0;i<pending.length;i++){var e=pending[i]; if(util.toInt(e && (e.id!==undefined?e.id:e.evt_id),-1)!==target)continue; if(e.evt_type===2 && work.travel.status==='result')return travel.claim(work,{tripId:work.travel.tripId},effects); pending.splice(i,1); work.events.settled.push(e); rules.effect(effects,'events'); return {ok:true,code:LF.ERR.OK,changed:{confirmed:target}};} return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'event-not-found'};
@@ -7074,7 +7137,7 @@
             return result;
         }
     };
-    server.handlers.furniture_compost_start = { apply: function (work, params, effects) { return rules.compost.start(work, effects); } };
+    server.handlers.furniture_compost_start = { apply: function (work, params, effects) { return rules.compost.start(work, effects, params || {}); } };
     server.handlers.furniture_compost_collect = { apply: function (work, params, effects) { return rules.compost.collect(work, effects); } };
 
     server.handlers.album_delete = {idempotent:true, apply:function(work, params, effects){return rules.album.remove(work, params.id, effects);}};
