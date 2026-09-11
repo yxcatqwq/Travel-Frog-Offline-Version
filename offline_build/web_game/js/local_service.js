@@ -4449,6 +4449,13 @@
             return {ok: false, code: LF.ERR.NO_RESOURCE, reason: "clover"};
         }
         var payload = util.toInt(entry.itemId, -1);
+        if (payload === 9000 && rules.album) {
+            var expanded = rules.album.expand(work, {pages: 1}, effects);
+            if (!expanded.ok) { return expanded; }
+            work.items.purchased[shopId] = bought + 1;
+            rules.effect(effects, "shop");
+            return {ok: true, code: LF.ERR.OK, changed: {shopId: shopId, itemId: payload, price: price, capacity: expanded.changed.capacity}};
+        }
         var info = payload >= 0 ? rules.itemInfo(payload) : null;
         if (payload >= 0 && !info) {
             return {ok: false, code: LF.ERR.ILLEGAL_OP, reason: "unknown-item:" + payload};
@@ -7014,8 +7021,8 @@
         server.push("furniture_load_compost", rules.snapshot.compost(work));
         server.push("furniture_load_pocket", rules.snapshot.pocket(work));
         server.push("furniture_load_flowerpot", rules.snapshot.flowerpot(work));
-        server.push("task_load", {tasks: [], list: []});
-        server.push("task_load_list", {reward: []});
+        server.push("task_load", rules.tasks ? rules.tasks.snapshot(work) : {tasks: [], list: []});
+        server.push("task_load_list", rules.tasks ? rules.tasks.snapshot(work) : {reward: []});
         server.push("client_load_events", rules.travel.eventsSnapshot(work));
         server.push("mail_load", rules.mail.snapshot(work).mails);
         server.push("album_load_all", {id_list: util.clone(rules.album.ensure(work).pictures).map(function(p){return {id:p.id,pic_id:p.pic_id};})});

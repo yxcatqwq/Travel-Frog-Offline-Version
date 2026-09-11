@@ -374,6 +374,13 @@ test('album starts at 30 pages and expansion consumes clovers', () => {
   assert.equal(lf.state.data.album.capacity, 31);
 });
 
+test('album expansion is triggered by the real shop item 9000', () => {
+  const r=runtime(); const {lf}=r; lf.state.data.wallet.clover=1000;
+  lf.config.get=(name,id)=> name==='ShopDataDB' && id===22 ? {id:22,itemId:9000,price:1000,limit:1} : (name==='ItemDB' && id===9000 ? {id:9000,type:11,own_num:99} : null);
+  const out=r.commit(w=>lf.rules.shop.buy(w,22,{}));
+  assert.equal(out.ok,true); assert.equal(lf.state.data.album.capacity,31); assert.equal(lf.state.data.wallet.clover,0);
+});
+
 test('flowerpot harvest returns mature reward and clears plant slot', () => {
   const r = runtime(); const {lf} = r; const effects = {};
   lf.state.data.flowerpot.plant_list = [{state: 'done', reward_id: 1001, reward_count: 2}];

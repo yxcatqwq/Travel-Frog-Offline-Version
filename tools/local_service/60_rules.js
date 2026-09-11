@@ -494,6 +494,13 @@
             return {ok: false, code: LF.ERR.NO_RESOURCE, reason: "clover"};
         }
         var payload = util.toInt(entry.itemId, -1);
+        if (payload === 9000 && rules.album) {
+            var expanded = rules.album.expand(work, {pages: 1}, effects);
+            if (!expanded.ok) { return expanded; }
+            work.items.purchased[shopId] = bought + 1;
+            rules.effect(effects, "shop");
+            return {ok: true, code: LF.ERR.OK, changed: {shopId: shopId, itemId: payload, price: price, capacity: expanded.changed.capacity}};
+        }
         var info = payload >= 0 ? rules.itemInfo(payload) : null;
         if (payload >= 0 && !info) {
             return {ok: false, code: LF.ERR.ILLEGAL_OP, reason: "unknown-item:" + payload};
