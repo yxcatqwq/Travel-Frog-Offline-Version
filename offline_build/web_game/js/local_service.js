@@ -809,7 +809,7 @@
                 misc_moment: {list: []}, easteregg: {egg_list: []}, touch: {cur: 0, list: []},
                 wishingpool: {end_time: 0, coin: 0, items: []}, lottery: {},
                 animpicture: {guide: 0, page_num: 0, item_num: 0, making_index: 0, pic_list: []},
-                museum: {museum_list: []},
+                museum: {museum_list: []}, encyclopedia: {unlock_list: [], unlock_desc: [], show_sub: []}, encytravel: {unlock_list: [], unlock_desc: [], show_sub: []},
                 calendar: {
                     day_key: "", new_flag: [], note_list: [], lucky_days: [], st_days: [],
                     task_list: [], claimed: {}
@@ -5403,7 +5403,7 @@
      * 状态接口。未知字段原样保留，便于在线账号导入和后续按活动逐项替换规则。
      * ------------------------------------------------------------------ */
     var activities = LF.activities = {};
-    activities.keys = ["visit", "story", "misc_moment", "easteregg", "touch", "wishingpool", "lottery", "animpicture", "museum", "calendar", "calendar_note", "recharge", "recharge_gift", "recharge_num", "adsmgr", "rank", "cooking", "capsule", "greetcard", "springcard", "partycake", "museumday", "pray"];
+    activities.keys = ["visit", "story", "misc_moment", "easteregg", "touch", "wishingpool", "lottery", "animpicture", "museum", "encyclopedia", "encytravel", "calendar", "calendar_note", "recharge", "recharge_gift", "recharge_num", "adsmgr", "rank", "cooking", "capsule", "greetcard", "springcard", "partycake", "museumday", "pray"];
     activities.ensure = function (work) {
         if (!util.isObject(work.activities)) work.activities = {};
         activities.keys.forEach(function (key) {
@@ -5562,6 +5562,11 @@
         if (!found) value.list.push({id:id, unlocked_at:clock.now()}); rules.effect(effects, 'activities');
         return {ok:true, code:LF.ERR.OK, id:id, already:found};
     };
+    var encyclopedia = rules.encyclopedia = {};
+    encyclopedia.ensure = function (work) { var value=activities.ensure(work).encyclopedia; if(!util.isObject(value)||Array.isArray(value))value=activities.ensure(work).encyclopedia={}; if(!Array.isArray(value.unlock_list))value.unlock_list=[]; if(!Array.isArray(value.unlock_desc))value.unlock_desc=[]; if(!Array.isArray(value.show_sub))value.show_sub=[]; return value; };
+    encyclopedia.unlock = function (work, params, effects) { params=util.isObject(params)?params:{}; var id=util.toInt(params.id!==undefined?params.id:params.item_id,-1), value=encyclopedia.ensure(work); if(id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'ency-id'}; if(value.unlock_list.indexOf(id)<0)value.unlock_list.push(id); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,id:id}; };
+    encyclopedia.snapshot = function (work) { var value=encyclopedia.ensure(work); if(!value.unlock_list.length&&work.items&&util.isObject(work.items.house))Object.keys(work.items.house).forEach(function(id){if(util.toInt(work.items.house[id],0)>0)value.unlock_list.push(util.toInt(id,0));}); return {unlock_list:util.clone(value.unlock_list),unlock_desc:util.clone(value.unlock_desc),show_sub:util.clone(value.show_sub)}; };
+    encyclopedia.travelSnapshot = function (work) { var value=activities.ensure(work).encytravel; if(!util.isObject(value)||Array.isArray(value))value=activities.ensure(work).encytravel={unlock_list:[],unlock_desc:[],show_sub:[]}; if(!Array.isArray(value.unlock_list))value.unlock_list=[]; var album=rules.album&&rules.album.ensure?rules.album.ensure(work):{pictures:[]}; album.pictures.forEach(function(p){var id=p&& (p.pic_id!==undefined?p.pic_id:p.id); if(value.unlock_list.indexOf(id)<0)value.unlock_list.push(id);}); return {unlock_list:util.clone(value.unlock_list),unlock_desc:util.clone(value.unlock_desc||[]),show_sub:util.clone(value.show_sub||[])}; };
 
     /* C15 动态照片基础状态：先落地加载、引导和制作道具领取，后续图片槽
      * 转移均复用该持久化对象，避免客户端只在内存中显示。 */
@@ -6811,8 +6816,9 @@
     server.placeholder("lottery_load", {});
     server.placeholder("animpicture_load", {guide: 0, page_num: 0, item_num: 0, making_index: 0, pic_list: []});
     server.placeholder("museum_load", {museum_list: []});
-    server.handlers.encyclopedia_load = { read: function (work) { var ids=Object.keys(work.items.house).map(function(id){return util.toInt(id,0);}); return {unlock_list:ids, unlock_desc:[], show_sub:[]}; } };
-    server.handlers.encytravel_load = { read: function (work) { var a=rules.album.ensure(work); return {unlock_list:a.pictures.map(function(p){return p.pic_id||p.id;}), unlock_desc:[], show_sub:[]}; } };
+    server.handlers.encyclopedia_load = { read: function (work) { return rules.encyclopedia.snapshot(work); } };
+    server.handlers.encyclopedia_unlock = { idempotent:true, apply:function(work,params,effects){ return rules.encyclopedia.unlock(work,params,effects); } };
+    server.handlers.encytravel_load = { read: function (work) { return rules.encyclopedia.travelSnapshot(work); } };
     server.handlers.calendar_load = { read: function (work) { return rules.calendar.snapshot(work); } };
     server.handlers.calendar_load_note = { read: function (work) { return rules.calendar.noteSnapshot(work); } };
     server.handlers.calendar_task_update = { apply: function (work, params, effects) {
