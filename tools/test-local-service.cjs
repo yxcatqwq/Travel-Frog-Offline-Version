@@ -635,6 +635,15 @@ test('moment unlock is idempotent and survives restart', () => {
   r.reload(); assert.equal(lf.state.data.activities.misc_moment.list.length, 1);
 });
 
+test('dynamic picture guide and item count persist through protocol load', () => {
+  const r = runtime(); const {lf} = r;
+  assert.equal(r.commit(w => lf.server.handlers.animpicture_guide.apply(w, {}, {})).guide, 1);
+  assert.equal(r.commit(w => lf.server.handlers.animpicture_get_item.apply(w, {count: 2}, {})).item_num, 2);
+  const loaded = lf.server.handlers.animpicture_load.read(lf.state.data);
+  assert.equal(loaded.guide, 1); assert.equal(loaded.item_num, 2); assert.ok(Array.isArray(loaded.pic_list));
+  r.reload(); assert.equal(lf.state.data.activities.animpicture.guide, 1);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);

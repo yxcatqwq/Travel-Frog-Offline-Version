@@ -163,6 +163,20 @@
         if (!found) value.list.push({id:id, unlocked_at:clock.now()}); rules.effect(effects, 'activities');
         return {ok:true, code:LF.ERR.OK, id:id, already:found};
     };
+
+    /* C15 动态照片基础状态：先落地加载、引导和制作道具领取，后续图片槽
+     * 转移均复用该持久化对象，避免客户端只在内存中显示。 */
+    var animpicture = rules.animpicture = {};
+    animpicture.ensure = function (work) {
+        var value = activities.ensure(work).animpicture;
+        if (!util.isObject(value) || Array.isArray(value)) value = activities.ensure(work).animpicture = {};
+        value.guide = Math.max(0, util.toInt(value.guide, 0)); value.page_num = Math.max(0, util.toInt(value.page_num, 0)); value.item_num = Math.max(0, util.toInt(value.item_num, 0)); value.making_index = Math.max(0, util.toInt(value.making_index, 0));
+        if (!Array.isArray(value.pic_list)) value.pic_list = [];
+        return value;
+    };
+    animpicture.snapshot = function (work) { var value = animpicture.ensure(work); return {guide:value.guide, page_num:value.page_num, item_num:value.item_num, making_index:value.making_index, pic_list:util.clone(value.pic_list)}; };
+    animpicture.guide = function (work, effects) { var value=animpicture.ensure(work); value.guide++; rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,guide:value.guide}; };
+    animpicture.getItem = function (work, params, effects) { var value=animpicture.ensure(work), count=Math.max(1,util.toInt(params&&params.count,1)); value.item_num+=count; rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,item_num:value.item_num}; };
     /* ---------------- C14 日历/签到 ----------------
      * 日历是一个独立的持久化分区。服务器原本会按自然日下发任务和
      * 幸运/特殊日结果；离线版在首次读取或提交时完成换日，并以 claim

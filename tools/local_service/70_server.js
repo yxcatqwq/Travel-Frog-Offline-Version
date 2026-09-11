@@ -979,6 +979,9 @@
     server.handlers.other_req_touch = {idempotent:true,apply:function(work,params,effects){ return rules.touch.request(work,params,effects); }};
     server.handlers.misc_moment_load = {read:function(work){ return rules.moment ? rules.moment.ensure(work) : LF.activities.read(work, "misc_moment"); }};
     server.handlers.misc_moment_unlock = {idempotent:true,apply:function(work,params,effects){ return rules.moment.unlock(work,params,effects); }};
+    server.handlers.animpicture_load = {read:function(work){ return rules.animpicture.snapshot(work); }};
+    server.handlers.animpicture_guide = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.guide(work,effects); }};
+    server.handlers.animpicture_get_item = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.getItem(work,params,effects); }};
 
     server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
     server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};
