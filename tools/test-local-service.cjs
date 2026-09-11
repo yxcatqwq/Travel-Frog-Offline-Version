@@ -526,6 +526,19 @@ test('guest invitation drawing bag is local and expires offline', () => {
   assert.equal(lf.state.data.guests.current, null);
 });
 
+test('visitor and story protocols persist local lifecycle state', () => {
+  const r = runtime(); const {lf} = r;
+  assert.equal(r.commit(w => lf.server.handlers.visit_open.apply(w, {id: 3, expire_at: lf.clock.now()+20}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.visit_set_carpet.apply(w, {id: 7}, {})).ok, true);
+  assert.equal(lf.state.data.activities.visit.visitor.carpet_id, 7);
+  lf.state.data.clock.timeTravelSeconds += 21;
+  r.commit(w => ({ok:true, changed:lf.scheduler.catchUp(w,{})}));
+  assert.equal(lf.state.data.activities.visit.visitor.status, 'expired');
+  assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 5}, {})).ok, true);
+  assert.equal(lf.state.data.activities.story.read_ids[0], 5);
+  r.reload(); assert.equal(lf.state.data.activities.story.read_ids[0], 5);
+});
+
 test('activity containers persist local updates and loads', () => {
   const r = runtime(); const {lf} = r; const effects = {};
   assert.equal(r.commit(w => lf.activities.merge(w, 'partycake', {cur_state: 2, layers: [{id: 1}]}, effects)).ok, true);

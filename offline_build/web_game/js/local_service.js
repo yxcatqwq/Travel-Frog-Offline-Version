@@ -5459,6 +5459,13 @@
     pray.finish = function (work,effects,now) { var v=pray.ensure(work),p=v.process;if(!p||p.state!=="running"||util.toInt(p.finish_at,0)>now)return {ok:true,skipped:true};p.state="ready";rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
     pray.confirm = function (work,effects) { var v=pray.ensure(work),p=v.process;if(!p||p.state!=="ready"||p.finish_at>clock.now())return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"pray-not-ready"};var add=rules.items.add(work,p.output_id,p.output_count,effects);if(!add.ok)return add;v.boxes.push({item_id:p.output_id,count:p.output_count,created_at:clock.now(),claimed:false});v.process=null;rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK,item_list:[{item_id:p.output_id,count:p.output_count}]}; };
 
+    /* C02/C03 ?????????????? */
+    rules.visit = rules.visit || {};
+    rules.visit.open = function(work, params, effects) { var v=activities.ensure(work).visit;if(v.visitor && v.visitor.status !== "closed" && v.visitor.status !== "expired") return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"visitor-exists"};var now=clock.now(), visitorId=util.toInt(params&& (params.id||params.visitor_id),1);v.visitor_id=visitorId;v.visitor={id:visitorId,visitor_id:util.toInt(params&&params.visitor_id,0),name:String((params&&params.name)||""),arrived_at:now,expires_at:util.toInt(params&&params.expire_at,now+86400),status:"open",carpet_id:util.toInt(params&&params.carpet_id,0),served:false};rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK,visitor:util.clone(v.visitor)}; };
+    rules.visit.setExpire = function(work, params, effects) { var v=activities.ensure(work).visit;if(!v.visitor)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"visitor-none"};var at=util.toInt(params&& (params.time||params.expire_at),0);if(at<=clock.now())return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:"expire-time"};v.visitor.expires_at=at;rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
+    rules.story = rules.story || {};
+    rules.story.read = function(work, params, effects) { var v=activities.ensure(work).story;var id=params&& (params.id||params.story_id);v.read_ids=Array.isArray(v.read_ids)?v.read_ids:[];if(id!==undefined&&v.read_ids.indexOf(id)<0)v.read_ids.push(id);v.story_id=id;v.new_story_id=0;rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
+    rules.story.sendGift = function(work, params, effects) { var v=activities.ensure(work).story;var id=util.toInt(params&& (params.item_id||params.gift_id),-1);if(id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:"gift"};var take=rules.items.consume(work,id,1,effects);if(!take.ok)return take;v.gifts=Array.isArray(v.gifts)?v.gifts:[];v.gifts.push({story_id:params.story_id||params.id,item_id:id,at:clock.now()});rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
     /* ---------------- C14 日历/签到 ----------------
      * 日历是一个独立的持久化分区。服务器原本会按自然日下发任务和
      * 幸运/特殊日结果；离线版在首次读取或提交时完成换日，并以 claim
@@ -6771,6 +6778,12 @@
     server.handlers.pray_compose = {idempotent:true,apply:function(work,params,effects){ return rules.pray.compose(work,params,effects); }};
     server.handlers.pray_confirm_make_box = {idempotent:true,apply:function(work,params,effects){ return rules.pray.confirm(work,effects); }};
 
+    server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
+    server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};
+    server.handlers.visit_set_carpet = {idempotent:true,apply:function(work,params,effects){var v=work.activities&&work.activities.visit&&work.activities.visit.visitor;if(!v)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"visitor-none"};v.carpet_id=util.toInt(params.id,-1);rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK};}};
+    server.handlers.story_read_new_story = {idempotent:true,apply:function(work,params,effects){return rules.story.read(work,params,effects);}};
+    server.handlers.story_send_gift = {idempotent:true,apply:function(work,params,effects){return rules.story.sendGift(work,params.gift||params,effects);}};
+
     var ackOnly = [
         "client_set_ads", "client_set_channel", "client_set_channel_id", "client_set_client_envinfo",
         "client_user_action", "hall_report_remote_addr", "client_set_lang", "client_add_push_id",
@@ -6957,6 +6970,17 @@
                 work.guests.history.push(guest);
                 work.guests.current = null;
                 rules.effect(effects, "guests");
+                return {ok:true, code:LF.ERR.OK, changed:{expired:true}};
+            }
+        });
+        list.push({
+            id: "visit.expire",
+            dueAt: work.activities && work.activities.visit && work.activities.visit.visitor ? util.toInt(work.activities.visit.visitor.expires_at, 0) : 0,
+            run: function (effects) {
+                var visitor = work.activities && work.activities.visit && work.activities.visit.visitor;
+                if (!visitor || util.toInt(visitor.expires_at, 0) > now) return {ok:true, skipped:true};
+                visitor.status = "expired";
+                rules.effect(effects, "activities");
                 return {ok:true, code:LF.ERR.OK, changed:{expired:true}};
             }
         });

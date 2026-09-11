@@ -973,6 +973,12 @@
     server.handlers.pray_compose = {idempotent:true,apply:function(work,params,effects){ return rules.pray.compose(work,params,effects); }};
     server.handlers.pray_confirm_make_box = {idempotent:true,apply:function(work,params,effects){ return rules.pray.confirm(work,effects); }};
 
+    server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
+    server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};
+    server.handlers.visit_set_carpet = {idempotent:true,apply:function(work,params,effects){var v=work.activities&&work.activities.visit&&work.activities.visit.visitor;if(!v)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"visitor-none"};v.carpet_id=util.toInt(params.id,-1);rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK};}};
+    server.handlers.story_read_new_story = {idempotent:true,apply:function(work,params,effects){return rules.story.read(work,params,effects);}};
+    server.handlers.story_send_gift = {idempotent:true,apply:function(work,params,effects){return rules.story.sendGift(work,params.gift||params,effects);}};
+
     var ackOnly = [
         "client_set_ads", "client_set_channel", "client_set_channel_id", "client_set_client_envinfo",
         "client_user_action", "hall_report_remote_addr", "client_set_lang", "client_add_push_id",

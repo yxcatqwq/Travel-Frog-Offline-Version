@@ -112,6 +112,17 @@
             }
         });
         list.push({
+            id: "visit.expire",
+            dueAt: work.activities && work.activities.visit && work.activities.visit.visitor ? util.toInt(work.activities.visit.visitor.expires_at, 0) : 0,
+            run: function (effects) {
+                var visitor = work.activities && work.activities.visit && work.activities.visit.visitor;
+                if (!visitor || util.toInt(visitor.expires_at, 0) > now) return {ok:true, skipped:true};
+                visitor.status = "expired";
+                rules.effect(effects, "activities");
+                return {ok:true, code:LF.ERR.OK, changed:{expired:true}};
+            }
+        });
+        list.push({
             id: "pray.finish",
             dueAt: work.activities && work.activities.pray && work.activities.pray.process && work.activities.pray.process.state === "running"
                 ? util.toInt(work.activities.pray.process.finish_at, 0) : 0,
