@@ -399,6 +399,20 @@ test('compost processes filled slots and pays reward after deadline', () => {
   assert.equal(lf.state.data.wallet.clover,10); assert.equal(lf.state.data.compost.box_list[0],-1);
 });
 
+test('workbench craft consumes materials, completes offline, and can be collected once', () => {
+  const r = runtime(); const {lf} = r; const effects = {};
+  lf.state.data.items.house[3001] = 2;
+  const started = r.commit(w => lf.rules.craft.start(w, {recipe_id: 7, output_id: 9001, output_count: 1, duration: 60, inputs: [{item_id: 3001, count: 2}]}, effects));
+  assert.equal(started.ok, true); assert.equal(lf.state.data.items.house[3001], undefined);
+  lf.state.data.clock.timeTravelSeconds += 61;
+  assert.equal(r.commit(w => ({ok:true, changed:lf.scheduler.catchUp(w, effects)})).ok, true);
+  assert.equal(lf.state.data.furniture.craft.state, 'ready');
+  assert.equal(r.commit(w => lf.rules.craft.collect(w, effects)).ok, true);
+  assert.equal(lf.state.data.items.house[9001], 1);
+  assert.equal(r.commit(w => lf.rules.craft.collect(w, effects)).ok, false);
+  r.reload(); assert.equal(lf.state.data.furniture.craft.state, 'idle');
+});
+
 test('tasks progress and reward persist locally', () => {
   const r=runtime(); const {lf}=r; const effects={};
   lf.state.data.tasks.list=[{id:7,progress:0,target:2,reward_clover:5,claimed:false}];

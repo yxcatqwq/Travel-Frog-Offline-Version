@@ -57,6 +57,13 @@
                 return {ok:true,skipped:true};
             }
         });
+        list.push({
+            id: "furniture.craft.finish",
+            dueAt: work.furniture.craft && work.furniture.craft.state === "running" ? util.toInt(work.furniture.craft.finish_at, 0) : 0,
+            run: function (effects) {
+                return rules.craft ? rules.craft.finish(work, effects, now) : {ok:true, skipped:true};
+            }
+        });
         list.push({id:"mail.expire",dueAt:(work.mail.mails||[]).reduce(function(next,row){var at=util.toInt(row.expire_at||row.expireAt,0);return at&&(next===0||at<next)?at:next;},0),run:function(effects){return rules.mail.expire(work,effects);}});
         list.push({
             id: "travel.arrive",

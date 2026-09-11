@@ -708,6 +708,24 @@
         }
     };
 
+    server.handlers.furniture_craft_start = {
+        idempotent: true,
+        apply: function (work, params, effects) {
+            var result = rules.craft.start(work, params || {}, effects);
+            if (result.ok) result.response = {code: LF.ERR.OK, finish_at: result.finish_at};
+            return result;
+        }
+    };
+
+    server.handlers.furniture_craft_collect = {
+        idempotent: true,
+        apply: function (work, params, effects) {
+            var result = rules.craft.collect(work, effects);
+            if (result.ok) result.response = {code: LF.ERR.OK, item_list: [result.output]};
+            return result;
+        }
+    };
+
     server.handlers.furniture_putin_box = {
         idempotent: true,
         apply: function (work, params, effects) {

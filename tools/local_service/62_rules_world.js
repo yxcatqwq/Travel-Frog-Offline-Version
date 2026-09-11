@@ -287,6 +287,79 @@
         return {ok: true, code: LF.ERR.OK, added: after - before};
     };
 
+    /* 工作台制作：本地服务保存材料扣除与完成时间，离线期间由 scheduler 补算。
+     * 配方由调用方传入，方便先兼容不同版本的 FurnitureRecipeDB；正式配置存在时也可只传 recipe_id。 */
+    var craft = rules.craft = {};
+    craft.ensure = function (work) {
+        var value = work.furniture.craft;
+        if (!util.isObject(value) || Array.isArray(value)) {
+            value = {state: "idle", recipe_id: 0, output_id: 0, output_count: 0, inputs: [], started_at: 0, finish_at: 0};
+            work.furniture.craft = value;
+        }
+        value.state = value.state || "idle";
+        value.inputs = util.toArray(value.inputs);
+        return value;
+    };
+    craft.recipe = function (recipeId, params) {
+        var row = recipeId ? config.get("FurnitureRecipeDB", recipeId) : null;
+        row = row || {};
+        var outputId = util.toInt(params.output_id !== undefined ? params.output_id : (row.output_id !== undefined ? row.output_id : row.item_id), -1);
+        var outputCount = Math.max(1, util.toInt(params.output_count !== undefined ? params.output_count : (row.output_count !== undefined ? row.output_count : row.count), 1));
+        var duration = Math.max(1, util.toInt(params.duration !== undefined ? params.duration : (row.duration !== undefined ? row.duration : row.need_time), 3600));
+        var raw = params.inputs !== undefined ? params.inputs : row.inputs;
+        var inputs = [];
+        if (Array.isArray(raw)) {
+            raw.forEach(function (entry) {
+                var id = util.toInt(entry && (entry.item_id !== undefined ? entry.item_id : entry.id), -1);
+                var count = Math.max(1, util.toInt(entry && (entry.count !== undefined ? entry.count : entry.num), 1));
+                if (id >= 0) { inputs.push({item_id: id, count: count}); }
+            });
+        } else if (util.isObject(raw)) {
+            for (var key in raw) if (util.has(raw, key)) inputs.push({item_id: util.toInt(key, -1), count: Math.max(1, util.toInt(raw[key], 1))});
+        }
+        return {recipe_id: util.toInt(recipeId, 0), output_id: outputId, output_count: outputCount, duration: duration, inputs: inputs};
+    };
+    craft.start = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var active = craft.ensure(work);
+        if (!bench.isOpen(work) || work.furniture.bench_lock) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"bench-locked"};
+        if (active.state === "running" || active.state === "ready") return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"craft-running"};
+        var recipe = craft.recipe(params.recipe_id || params.id, params);
+        if (recipe.output_id < 0 || !rules.itemInfo(recipe.output_id)) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"unknown-output"};
+        for (var i=0; i<recipe.inputs.length; i++) {
+            var input = recipe.inputs[i];
+            if (input.item_id < 0 || !rules.itemInfo(input.item_id)) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"unknown-input:"+input.item_id};
+            if (rules.items.count(work, input.item_id) < input.count) return {ok:false, code:LF.ERR.NO_ITEM, reason:"not-owned:"+input.item_id};
+        }
+        for (var j=0; j<recipe.inputs.length; j++) {
+            var consumed = rules.items.consume(work, recipe.inputs[j].item_id, recipe.inputs[j].count, effects);
+            if (!consumed.ok) return consumed;
+        }
+        var now = clock.now();
+        work.furniture.craft = {state:"running", recipe_id:recipe.recipe_id, output_id:recipe.output_id, output_count:recipe.output_count,
+            inputs:util.clone(recipe.inputs), started_at:now, finish_at:now + recipe.duration};
+        rules.effect(effects, "furniture");
+        return {ok:true, code:LF.ERR.OK, finish_at:now + recipe.duration, changed:util.clone(work.furniture.craft)};
+    };
+    craft.finish = function (work, effects, now) {
+        var active = craft.ensure(work);
+        if (active.state !== "running" || util.toInt(active.finish_at, 0) > now) return {ok:true, code:LF.ERR.OK, skipped:true};
+        active.state = "ready";
+        rules.effect(effects, "furniture");
+        return {ok:true, code:LF.ERR.OK, changed:{ready:true, output_id:active.output_id}};
+    };
+    craft.collect = function (work, effects) {
+        var active = craft.ensure(work);
+        if (active.state !== "ready" || util.toInt(active.finish_at, 0) > clock.now()) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"craft-not-ready"};
+        var added = rules.items.add(work, active.output_id, active.output_count, effects);
+        if (!added.ok) return added;
+        var output = {item_id:active.output_id, count:active.output_count};
+        work.furniture.craft = {state:"idle", recipe_id:0, output_id:0, output_count:0, inputs:[], started_at:0, finish_at:0};
+        if (rules.tasks && rules.tasks.update) rules.tasks.update(work, "furniture_craft", 1, effects);
+        rules.effect(effects, "furniture");
+        return {ok:true, code:LF.ERR.OK, output:output};
+    };
+
     /* ---------------- 天气 / 季节（M1 只做数据与时间锚点） ---------------- */
     var weather = rules.weather = {};
 
@@ -509,6 +582,7 @@
             mood: util.toInt(work.furniture.mood, 0),
             bench_lock: !!work.furniture.bench_lock,
             bench: util.clone(util.toArray(work.furniture.bench)),
+            craft: util.clone(work.furniture.craft || {state:"idle", inputs:[]}),
             put_fur: util.clone(util.toArray(work.furniture.put_fur)),
             has_fur: util.clone(util.toArray(work.furniture.has_fur)),
             mate_list: util.clone(util.toArray(work.furniture.mate_list)),

@@ -102,7 +102,7 @@
                 has_fur: [],
                 mate_list: [],
                 replace_fur: [],
-                craft: []
+                craft: {state: "idle", recipe_id: 0, output_id: 0, output_count: 0, inputs: [], started_at: 0, finish_at: 0}
             },
             tumbler: {show_index: 0, replace_index: 0, tumbler_list: []},
             compost: {
@@ -262,6 +262,17 @@
         data.compost.box_list = slotList(data.compost.box_list, 6, -1);
         data.furniture.has_fur = util.toArray(data.furniture.has_fur);
         data.furniture.put_fur = util.toArray(data.furniture.put_fur);
+        if (!util.isObject(data.furniture.craft) || Array.isArray(data.furniture.craft)) {
+            data.furniture.craft = {state: "idle", recipe_id: 0, output_id: 0, output_count: 0, inputs: [], started_at: 0, finish_at: 0};
+        }
+        data.furniture.craft.state = ["idle", "running", "ready"].indexOf(String(data.furniture.craft.state)) >= 0
+            ? String(data.furniture.craft.state) : "idle";
+        data.furniture.craft.inputs = util.toArray(data.furniture.craft.inputs);
+        data.furniture.craft.recipe_id = util.toInt(data.furniture.craft.recipe_id, 0);
+        data.furniture.craft.output_id = util.toInt(data.furniture.craft.output_id, 0);
+        data.furniture.craft.output_count = Math.max(0, util.toInt(data.furniture.craft.output_count, 0));
+        data.furniture.craft.started_at = util.toInt(data.furniture.craft.started_at, 0);
+        data.furniture.craft.finish_at = util.toInt(data.furniture.craft.finish_at, 0);
         data.furniture.shop.shop_list = util.toArray(data.furniture.shop.shop_list);
         /* 货架项必须能解析出 item_id，否则客户端渲染时取不到 ItemDB 记录（会崩） */
         for (index = data.furniture.shop.shop_list.length - 1; index >= 0; index--) {
