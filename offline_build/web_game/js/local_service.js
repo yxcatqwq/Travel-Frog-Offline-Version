@@ -5586,6 +5586,11 @@
     animpicture.albumAdd = function (work, params, effects) { params=util.isObject(params)?params:{}; var entry=animpicture.entry(work,params.anim_index!==undefined?params.anim_index:params.index), slot=util.toInt(params.pic_index!==undefined?params.pic_index:params.index2,0)-1; if(!entry||slot<0||slot>=entry.pictures.length)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'album-slot'}; if(entry.pictures[slot])return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'album-slot-used'}; var list=animpicture.photoList(work), at=animpicture.photoIndex(list,params.pic_id!==undefined?params.pic_id:params.picture_id); if(at<0)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'picture-not-found'}; entry.pictures[slot]=list.splice(at,1)[0]; rules.effect(effects,'activities'); rules.effect(effects,'mail'); return {ok:true,code:LF.ERR.OK,pictures:util.clone(entry.pictures)}; };
     animpicture.albumRemove = function (work, params, effects) { params=util.isObject(params)?params:{}; var entry=animpicture.entry(work,params.anim_index!==undefined?params.anim_index:params.index), slot=util.toInt(params.pic_index!==undefined?params.pic_index:params.index2,0)-1; if(!entry||slot<0||slot>=entry.pictures.length||!entry.pictures[slot])return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'album-slot-empty'}; var picture=entry.pictures[slot]; entry.pictures[slot]=null; if(!params.is_delete)animpicture.photoList(work).push(picture); rules.effect(effects,'activities'); rules.effect(effects,'mail'); return {ok:true,code:LF.ERR.OK,pictures:util.clone(entry.pictures)}; };
     animpicture.useItem = function (work, params, effects) { params=util.isObject(params)?params:{}; var value=animpicture.ensure(work), entry=animpicture.entry(work,params.index!==undefined?params.index:value.making_index); if(!entry)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'anim-index'}; if(value.item_num<1)return {ok:false,code:LF.ERR.NO_RESOURCE,reason:'animpicture-item'}; value.item_num--; entry.phase=Math.max(0,util.toInt(params.phase,util.toInt(entry.phase,1)-1)); if(entry.phase===0){var list=animpicture.photoList(work); Array.prototype.push.apply(list,entry.exp_pic||[]); entry.exp_pic=[]; value.item_num++;} rules.effect(effects,'activities'); rules.effect(effects,'mail'); return {ok:true,code:LF.ERR.OK,phase:entry.phase,item_num:value.item_num,pic_list:util.clone(entry)}; };
+    var easteregg = rules.easteregg = {};
+    easteregg.ensure = function (work) { var value=activities.ensure(work).easteregg; if(!util.isObject(value)||Array.isArray(value))value=activities.ensure(work).easteregg={}; if(!Array.isArray(value.egg_list))value.egg_list=[]; if(!util.isObject(value.claimed))value.claimed={}; return value; };
+    easteregg.snapshot = function (work) { var value=easteregg.ensure(work), now=clock.now(); if(value.active&&util.toInt(value.active.end_time,0)<=now)value.active=null; return util.clone(value); };
+    easteregg.trigger = function (work, params, effects) { params=util.isObject(params)?params:{}; var value=easteregg.ensure(work), id=util.toInt(params.id!==undefined?params.id:params.egg_id,-1); if(id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'egg-id'}; var now=clock.now(), duration=Math.max(1,util.toInt(params.duration,60)); value.active={id:id,start_time:now,end_time:now+duration}; if(value.egg_list.indexOf(id)<0)value.egg_list.push(id); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,active:util.clone(value.active),egg_list:util.clone(value.egg_list)}; };
+    easteregg.finish = function (work, effects, now) { var value=easteregg.ensure(work); if(!value.active||util.toInt(value.active.end_time,0)>now)return {ok:true,skipped:true}; var id=value.active.id; value.active=null; value.last_finished_id=id; rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,finished_id:id}; };
     /* ---------------- C14 日历/签到 ----------------
      * 日历是一个独立的持久化分区。服务器原本会按自然日下发任务和
      * 幸运/特殊日结果；离线版在首次读取或提交时完成换日，并以 claim
@@ -6904,6 +6909,8 @@
     server.handlers.other_req_touch = {idempotent:true,apply:function(work,params,effects){ return rules.touch.request(work,params,effects); }};
     server.handlers.misc_moment_load = {read:function(work){ return rules.moment ? rules.moment.ensure(work) : LF.activities.read(work, "misc_moment"); }};
     server.handlers.misc_moment_unlock = {idempotent:true,apply:function(work,params,effects){ return rules.moment.unlock(work,params,effects); }};
+    server.handlers.easteregg_load = {read:function(work){ return rules.easteregg.snapshot(work); }};
+    server.handlers.easteregg_trigger = {idempotent:true,apply:function(work,params,effects){ return rules.easteregg.trigger(work,params,effects); }};
     server.handlers.animpicture_load = {read:function(work){ return rules.animpicture.snapshot(work); }};
     server.handlers.animpicture_guide = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.guide(work,effects); }};
     server.handlers.animpicture_get_item = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.getItem(work,params,effects); }};
@@ -7129,6 +7136,11 @@
                 rules.effect(effects, "activities");
                 return {ok:true, code:LF.ERR.OK, changed:{expired:true}};
             }
+        });
+        list.push({
+            id: "easteregg.finish",
+            dueAt: work.activities && work.activities.easteregg && work.activities.easteregg.active ? util.toInt(work.activities.easteregg.active.end_time, 0) : 0,
+            run: function (effects) { return rules.easteregg ? rules.easteregg.finish(work, effects, now) : {ok:true, skipped:true}; }
         });
         list.push({
             id: "pray.finish",
