@@ -992,6 +992,14 @@
     server.handlers.animpicture_album_add_pic = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.albumAdd(work,params,effects); }};
     server.handlers.animpicture_album_remove_pic = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.albumRemove(work,params,effects); }};
     server.handlers.animpicture_use_item = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.useItem(work,params,effects); }};
+    server.handlers.museumday_load = {read:function(work){ return rules.museumday.snapshot(work); }};
+    server.handlers.museumday_load_path = {read:function(work){ return {path:util.clone(rules.museumday.ensure(work).path)}; }};
+    server.handlers.museumday_start_advance = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.startAdvance(work,params,effects); }};
+    server.handlers.museumday_random_compass = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.randomCompass(work,params,effects); }};
+    server.handlers.museumday_dir_compass = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.dirCompass(work,params,effects); }};
+    server.handlers.museumday_inspire = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.inspire(work,params,effects); }};
+    server.handlers.museumday_get_items = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.getItems(work,effects); }};
+    server.handlers.museumday_refresh = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.refresh(work,params,effects); }};
 
     server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
     server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};

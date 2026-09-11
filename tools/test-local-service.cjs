@@ -681,6 +681,19 @@ test('encyclopedia unlocks are persisted and travel entries derive from album', 
   r.reload(); assert.equal(lf.state.data.activities.encyclopedia.unlock_list.indexOf(42) >= 0, true);
 });
 
+test('museum exploration persists route, compass, refresh, and rewards locally', () => {
+  const r = runtime(); const {lf} = r;
+  const v = lf.state.data.activities.museumday; v.end_time = lf.clock.now() + 3600; v.left_num = 2; lf.state.data.wallet.clover = 500;
+  assert.equal(r.commit(w => lf.server.handlers.museumday_start_advance.apply(w, {id: 3, cost: 10, compass: 2}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.museumday_dir_compass.apply(w, {dir: 2}, {})).ok, true);
+  assert.equal(lf.state.data.activities.museumday.path.length, 1);
+  assert.equal(r.commit(w => lf.server.handlers.museumday_refresh.apply(w, {}, {})).ok, true);
+  lf.state.data.activities.museumday.items = [{item_id: 9001, num: 1}];
+  assert.equal(r.commit(w => lf.server.handlers.museumday_get_items.apply(w, {}, {})).ok, true);
+  assert.equal(lf.state.data.items.house[9001], 1);
+  r.reload(); assert.equal(lf.state.data.activities.museumday.items.length, 0);
+});
+
 test('activity protocol handlers keep their own activity namespace', () => {
   const r = runtime(); const {lf} = r;
   assert.equal(r.commit(w => lf.server.handlers.story_read_new_story.apply(w, {story_id: 7}, {})).ok, true);
