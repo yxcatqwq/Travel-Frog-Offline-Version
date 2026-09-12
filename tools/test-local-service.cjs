@@ -970,3 +970,11 @@ test('calendar reward handlers select first pending entry when client omits para
   assert.equal(r.commit(w => lf.server.handlers.calendar_get_st_reward.apply(w, {}, effects)).ok, true);
   assert.equal(lf.state.data.activities.calendar.st_days[0], null);
 });
+
+test('cooking task callbacks return task field expected by client model', () => {
+  const r = runtime(); const {lf} = r;
+  const refreshed = r.commit(w => lf.server.handlers.cooking_refresh_task.apply(w, {id: 4}, {}));
+  assert.equal(refreshed.ok, true); assert.equal(refreshed.task.id, 4);
+  const updated = r.commit(w => lf.server.handlers.cooking_task_update.apply(w, {task: {id: 4, progress: 1, target: 1}}, {}));
+  assert.equal(updated.ok, true); assert.equal(updated.task.progress, 1);
+});

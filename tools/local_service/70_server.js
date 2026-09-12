@@ -1089,8 +1089,8 @@
 
     server.handlers.cooking_start_cooking = {idempotent:true,apply:function(work,params,effects){return rules.cooking.start(work,params,effects);}};
     server.handlers.cooking_load_cooking = {read:function(work){return rules.cooking.snapshot(work);}};
-    server.handlers.cooking_refresh_task = {idempotent:true,apply:function(work,params,effects){var v=rules.cooking.ensure(work);v.task_list=[];v.refresh_time=clock.now()+86400;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,task_list:[]};}};
-    server.handlers.cooking_task_update = {idempotent:true,apply:function(work,params,effects){var v=rules.cooking.ensure(work);v.task_list=Array.isArray(params&&params.task_list)?util.clone(params.task_list):v.task_list;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,task_list:util.clone(v.task_list)};}};
+    server.handlers.cooking_refresh_task = {idempotent:true,apply:function(work,params,effects){return rules.cooking.refreshTask(work,params,effects);}};
+    server.handlers.cooking_task_update = {idempotent:true,apply:function(work,params,effects){return rules.cooking.updateTask(work,params,effects);}};
     server.handlers.cooking_look_ad = {read:function(){return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'offline-ad-unavailable'};}};
     server.handlers.cooking_complete_task = {idempotent:true,apply:function(work,params,effects){return rules.cooking.complete(work,effects);}};
     server.handlers.cooking_select = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"cooking",{select:util.toInt(params.index,0)},effects);}};
@@ -1101,7 +1101,7 @@
     server.handlers.capsule_load = {read:function(work){var v=rules.capsule.ensure(work);return {end_time:util.toInt(v.end_time,0),coin:v.coin,pre_coin:util.toInt(v.pre_coin,0),reward_list:util.clone(v.reward_list),task_list:util.clone(v.task_list),patch_num:util.toInt(v.patch_num,0)};}};
     server.handlers.capsule_load_coin = {read:function(work){var v=rules.capsule.ensure(work);return {coin:v.coin,pre_coin:util.toInt(v.pre_coin,0)};}};
     server.handlers.capsule_load_task = {read:function(work){return {task_list:util.clone(rules.capsule.ensure(work).task_list)};}};
-    server.handlers.capsule_patch = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"capsule",params||{},effects);}};
+    server.handlers.capsule_patch = {idempotent:true,apply:function(work,params,effects){return rules.capsule.patch(work,params,effects);}};
     server.handlers.capsule_fast_task = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"capsule",{fast_task:params||{}},effects);}};
 
     var ackOnly = [
