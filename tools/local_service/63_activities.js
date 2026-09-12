@@ -64,15 +64,19 @@
     rules.visit = rules.visit || {};
     rules.visit.open = function(work, params, effects) { var v=activities.ensure(work).visit;if(v.visitor && v.visitor.status !== "closed" && v.visitor.status !== "expired") return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"visitor-exists"};var now=clock.now(), visitorId=util.toInt(params&& (params.id||params.visitor_id),1);v.visitor_id=visitorId;v.visitor={id:visitorId,visitor_id:util.toInt(params&&params.visitor_id,0),name:String((params&&params.name)||""),arrived_at:now,expires_at:util.toInt(params&&params.expire_at,now+86400),status:"open",carpet_id:util.toInt(params&&params.carpet_id,0),served:false};rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK,visitor:util.clone(v.visitor)}; };
     rules.visit.setExpire = function(work, params, effects) { var v=activities.ensure(work).visit;if(!v.visitor)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"visitor-none"};var at=util.toInt(params&& (params.time||params.expire_at),0);if(at<=clock.now())return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:"expire-time"};v.visitor.expires_at=at;rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
+    rules.visit.snapshot = function(work) { var v=activities.ensure(work).visit, visitor=util.clone(v.visitor||null); if(visitor&&util.toInt(visitor.expires_at,0)>0&&util.toInt(visitor.expires_at,0)<=clock.now()&&visitor.status==='open') visitor.status='expired'; return {visitor:visitor,acquire:util.clone(v.acquire||[])}; };
     rules.story = rules.story || {};
     rules.story.read = function(work, params, effects) { var v=activities.ensure(work).story;var id=params&& (params.id||params.story_id);v.read_ids=Array.isArray(v.read_ids)?v.read_ids:[];if(id!==undefined&&v.read_ids.indexOf(id)<0)v.read_ids.push(id);v.story_id=id;v.new_story_id=0;rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
     rules.story.sendGift = function(work, params, effects) { var v=activities.ensure(work).story;var id=util.toInt(params&& (params.item_id||params.gift_id),-1);if(id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:"gift"};var take=rules.items.consume(work,id,1,effects);if(!take.ok)return take;v.gifts=Array.isArray(v.gifts)?v.gifts:[];v.gifts.push({story_id:params.story_id||params.id,item_id:id,at:clock.now()});rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
+    rules.story.snapshot = function(work) { var v=activities.ensure(work).story; return {stories:util.clone(v.stories||[]),new_story_id:util.toInt(v.new_story_id,0),story_id:v.story_id}; };
+    rules.story.feedback = function(work, params, effects) { var v=activities.ensure(work).story; v.feedback=Array.isArray(v.feedback)?v.feedback:[]; v.feedback.push(util.clone(params||{})); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK}; };
     /* C07 ??????????????????????????? */
     rules.cooking = rules.cooking || {};
     rules.cooking.ensure = function(work) { var v=activities.ensure(work).cooking; if(!util.isObject(v)) v=activities.ensure(work).cooking={}; if(!Array.isArray(v.task_list))v.task_list=[]; return v; };
     rules.cooking.start = function(work,params,effects) { params=util.isObject(params)?params:{}; var v=rules.cooking.ensure(work); if(v.process&&(v.process.state==='running'||v.process.state==='ready'))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-running'}; var output=util.toInt(params.output_id||params.item_id,-1), count=Math.max(1,util.toInt(params.output_count||params.count,1)); if(output<0||!rules.itemInfo(output))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-output'}; var inputs=Array.isArray(params.inputs)?params.inputs:[]; for(var i=0;i<inputs.length;i++){var id=util.toInt(inputs[i].item_id||inputs[i].id,-1),n=Math.max(1,util.toInt(inputs[i].count||inputs[i].num,1));if(id<0||!rules.itemInfo(id)||rules.items.count(work,id)<n)return {ok:false,code:LF.ERR.NO_ITEM,reason:'cooking-material:'+id};} for(var j=0;j<inputs.length;j++){var cid=util.toInt(inputs[j].item_id||inputs[j].id,-1);var take=rules.items.consume(work,cid,Math.max(1,util.toInt(inputs[j].count||inputs[j].num,1)),effects);if(!take.ok)return take;} var now=clock.now(),finish=now+Math.max(1,util.toInt(params.duration,1800));v.process={state:'running',output_id:output,output_count:count,started_at:now,finish_at:finish,inputs:util.clone(inputs)};v.select=util.toInt(params.theme||params.select,v.select||0);rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,finish_at:finish}; };
     rules.cooking.finish = function(work,effects,now){var v=rules.cooking.ensure(work),p=v.process;if(!p||p.state!=='running'||util.toInt(p.finish_at,0)>now)return {ok:true,skipped:true};p.state='ready';rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK};};
     rules.cooking.complete = function(work,effects){var v=rules.cooking.ensure(work),p=v.process;if(!p||p.state!=='ready'||p.finish_at>clock.now())return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-not-ready'};var add=rules.items.add(work,p.output_id,p.output_count,effects);if(!add.ok)return add;v.process=null;v.complete=true;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,item_list:[{item_id:p.output_id,count:p.output_count}]};};
+    rules.cooking.snapshot = function(work) { var v=rules.cooking.ensure(work); return {month:util.toInt(v.month,0),month_pro:util.toInt(v.month_pro,0),week:util.toInt(v.week,0),complete:!!v.complete,select:util.toInt(v.select,0),refresh_time:util.toInt(v.refresh_time,0),task_list:util.clone(v.task_list),process:util.clone(v.process||null)}; };
     /* C08 ??????????????????? */
     rules.capsule = rules.capsule || {};
     rules.capsule.ensure = function(work){var v=activities.ensure(work).capsule;if(!Array.isArray(v.reward_list))v.reward_list=[];if(!Array.isArray(v.task_list))v.task_list=[];v.coin=Math.max(0,util.toInt(v.coin,0));return v;};
@@ -166,8 +170,10 @@
     var encyclopedia = rules.encyclopedia = {};
     encyclopedia.ensure = function (work) { var value=activities.ensure(work).encyclopedia; if(!util.isObject(value)||Array.isArray(value))value=activities.ensure(work).encyclopedia={}; if(!Array.isArray(value.unlock_list))value.unlock_list=[]; if(!Array.isArray(value.unlock_desc))value.unlock_desc=[]; if(!Array.isArray(value.show_sub))value.show_sub=[]; return value; };
     encyclopedia.unlock = function (work, params, effects) { params=util.isObject(params)?params:{}; var id=util.toInt(params.id!==undefined?params.id:params.item_id,-1), value=encyclopedia.ensure(work); if(id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'ency-id'}; if(value.unlock_list.indexOf(id)<0)value.unlock_list.push(id); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,id:id}; };
+    encyclopedia.setShowSub = function (work, params, effects) { params=util.isObject(params)?params:{}; var value=encyclopedia.ensure(work), list=Array.isArray(params.show_sub)?params.show_sub:(Array.isArray(params.list)?params.list:[]); value.show_sub=util.clone(list); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,show_sub:util.clone(value.show_sub)}; };
     encyclopedia.snapshot = function (work) { var value=encyclopedia.ensure(work); if(!value.unlock_list.length&&work.items&&util.isObject(work.items.house))Object.keys(work.items.house).forEach(function(id){if(util.toInt(work.items.house[id],0)>0)value.unlock_list.push(util.toInt(id,0));}); return {unlock_list:util.clone(value.unlock_list),unlock_desc:util.clone(value.unlock_desc),show_sub:util.clone(value.show_sub)}; };
     encyclopedia.travelSnapshot = function (work) { var value=activities.ensure(work).encytravel; if(!util.isObject(value)||Array.isArray(value))value=activities.ensure(work).encytravel={unlock_list:[],unlock_desc:[],show_sub:[]}; if(!Array.isArray(value.unlock_list))value.unlock_list=[]; var album=rules.album&&rules.album.ensure?rules.album.ensure(work):{pictures:[]}; album.pictures.forEach(function(p){var id=p&& (p.pic_id!==undefined?p.pic_id:p.id); if(value.unlock_list.indexOf(id)<0)value.unlock_list.push(id);}); return {unlock_list:util.clone(value.unlock_list),unlock_desc:util.clone(value.unlock_desc||[]),show_sub:util.clone(value.show_sub||[])}; };
+    encyclopedia.setTravelShowSub = function (work, params, effects) { params=util.isObject(params)?params:{}; var all=activities.ensure(work), value=all.encytravel; if(!util.isObject(value)||Array.isArray(value)) value=all.encytravel={unlock_list:[],unlock_desc:[],show_sub:[]}; value.show_sub=util.clone(Array.isArray(params.show_sub)?params.show_sub:(Array.isArray(params.list)?params.list:[])); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,show_sub:util.clone(value.show_sub)}; };
     var museumday = rules.museumday = {};
     museumday.ensure = function(work){var v=activities.ensure(work).museumday;if(!util.isObject(v)||Array.isArray(v))v=activities.ensure(work).museumday={};v.end_time=Math.max(0,util.toInt(v.end_time,0));v.compass=Math.max(0,util.toInt(v.compass,0));v.inspire_num=Math.max(0,util.toInt(v.inspire_num,0));v.next=Math.max(0,util.toInt(v.next,0));v.left_num=Math.max(0,util.toInt(v.left_num,0));['museum_list','items','get_items','log_list','path'].forEach(function(k){if(!Array.isArray(v[k]))v[k]=[];});return v;};
     museumday.snapshot=function(work){var v=museumday.ensure(work);if(v.end_time&&v.end_time<clock.now())v.end_time=0;return util.clone(v);};
@@ -177,6 +183,9 @@
     museumday.inspire=function(work,params,effects){var v=museumday.ensure(work);if(v.inspire_num<1)return {ok:false,code:LF.ERR.NO_RESOURCE,reason:'inspire'};v.inspire_num--;v.next=(Math.abs((clock.now()+v.path.length)%4)+1);v.path.push(v.next);rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,next:v.next,inspire:v.inspire_num};};
     museumday.getItems=function(work,effects){var v=museumday.ensure(work),received=[];for(var i=0;i<v.items.length;i++){var row=v.items[i],id=util.toInt(row&&row.item_id,-1),num=Math.max(1,util.toInt(row&&row.num,1));if(id>=0&&rules.itemInfo(id)){var add=rules.items.add(work,id,num,effects);if(!add.ok)return add;received.push({item_id:id,num:num});}}v.get_items=v.get_items.concat(received);v.items=[];rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,get_items:util.clone(v.get_items)};};
     museumday.refresh=function(work,params,effects){var v=museumday.ensure(work);if(v.left_num<=0)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'refresh-limit'};v.left_num--;v.next=0;v.path=[];rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,left_num:v.left_num};};
+    rules.museum = rules.museum || {};
+    rules.museum.ensure = function(work) { var v=activities.ensure(work).museum; if(!util.isObject(v)||Array.isArray(v)) v=activities.ensure(work).museum={}; if(!Array.isArray(v.museum_list))v.museum_list=[]; return v; };
+    rules.museum.snapshot = function(work) { var v=rules.museum.ensure(work), d=rules.museumday.ensure(work); var list=v.museum_list.length?v.museum_list:d.museum_list; return {museum_list:util.clone(list)}; };
     var partycake = rules.partycake = {};
     partycake.ensure=function(work){var v=activities.ensure(work).partycake;if(!util.isObject(v)||Array.isArray(v))v=activities.ensure(work).partycake={};v.end_time=Math.max(0,util.toInt(v.end_time,0));v.cream=Math.max(0,util.toInt(v.cream,0));v.sugar=Math.max(0,util.toInt(v.sugar,0));v.pre_cream=Math.max(0,util.toInt(v.pre_cream,0));v.pre_sugar=Math.max(0,util.toInt(v.pre_sugar,0));v.cur_state=Math.max(0,util.toInt(v.cur_state,0));v.part=Math.max(0,util.toInt(v.part,0));['layers','task_list','share_get'].forEach(function(k){if(!Array.isArray(v[k]))v[k]=[];});return v;};
     partycake.snapshot=function(work){return util.clone(partycake.ensure(work));};
@@ -351,4 +360,71 @@
         else if (row) row.claimed = true;
         rules.effect(effects, "activities");
         return {ok:true, code:LF.ERR.OK, day:day, reward:reward};
+    };
+
+    /* D02 local recharge entitlement container. Payment providers are not
+     * available offline, but imported water/change/field/sack state remains
+     * usable and explicit local exchange requests are persisted atomically. */
+    var recharge = rules.recharge = {};
+    recharge.ensure = function (work) {
+        var v = activities.ensure(work).recharge;
+        if (!util.isObject(v) || Array.isArray(v)) v = activities.ensure(work).recharge = {};
+        v.water = Math.max(0, util.toInt(v.water, 0));
+        v.change = Math.max(0, util.toInt(v.change, 0));
+        if (!Array.isArray(v.field)) v.field = [];
+        if (!Array.isArray(v.sack)) v.sack = [];
+        return v;
+    };
+    recharge.gift = function (work) {
+        var v = activities.ensure(work).recharge_gift;
+        if (!util.isObject(v) || Array.isArray(v)) v = activities.ensure(work).recharge_gift = {};
+        if (!Array.isArray(v.gift)) v.gift = [];
+        return v;
+    };
+    recharge.snapshot = function (work) { return util.clone(recharge.ensure(work)); };
+    recharge.giftSnapshot = function (work) { return {gift:util.clone(recharge.gift(work).gift)}; };
+    recharge.updateNum = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var v = recharge.ensure(work);
+        ['water','change'].forEach(function (key) { if (params[key] !== undefined) v[key] = Math.max(0, util.toInt(params[key], v[key])); });
+        if (Array.isArray(params.field)) v.field = util.clone(params.field);
+        if (Array.isArray(params.sack)) v.sack = util.clone(params.sack);
+        rules.effect(effects, 'activities');
+        return {ok:true, code:LF.ERR.OK, data:util.clone(v)};
+    };
+    recharge.change = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var v = recharge.ensure(work), amount = Math.max(1, util.toInt(params.amount !== undefined ? params.amount : params.num, 1));
+        var cost = Math.max(0, util.toInt(params.cost, 0));
+        if (cost) { var paid = rules.wallet.consume(work, {clover:cost}, effects); if (!paid.ok) return paid; }
+        v.change += amount; rules.effect(effects, 'activities');
+        return {ok:true, code:LF.ERR.OK, change:v.change, amount:amount};
+    };
+    recharge.water = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var v = recharge.ensure(work), amount = Math.max(1, util.toInt(params.amount !== undefined ? params.amount : params.num, 1));
+        var cost = Math.max(0, util.toInt(params.cost !== undefined ? params.cost : params.change, 0));
+        if (cost > v.change) return {ok:false, code:LF.ERR.NO_RESOURCE, reason:'recharge-change'};
+        v.change -= cost; v.water += amount; rules.effect(effects, 'activities');
+        return {ok:true, code:LF.ERR.OK, water:v.water, amount:amount};
+    };
+    recharge.readyPay = function (work, params, effects) { var v=recharge.ensure(work); v.pending_pay=util.clone(params||{}); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,pending:util.clone(v.pending_pay)}; };
+    recharge.cancelPay = function (work, params, effects) { var v=recharge.ensure(work); v.pending_pay=null; rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK}; };
+
+    /* Tutorial completion is persisted as individual steps so imported saves
+     * can resume safely; the shipped new-save template still starts complete. */
+    var tutorial = rules.tutorial = {};
+    tutorial.ensure = function (work) {
+        if (!util.isObject(work.settings)) work.settings = {};
+        if (!util.isObject(work.settings.client)) work.settings.client = {};
+        var c = work.settings.client;
+        if (!Array.isArray(c.tutorial_completed)) c.tutorial_completed = [];
+        return c;
+    };
+    tutorial.step = function (work, name, effects) {
+        var c=tutorial.ensure(work), key=String(name||'');
+        if (c.tutorial_completed.indexOf(key)<0) c.tutorial_completed.push(key);
+        c.guideStep='Complete';
+        rules.effect(effects,'role');
+        return {ok:true,code:LF.ERR.OK,step:key,guideStep:c.guideStep};
     };

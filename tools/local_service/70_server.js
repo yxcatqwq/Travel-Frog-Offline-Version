@@ -375,6 +375,12 @@
             return {code: LF.ERR.OK};
         }
     };
+    server.handlers.hall_hello = { read: function (work) { return {code:LF.ERR.OK, timestamp:clock.now(), account:String(work.header.saveId)}; } };
+    server.handlers.hall_reconnect = { read: function (work, params) { return {code:LF.ERR.OK, account:String((params&&params.account)||work.header.saveId), token:"local"}; } };
+    server.handlers.tutorial_step_open_door = {idempotent:true,apply:function(work,params,effects){return rules.tutorial.step(work,'open_door',effects);}};
+    server.handlers.tutorial_step_open_door_q = {idempotent:true,apply:function(work,params,effects){return rules.tutorial.step(work,'open_door_q',effects);}};
+    server.handlers.tutorial_step_ask_award = {idempotent:true,apply:function(work,params,effects){return rules.tutorial.step(work,'ask_award',effects);}};
+    server.handlers.tutorial_step_ask_award_q = {idempotent:true,apply:function(work,params,effects){return rules.tutorial.step(work,'ask_award_q',effects);}};
 
     server.handlers.client_set_client = {
         apply: function (work, params, effects) {
@@ -475,6 +481,7 @@
             return result;
         }
     };
+    server.handlers.clover_notice_get = { read: function (work) { return {clover:util.toInt(work.wallet.clover,0), ticket:util.toInt(work.wallet.ticket,0)}; } };
 
     server.handlers.clover_harvest_resend = {
         idempotent: true,
@@ -850,6 +857,9 @@
     server.handlers.task_load_list = { read: function (work) { return rules.tasks.snapshot(work); } };
     server.handlers.task_update = { apply: function (work, params, effects) { return rules.tasks.update(work, params.id || params.task_id, params.num || params.amount || 1, effects); } };
     server.handlers.task_reward = { apply: function (work, params, effects) { return rules.tasks.claim(work, params.id || params.task_id, effects); } };
+    server.handlers.task_client_pro = { idempotent:true, apply:function(work, params, effects) { var p=params&&params.param!==undefined?params.param:params; if(typeof p==='object'&&p!==null) return rules.tasks.update(work,p.id||p.task_id||p.type,p.num||p.amount||1,effects); return rules.tasks.update(work,p,1,effects); } };
+    server.handlers.task_get_reward = { idempotent:true, apply:function(work, params, effects) { return rules.tasks.claim(work, params && (params.id||params.task_id), effects); } };
+    server.handlers.task_get_list_reward = { idempotent:true, apply:function(work, params, effects) { var raw=Array.isArray(params&&params.id)?params.id:[params&&params.id], ids=[]; for(var q=0;q<raw.length;q++){var encoded=util.toInt(raw[q],-1), found=null; for(var j=0;j<work.tasks.list.length;j++){var t=work.tasks.list[j];if(util.toInt(t.id,-2)===encoded){found=t;break;}var listId=util.toInt(t.list_id!==undefined?t.list_id:t.listId,-1), tier=util.toInt(t.tier!==undefined?t.tier:t.level,-1);if(listId>=0&&tier>=0&&encoded===listId*100+tier+1){found=t;break;}} ids.push(found?found.id:encoded);} var out=[]; for(var i=0;i<ids.length;i++){var r=rules.tasks.claim(work,ids[i],effects); if(!r.ok)return r; out.push(r);} return {ok:true,code:LF.ERR.OK,rewards:out}; } };
     server.handlers.mail_load = { read: function (work) { return rules.mail.snapshot(work).mails; } };
     server.handlers.mail_load_mails = { read: function (work, params) { return rules.mail.list(work, params.start, params.count); } };
     server.handlers.album_load_all = { read: function (work) { return {id_list: util.clone(rules.album.ensure(work).pictures).map(function(p){ return {id:p.id, pic_id:p.pic_id}; })}; } };
@@ -872,6 +882,7 @@
     server.handlers.guest_takeout_bag = { apply: function (work, params, effects) { var d=work.guests&&work.guests.drawing;if(!d||d.locked)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-bag-locked'};var pos=util.toInt(params.pos,0)-1;if(pos<0||pos>=4||util.toInt(d.bag[pos],-1)<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'guest-bag'};var id=d.bag[pos],add=rules.items.add(work,id,1,effects);if(!add.ok)return add;d.bag[pos]=-1;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK}; } };
     server.handlers.travel_load_note = { read: function (work) { return rules.travel.noteSnapshot(work); } };
     server.handlers.travel_load_gift = { read: function (work) { return rules.travel.giftSnapshot(work); } };
+    server.handlers.travel_bag_to_gift = { idempotent:true, apply:function(work,params,effects){ return rules.mail.bagToGift(work, params&&params.item_id, params&&params.count, effects); } };
     server.placeholder("visit_load", {visitor: null, acquire: []});
     server.placeholder("story_load", {stories: [], new_story_id: 0});
     server.placeholder("misc_moment_load", {list: []});
@@ -883,7 +894,9 @@
     server.placeholder("museum_load", {museum_list: []});
     server.handlers.encyclopedia_load = { read: function (work) { return rules.encyclopedia.snapshot(work); } };
     server.handlers.encyclopedia_unlock = { idempotent:true, apply:function(work,params,effects){ return rules.encyclopedia.unlock(work,params,effects); } };
+    server.handlers.encyclopedia_set_show_sub = {idempotent:true,apply:function(work,params,effects){return rules.encyclopedia.setShowSub(work,params,effects);}};
     server.handlers.encytravel_load = { read: function (work) { return rules.encyclopedia.travelSnapshot(work); } };
+    server.handlers.encytravel_set_show_sub = {idempotent:true,apply:function(work,params,effects){return rules.encyclopedia.setTravelShowSub(work,params,effects);}};
     server.handlers.calendar_load = { read: function (work) { return rules.calendar.snapshot(work); } };
     server.handlers.calendar_load_note = { read: function (work) { return rules.calendar.noteSnapshot(work); } };
     server.handlers.calendar_task_update = { apply: function (work, params, effects) {
@@ -1000,6 +1013,7 @@
     server.handlers.museumday_inspire = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.inspire(work,params,effects); }};
     server.handlers.museumday_get_items = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.getItems(work,effects); }};
     server.handlers.museumday_refresh = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.refresh(work,params,effects); }};
+    server.handlers.museum_load = {read:function(work){return rules.museum.snapshot(work);}};
     server.handlers.partycake_load = {read:function(work){ return rules.partycake.snapshot(work); }};
     server.handlers.partycake_load_mate = {read:function(work){ var v=rules.partycake.ensure(work); return {pre_cream:v.pre_cream,pre_sugar:v.pre_sugar}; }};
     server.handlers.partycake_load_task = {read:function(work){ return {task_list:util.clone(rules.partycake.ensure(work).task_list)}; }};
@@ -1013,6 +1027,8 @@
     server.handlers.partycake_reward_light = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.rewardLight(work,effects); }};
     server.handlers.partycake_reward_share = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.rewardShare(work,params,effects); }};
     server.handlers.greetcard_load = {read:function(work){ return rules.greetcard.snapshot(work); }};
+    server.handlers.greetcard_load_count = {read:function(work){ return {count:rules.greetcard.ensure(work).send_list.length}; }};
+    server.handlers.greetcard_get_task_item = {idempotent:true,apply:function(work,params,effects){var v=rules.greetcard.ensure(work);if(params&&params.list) v.task_item=util.clone(params.list);rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,list:util.clone(v.task_item)};}};
     server.handlers.greetcard_buy = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.buy(work,params,effects); }};
     server.handlers.greetcard_change_bg = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.changeBg(work,params,effects); }};
     server.handlers.greetcard_change_bless = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.changeBless(work,params,effects); }};
@@ -1029,7 +1045,7 @@
     server.handlers.lottery_confirm_reward = {idempotent:true,apply:function(work,params,effects){ return rules.lottery.confirm(work,params,effects); }};
     server.handlers.springcard_load = {read:function(work){ return rules.springcard.snapshot(work); }};
     server.handlers.springcard_load_count = {read:function(work){ return {count:rules.springcard.ensure(work).send_list.length}; }};
-    server.handlers.springcard_load_task_item = {read:function(work){ return {list:util.clone(rules.springcard.ensure(work).task_item)}; }};
+    server.handlers.springcard_load_task_item = {read:function(work){ var v=rules.springcard.ensure(work); return {task_harvest:util.toInt(v.task_harvest,0),share_num:util.toInt(v.share_num,0),list:util.clone(v.task_item)}; }};
     server.handlers.springcard_buy = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.buy(work,params,effects); }};
     server.handlers.springcard_change_bg = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.changeBg(work,params,effects); }};
     server.handlers.springcard_change_bless = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.changeBless(work,params,effects); }};
@@ -1038,18 +1054,38 @@
     server.handlers.springcard_get_reward = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.getReward(work,params,effects); }};
     server.handlers.springcard_get_task_reward = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.taskReward(work,effects); }};
 
+    /* D02 recharge/entitlement protocols: preserve imported state and expose
+     * deterministic local exchanges when the caller supplies a cost. */
+    server.handlers.recharge_load = {read:function(work){ return rules.recharge.snapshot(work); }};
+    server.handlers.recharge_load_gift = {read:function(work){ return rules.recharge.giftSnapshot(work); }};
+    server.handlers.recharge_update_num = {idempotent:true,apply:function(work,params,effects){ return rules.recharge.updateNum(work,params,effects); }};
+    server.handlers.recharge_change = {idempotent:true,apply:function(work,params,effects){ return rules.recharge.change(work,params,effects); }};
+    server.handlers.recharge_water = {idempotent:true,apply:function(work,params,effects){ return rules.recharge.water(work,params,effects); }};
+    server.handlers.recharge_ready_pay = {idempotent:true,apply:function(work,params,effects){ return rules.recharge.readyPay(work,params,effects); }};
+    server.handlers.recharge_cancel_pay = {idempotent:true,apply:function(work,params,effects){ return rules.recharge.cancelPay(work,params,effects); }};
+
     server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
+    server.handlers.visit_load = {read:function(work){return rules.visit.snapshot(work);}};
     server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};
     server.handlers.visit_set_carpet = {idempotent:true,apply:function(work,params,effects){var v=work.activities&&work.activities.visit&&work.activities.visit.visitor;if(!v)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"visitor-none"};v.carpet_id=util.toInt(params.id,-1);rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK};}};
     server.handlers.story_read_new_story = {idempotent:true,apply:function(work,params,effects){return rules.story.read(work,params,effects);}};
     server.handlers.story_send_gift = {idempotent:true,apply:function(work,params,effects){return rules.story.sendGift(work,params.gift||params,effects);}};
+    server.handlers.story_load = {read:function(work){return rules.story.snapshot(work);}};
+    server.handlers.story_feedback_gift = {idempotent:true,apply:function(work,params,effects){return rules.story.feedback(work,params,effects);}};
 
     server.handlers.cooking_start_cooking = {idempotent:true,apply:function(work,params,effects){return rules.cooking.start(work,params,effects);}};
+    server.handlers.cooking_load_cooking = {read:function(work){return rules.cooking.snapshot(work);}};
+    server.handlers.cooking_refresh_task = {idempotent:true,apply:function(work,params,effects){var v=rules.cooking.ensure(work);v.task_list=[];v.refresh_time=clock.now()+86400;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,task_list:[]};}};
+    server.handlers.cooking_task_update = {idempotent:true,apply:function(work,params,effects){var v=rules.cooking.ensure(work);v.task_list=Array.isArray(params&&params.task_list)?util.clone(params.task_list):v.task_list;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,task_list:util.clone(v.task_list)};}};
+    server.handlers.cooking_look_ad = {read:function(){return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'offline-ad-unavailable'};}};
     server.handlers.cooking_complete_task = {idempotent:true,apply:function(work,params,effects){return rules.cooking.complete(work,effects);}};
     server.handlers.cooking_select = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"cooking",{select:util.toInt(params.index,0)},effects);}};
 
     server.handlers.capsule_get_coin = {idempotent:true,apply:function(work,params,effects){return rules.capsule.getCoin(work,params,effects);}};
     server.handlers.capsule_twist = {idempotent:true,apply:function(work,params,effects){return rules.capsule.twist(work,params,effects);}};
+    server.handlers.capsule_load = {read:function(work){var v=rules.capsule.ensure(work);return {end_time:util.toInt(v.end_time,0),coin:v.coin,pre_coin:util.toInt(v.pre_coin,0),reward_list:util.clone(v.reward_list),task_list:util.clone(v.task_list),patch_num:util.toInt(v.patch_num,0)};}};
+    server.handlers.capsule_load_coin = {read:function(work){var v=rules.capsule.ensure(work);return {coin:v.coin,pre_coin:util.toInt(v.pre_coin,0)};}};
+    server.handlers.capsule_load_task = {read:function(work){return {task_list:util.clone(rules.capsule.ensure(work).task_list)};}};
     server.handlers.capsule_patch = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"capsule",params||{},effects);}};
     server.handlers.capsule_fast_task = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"capsule",{fast_task:params||{}},effects);}};
 
@@ -1113,6 +1149,14 @@
         var gifts=util.toArray(work.items.selectGift); if(!gifts.length)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"gift-empty"};
         var granted=[]; for(var i=0;i<gifts.length;i++){var g=gifts[i]||{}, id=util.toInt(g.item_id||g.id,-1), count=Math.max(1,util.toInt(g.count||g.num,1)); if(id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:"gift-item"}; var add=rules.items.add(work,id,count,effects); if(!add.ok)return add; granted.push({item_id:id,count:count});}
         work.items.selectGift=[]; rules.effect(effects,"items"); return {ok:true,code:LF.ERR.OK,items:granted};
+    } };
+    server.handlers.item_select_gift = { idempotent:true, apply:function(work,params,effects) {
+        var list=util.toArray(work.items.selectGift); if(!list.length)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'gift-selection-empty'};
+        var gift=list[0]||{}, choices=util.toArray(gift.items), indexes=Array.isArray(params&&params.index_list)?params.index_list:[];
+        if(!indexes.length)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'gift-selection-index'};
+        var granted=[];
+        for(var i=0;i<indexes.length;i++){var idx=util.toInt(indexes[i],-1), item=choices[idx];if(idx<0||!item)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'gift-selection-index'};var id=util.toInt(item.item_id!==undefined?item.item_id:item.id,-1), count=Math.max(1,util.toInt(item.count||item.num,1));var add=rules.items.add(work,id,count,effects);if(!add.ok)return add;granted.push({item_id:id,count:count});}
+        var num=Math.max(1,util.toInt(gift.num,1))-1;if(num>0)gift.num=num;else list.shift();rules.effect(effects,'items');return {ok:true,code:LF.ERR.OK,items:granted};
     } };
 
     /** 主动通知堆肥箱变化（补偿客户端回调派发的事件类型错误）。 */

@@ -752,6 +752,68 @@ test('activity protocol handlers keep their own activity namespace', () => {
   assert.equal(lf.state.data.activities.pray.story_id, undefined);
 });
 
+test('recharge entitlements persist and local water exchange is atomic', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.wallet.clover = 10;
+  assert.equal(r.commit(w => lf.server.handlers.recharge_update_num.apply(w, {water:2, change:3, field:[1], sack:[2]}, {})).ok, true);
+  assert.equal(r.commit(w => lf.server.handlers.recharge_change.apply(w, {amount:4, cost:5}, {})).ok, true);
+  assert.equal(lf.state.data.activities.recharge.change, 7);
+  assert.equal(lf.state.data.wallet.clover, 5);
+  assert.equal(r.commit(w => lf.server.handlers.recharge_water.apply(w, {amount:2, change:3}, {})).ok, true);
+  assert.equal(lf.state.data.activities.recharge.water, 4);
+  assert.equal(lf.state.data.activities.recharge.change, 4);
+  assert.equal(r.commit(w => lf.server.handlers.recharge_water.apply(w, {amount:1, change:99}, {})).ok, false);
+  assert.equal(lf.state.data.activities.recharge.change, 4);
+  r.reload();
+  assert.equal(lf.server.handlers.recharge_load.read(lf.state.data).water, 4);
+});
+
+test('tutorial, task aliases, and hall reconnect are handled locally', () => {
+  const r=runtime(); const {lf}=r;
+  assert.equal(lf.server.handlers.hall_hello.read(lf.state.data).code, 0);
+  assert.equal(lf.server.handlers.hall_reconnect.read(lf.state.data, {account:'local'}).code, 0);
+  assert.equal(r.commit(w=>lf.server.handlers.tutorial_step_open_door.apply(w,{},{})).ok,true);
+  assert.equal(lf.state.data.settings.client.tutorial_completed.indexOf('open_door')>=0,true);
+  lf.state.data.tasks.list=[{id:12,progress:0,target:1,claimed:false,reward_clover:3}];
+  assert.equal(r.commit(w=>lf.server.handlers.task_client_pro.apply(w,{param:{id:12}},{})).ok,true);
+  assert.equal(r.commit(w=>lf.server.handlers.task_get_reward.apply(w,{id:12},{})).ok,true);
+  assert.equal(lf.state.data.wallet.clover,3);
+});
+
+test('bag items can move to gift box and selected gifts are granted once', () => {
+  const r=runtime(); const {lf}=r;
+  lf.state.data.items.house[1001]=2;
+  assert.equal(r.commit(w=>lf.server.handlers.travel_bag_to_gift.apply(w,{item_id:1001,count:2},{})).ok,true);
+  assert.equal(lf.state.data.items.house[1001],undefined);
+  assert.equal(lf.state.data.mail.specialtys[0].count,2);
+  assert.equal(r.commit(w=>lf.server.handlers.travel_gift_to_bag.apply(w,{item_id:1001},{})).ok,true);
+  assert.equal(lf.state.data.mail.specialtys[0].count,1);
+  lf.state.data.items.selectGift=[{num:1,items:[{item_id:1001,count:1},{item_id:1002,count:1}]}];
+  assert.equal(r.commit(w=>lf.server.handlers.item_select_gift.apply(w,{index_list:[1]},{})).ok,true);
+  assert.equal(lf.state.data.items.house[1002],1);
+  assert.equal(lf.state.data.items.selectGift.length,0);
+});
+
+test('activity load handlers return client-shaped local state', () => {
+  const r=runtime(); const {lf}=r;
+  lf.state.data.activities.visit.visitor={id:7,status:'open',expires_at:lf.clock.now()+100};
+  lf.state.data.activities.visit.acquire=[{item_id:1001}];
+  assert.equal(lf.server.handlers.visit_load.read(lf.state.data).visitor.id,7);
+  lf.state.data.activities.story.stories=[{id:3}];
+  assert.equal(lf.server.handlers.story_load.read(lf.state.data).stories.length,1);
+  lf.state.data.activities.cooking.month=9; lf.state.data.activities.cooking.task_list=[{id:1}];
+  assert.equal(lf.server.handlers.cooking_load_cooking.read(lf.state.data).month,9);
+  lf.state.data.activities.museumday.museum_list=[4];
+  assert.equal(lf.server.handlers.museum_load.read(lf.state.data).museum_list[0],4);
+});
+
+test('expired unopened mail is removed during scheduler catch-up', () => {
+  const r=runtime(); const {lf}=r;
+  lf.state.data.mail.mails=[{id:1,expires_at:lf.clock.now()-1,opened:false,items:[{item_id:1001,count:1}]}];
+  assert.equal(r.commit(w=>lf.rules.mail.expire(w,{})).removed,1);
+  assert.equal(lf.state.data.mail.mails[0].expired,true);
+});
+
 test('travel applies configured specialties and lucky clover fills the first missing special photo', () => {
   const r = runtime(); const {lf} = r;
   lf.state.data.mail.pictures = [{id:'old', pic_id:'sp-a'}];
