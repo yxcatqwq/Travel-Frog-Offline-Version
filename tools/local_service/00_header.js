@@ -64,7 +64,7 @@
     LF.flags = {
         enabled: true,
         /* M1 保持季节资源键与包内资源一致（B13 在 M2 打开） */
-        seasonFromClock: false,
+        seasonFromClock: true,
         /* 门店/商人始终在场：M1 先按“已解锁工作台 + 商人在场”的新档模板实现 */
         verboseLog: false,
         /* 验收构建：把状态快照写到设备文件（A12），正式发行保持关闭 */

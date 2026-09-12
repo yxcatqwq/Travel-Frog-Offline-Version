@@ -49,6 +49,31 @@
                 return rules.weather.roll(work, effects);
             }
         });
+        /* C14 日历按自然日换日。仅在 calendar_load/claim 时调用 ensure 会让
+         * 长时间离线的存档继续显示上一日任务；把换日纳入调度器，恢复时先
+         * 清理上一日的签到/幸运日/特殊日任务，再由下一次加载生成本地内容。 */
+        var calendar = work.activities && work.activities.calendar;
+        var calendarDue = 0;
+        if (calendar && rules.calendar && rules.calendar.dayKey) {
+            var currentDay = rules.calendar.dayKey(now);
+            if (!calendar.day_key || calendar.day_key !== currentDay) {
+                calendarDue = now;
+            } else {
+                var date = new Date(now * 1000);
+                calendarDue = Math.floor(Date.UTC(
+                    date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1
+                ) / 1000);
+            }
+        }
+        list.push({
+            id: "calendar.rollover",
+            dueAt: calendarDue,
+            run: function (effects) {
+                if (!rules.calendar || !rules.calendar.ensure) return {ok:true, skipped:true};
+                rules.calendar.ensure(work, effects);
+                return {ok:true, code:LF.ERR.OK, changed:{day_key:work.activities.calendar.day_key}};
+            }
+        });
         list.push({
             id: "compost.finish",
             dueAt: work.compost.process && work.compost.process.state === "running" ? util.toInt(work.compost.process.finish_at, 0) : 0,
@@ -75,7 +100,7 @@
                 return rules.craft ? rules.craft.finish(work, effects, now) : {ok:true, skipped:true};
             }
         });
-        list.push({id:"mail.expire",dueAt:(work.mail.mails||[]).reduce(function(next,row){var at=util.toInt(row.expire_at||row.expireAt,0);return at&&(next===0||at<next)?at:next;},0),run:function(effects){return rules.mail.expire(work,effects);}});
+        list.push({id:"mail.expire",dueAt:(work.mail.mails||[]).reduce(function(next,row){var at=util.toInt(row.expires_at||row.expire_at||row.expireAt,0);return at&&(next===0||at<next)?at:next;},0),run:function(effects){return rules.mail.expire(work,effects);}});
         list.push({
             id: "travel.arrive",
             dueAt: work.travel && work.travel.status === "traveling" ? util.toInt(work.travel.etaAt, 0) : 0,

@@ -1006,6 +1006,8 @@
     server.handlers.animpicture_album_remove_pic = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.albumRemove(work,params,effects); }};
     server.handlers.animpicture_use_item = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.useItem(work,params,effects); }};
     server.handlers.museumday_load = {read:function(work){ return rules.museumday.snapshot(work); }};
+    server.handlers.museumday_info = {read:function(work){ var v=rules.museumday.ensure(work); return {compass:util.toInt(v.compass,0),task_num:util.toInt(v.task_num,0)}; }};
+    server.handlers.museumday_arrive = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.arrive(work,params,effects); }};
     server.handlers.museumday_load_path = {read:function(work){ return {path:util.clone(rules.museumday.ensure(work).path)}; }};
     server.handlers.museumday_start_advance = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.startAdvance(work,params,effects); }};
     server.handlers.museumday_random_compass = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.randomCompass(work,params,effects); }};
@@ -1053,6 +1055,18 @@
     server.handlers.springcard_send = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.send(work,effects); }};
     server.handlers.springcard_get_reward = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.getReward(work,params,effects); }};
     server.handlers.springcard_get_task_reward = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.taskReward(work,effects); }};
+    server.handlers.springcard_get_task_item = {read:function(work){ var v=rules.springcard.ensure(work); return {task_item:util.clone(v.task_item),list:util.clone(v.task_item)}; }};
+    server.handlers.springcard_share_tags = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.shareTags(work,params,effects); }};
+    server.handlers.springcard_get_share_tags = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.getShareTags(work,params,effects); }};
+    server.handlers.greetcard_feedback_gift = {idempotent:true,apply:function(work,params,effects){
+        params=util.isObject(params)?params:{}; var v=rules.greetcard.ensure(work), index=Math.max(1,util.toInt(params.id!==undefined?params.id:params.index,1))-1;
+        var row=v.get_list[index]; if(!row)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'card-feedback-none'};
+        if(row.feedback)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'card-feedback-used'};
+        var id=util.toInt(params.item_id!==undefined?params.item_id:(row.gift!==undefined?row.gift:params.gift),-1), count=Math.max(1,util.toInt(params.count||params.num,1));
+        if(id<0||!rules.itemInfo(id))return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'card-feedback-item'};
+        var add=rules.items.add(work,id,count,effects); if(!add.ok)return add; row.feedback=true; row.feedback_item=id; rules.effect(effects,'activities');
+        return {ok:true,code:LF.ERR.OK,item_id:id,count:count,index:index+1};
+    }};
 
     /* D02 recharge/entitlement protocols: preserve imported state and expose
      * deterministic local exchanges when the caller supplies a cost. */

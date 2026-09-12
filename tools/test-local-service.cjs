@@ -210,6 +210,27 @@ test('scheduler computes real next deadline and handles merchant departure once'
   assert.equal(second.changed.ran.includes('shop.leave'),false);
 });
 
+test('scheduler rolls the calendar over after an offline natural-day boundary', () => {
+  const r = runtime(); const {lf} = r; const now = lf.clock.now();
+  const calendar = lf.state.data.activities.calendar;
+  calendar.day_key = '2000-01-01';
+  calendar.new_flag = [1]; calendar.lucky_days = [{day: 1}];
+  calendar.st_days = [{day: 1}]; calendar.task_list = [{id: 7, progress: 1}];
+  lf.state.data.weather.nextAt = now + 100000;
+  const result = r.commit(w => ({ok:true, changed:lf.scheduler.catchUp(w, {})}));
+  assert.equal(result.ok, true);
+  assert.equal(result.changed.ran.includes('calendar.rollover'), true);
+  const after = lf.state.data.activities.calendar;
+  assert.equal(after.day_key, lf.rules.calendar.dayKey(now));
+  assert.equal(after.new_flag.length, 0);
+  assert.equal(after.lucky_days.length, 0);
+  assert.equal(after.st_days.length, 0);
+  assert.equal(after.task_list.length, 0);
+  assert.equal(lf.state.data.scheduler.nextDueAt > now, true);
+  r.reload();
+  assert.equal(lf.state.data.activities.calendar.day_key, lf.rules.calendar.dayKey(now));
+});
+
 test('read errors never create a replacement save', () => {
   const r=runtime(); const before=JSON.stringify(r.lf.state.data);
   r.storage.getItem=()=>{throw Error('read denied');};
@@ -814,6 +835,29 @@ test('expired unopened mail is removed during scheduler catch-up', () => {
   assert.equal(lf.state.data.mail.mails[0].expired,true);
 });
 
+test('weather rolls season and daypart from the local clock', () => {
+  const r=runtime(); const {lf}=r;
+  lf.state.data.clock.timeTravelSeconds = 0;
+  lf.state.data.weather.nextAt = lf.clock.now();
+  assert.equal(r.commit(w=>lf.rules.weather.roll(w,{})).ok,true);
+  assert.equal([1,2,3,4].indexOf(lf.state.data.weather.season)>=0,true);
+  assert.equal([1,2,3,4].indexOf(lf.state.data.weather.hours_type)>=0,true);
+  assert.equal(lf.state.data.weather.nextAt > lf.clock.now(), true);
+});
+
+test('calendar rolls over during offline scheduler catch-up', () => {
+  const r=runtime(); const {lf}=r;
+  const old=lf.clock.now();
+  lf.state.data.activities.calendar.day_key='2000-01-01';
+  lf.state.data.activities.calendar.new_flag=[1];
+  lf.state.data.clock.timeTravelSeconds += 86400;
+  const now=lf.clock.now();
+  assert.equal(r.commit(w=>({ok:true,changed:lf.scheduler.catchUp(w,{},now)})).ok,true);
+  assert.equal(lf.state.data.activities.calendar.day_key, lf.rules.calendar.dayKey(now));
+  assert.equal(lf.state.data.activities.calendar.new_flag.length,0);
+  assert.equal(old < now,true);
+});
+
 test('travel applies configured specialties and lucky clover fills the first missing special photo', () => {
   const r = runtime(); const {lf} = r;
   lf.state.data.mail.pictures = [{id:'old', pic_id:'sp-a'}];
@@ -834,6 +878,20 @@ test('travel applies configured specialties and lucky clover fills the first mis
   r.reload(); assert.equal(lf.state.data.items.specialty_counts.rare, 2);
 });
 
+test('travel reward settlement rejects unknown destination items atomically', () => {
+  const r = runtime(); const {lf} = r; const effects = {};
+  assert.equal(r.commit(w => lf.rules.travel.prepareAndStart(w, {
+    destinationId: 3, duration: 60, destination_items: [{item_id: 999999, count: 1}]
+  }, effects)).ok, true);
+  lf.state.data.clock.timeTravelSeconds += 61;
+  assert.equal(r.commit(w => ({ok:true, changed:lf.rules.travel.advance(w, effects)})).ok, true);
+  const before = lf.state.data.wallet.clover;
+  const failed = r.commit(w => lf.rules.travel.claim(w, {}, effects));
+  assert.equal(failed.ok, false);
+  assert.equal(lf.state.data.travel.status, 'result');
+  assert.equal(lf.state.data.wallet.clover, before);
+});
+
 test('flowerpot mature harvest can return a seed and records cumulative produce', () => {
   const r = runtime(); const {lf} = r;
   lf.state.data.flowerpot.plant_list = [{state:'done', reward_id:1001, reward_count:2, seed_drop_id:1002, category:'vegetable'}];
@@ -851,4 +909,37 @@ test('compost fertility shortens configured processing duration', () => {
   lf.config.get=(name,id)=> name==='CompostData' && id===77 ? {id:77, star:3} : null;
   const result=r.commit(w=>lf.rules.compost.start(w, {}, {fertility:3}));
   assert.equal(result.ok,true); assert.equal(result.duration,2400);
+});
+
+test('museum day callback and info use client-shaped payloads', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.activities.museumday.compass = 3;
+  lf.state.data.activities.museumday.task_num = 2;
+  const info = lf.server.handlers.museumday_info.read(lf.state.data);
+  assert.equal(info.compass, 3); assert.equal(info.task_num, 2);
+  assert.equal(r.commit(w => lf.server.handlers.museumday_arrive.apply(w, {desc_id: 8, pic_id: 9}, {})).ok, true);
+  assert.equal(lf.state.data.activities.museumday.frog, 1);
+  assert.equal(lf.state.data.activities.museumday.pic_id, 9);
+});
+
+test('spring card share tags has local code lifecycle and task item alias', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.activities.springcard.task_item = [301];
+  const pending = lf.server.handlers.springcard_get_task_item.read(lf.state.data);
+  assert.equal(pending.task_item[0], 301); assert.equal(pending.list[0], 301);
+  const made = r.commit(w => lf.server.handlers.springcard_share_tags.apply(w, {tags_id: 301}, {}));
+  assert.equal(made.ok, true); assert.equal(typeof made.share_code, 'string');
+  assert.equal(r.commit(w => lf.server.handlers.springcard_get_share_tags.apply(w, {share_code: made.share_code}, {})).ok, true);
+  assert.equal(lf.state.data.activities.springcard.share_get, 1);
+  assert.equal(lf.state.data.activities.springcard.items.some(x => x.item_id === 301), true);
+  assert.equal(r.commit(w => lf.server.handlers.springcard_get_share_tags.apply(w, {share_code: made.share_code}, {})).ok, false);
+});
+
+test('greeting card feedback gift grants incoming item only once', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.activities.greetcard.get_list = [{gift: 9001}];
+  const before = lf.state.data.items.house[9001] || 0;
+  assert.equal(r.commit(w => lf.server.handlers.greetcard_feedback_gift.apply(w, {id: 1}, {})).ok, true);
+  assert.equal(lf.state.data.items.house[9001], before + 1);
+  assert.equal(r.commit(w => lf.server.handlers.greetcard_feedback_gift.apply(w, {id: 1}, {})).ok, false);
 });

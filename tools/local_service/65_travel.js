@@ -76,10 +76,19 @@
         var v=travel.ensure(work); params=params || {}; if(v.status!=='result' || v.settled || !v.result)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'travel-result-unavailable'}; if(params.tripId && String(params.tripId)!==String(v.tripId))return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'trip-id'};
         var result=v.result; var grant=rules.wallet.grant(work,{clover:util.toInt(result.clover,0),ticket:util.toInt(result.ticket,0)},effects); if(!grant.ok)return grant;
         var grantedItems = [];
-        util.toArray(result.items).forEach(function(entry){
+        var itemEntries = util.toArray(result.items);
+        for (var itemIndex = 0; itemIndex < itemEntries.length; itemIndex++) {
+            var entry = itemEntries[itemIndex];
             var id=util.toInt(entry && (entry.item_id !== undefined ? entry.item_id : entry.id),-1), count=Math.max(1,util.toInt(entry && (entry.count !== undefined ? entry.count : entry.num),1));
-            if(id>=0){ var added=rules.items.add(work,id,count,effects); if(added.ok) grantedItems.push({item_id:id,count:count}); }
-        });
+            if(id>=0){
+                var added=rules.items.add(work,id,count,effects);
+                /* A configured destination reward must settle atomically. Returning
+                 * failure lets tx.commit roll back the wallet and any earlier
+                 * rewards instead of silently consuming the trip result. */
+                if(!added.ok) return added;
+                grantedItems.push({item_id:id,count:count});
+            }
+        }
         var grantedSpecialtys = [];
         util.toArray(result.specialtys).forEach(function(entry){
             var row=util.clone(entry); if(!util.isObject(row)) row={item_id:util.toInt(entry,-1),count:1};
