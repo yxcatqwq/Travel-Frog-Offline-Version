@@ -109,7 +109,7 @@
     LF.flags = {
         enabled: true,
         /* M1 保持季节资源键与包内资源一致（B13 在 M2 打开） */
-        seasonFromClock: false,
+        seasonFromClock: true,
         /* 门店/商人始终在场：M1 先按“已解锁工作台 + 商人在场”的新档模板实现 */
         verboseLog: false,
         /* 验收构建：把状态快照写到设备文件（A12），正式发行保持关闭 */
@@ -5496,10 +5496,11 @@
     rules.story.feedback = function(work, params, effects) { var v=activities.ensure(work).story; v.feedback=Array.isArray(v.feedback)?v.feedback:[]; v.feedback.push(util.clone(params||{})); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK}; };
     /* C07 ??????????????????????????? */
     rules.cooking = rules.cooking || {};
-    rules.cooking.ensure = function(work) { var v=activities.ensure(work).cooking; if(!util.isObject(v)) v=activities.ensure(work).cooking={}; if(!Array.isArray(v.task_list))v.task_list=[]; return v; };
+    rules.cooking.ensure = function(work) { var v=activities.ensure(work).cooking; if(!util.isObject(v)) v=activities.ensure(work).cooking={}; if(!Array.isArray(v.task_list))v.task_list=[]; v.share_count=Math.max(0,util.toInt(v.share_count,0)); return v; };
     rules.cooking.start = function(work,params,effects) { params=util.isObject(params)?params:{}; var v=rules.cooking.ensure(work); if(v.process&&(v.process.state==='running'||v.process.state==='ready'))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-running'}; var output=util.toInt(params.output_id||params.item_id,-1), count=Math.max(1,util.toInt(params.output_count||params.count,1)); if(output<0||!rules.itemInfo(output))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-output'}; var inputs=Array.isArray(params.inputs)?params.inputs:[]; for(var i=0;i<inputs.length;i++){var id=util.toInt(inputs[i].item_id||inputs[i].id,-1),n=Math.max(1,util.toInt(inputs[i].count||inputs[i].num,1));if(id<0||!rules.itemInfo(id)||rules.items.count(work,id)<n)return {ok:false,code:LF.ERR.NO_ITEM,reason:'cooking-material:'+id};} for(var j=0;j<inputs.length;j++){var cid=util.toInt(inputs[j].item_id||inputs[j].id,-1);var take=rules.items.consume(work,cid,Math.max(1,util.toInt(inputs[j].count||inputs[j].num,1)),effects);if(!take.ok)return take;} var now=clock.now(),finish=now+Math.max(1,util.toInt(params.duration,1800));v.process={state:'running',output_id:output,output_count:count,started_at:now,finish_at:finish,inputs:util.clone(inputs)};v.select=util.toInt(params.theme||params.select,v.select||0);rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,finish_at:finish}; };
     rules.cooking.finish = function(work,effects,now){var v=rules.cooking.ensure(work),p=v.process;if(!p||p.state!=='running'||util.toInt(p.finish_at,0)>now)return {ok:true,skipped:true};p.state='ready';rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK};};
     rules.cooking.complete = function(work,effects){var v=rules.cooking.ensure(work),p=v.process;if(!p||p.state!=='ready'||p.finish_at>clock.now())return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-not-ready'};var add=rules.items.add(work,p.output_id,p.output_count,effects);if(!add.ok)return add;v.process=null;v.complete=true;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,item_list:[{item_id:p.output_id,count:p.output_count}]};};
+    rules.cooking.share = function(work,effects){var v=rules.cooking.ensure(work);v.share_count++;v.last_share_at=clock.now();rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,share_count:v.share_count};};
     rules.cooking.snapshot = function(work) { var v=rules.cooking.ensure(work); return {month:util.toInt(v.month,0),month_pro:util.toInt(v.month_pro,0),week:util.toInt(v.week,0),complete:!!v.complete,select:util.toInt(v.select,0),refresh_time:util.toInt(v.refresh_time,0),task_list:util.clone(v.task_list),process:util.clone(v.process||null)}; };
     /* C08 ??????????????????? */
     rules.capsule = rules.capsule || {};
@@ -5639,7 +5640,7 @@
     greetcard.readNew=function(work,effects){var v=greetcard.ensure(work);v.new_index=0;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK};};
     greetcard.taskReward=function(work,effects){var v=greetcard.ensure(work),list=[];for(var i=0;i<v.task_item.length;i++){var id=util.toInt(v.task_item[i],-1);if(id>=0){greetcard.addItem(v,id,1);list.push({item_id:id,count:1});}}v.task_item=[];rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,list:list};};
     var springcard = rules.springcard = {};
-    springcard.ensure=function(work){var v=activities.ensure(work).springcard;if(!util.isObject(v)||Array.isArray(v))v=activities.ensure(work).springcard={};if(!util.isObject(v.card_info))v.card_info={bg:0,bless:0,tags:[0,0,0]};if(!Array.isArray(v.card_info.tags))v.card_info.tags=[0,0,0];while(v.card_info.tags.length<3)v.card_info.tags.push(0);['items','task_item','reward_list','send_list'].forEach(function(k){if(!Array.isArray(v[k]))v[k]=[];});return v;};
+    springcard.ensure=function(work){var v=activities.ensure(work).springcard;if(!util.isObject(v)||Array.isArray(v))v=activities.ensure(work).springcard={};if(!util.isObject(v.card_info))v.card_info={bg:0,bless:0,tags:[0,0,0]};if(!Array.isArray(v.card_info.tags))v.card_info.tags=[0,0,0];while(v.card_info.tags.length<3)v.card_info.tags.push(0);['items','task_item','reward_list','send_list','share_codes'].forEach(function(k){if(!Array.isArray(v[k]))v[k]=[];});v.share_get=Math.max(0,util.toInt(v.share_get,0));return v;};
     springcard.snapshot=function(work){return util.clone(springcard.ensure(work));};
     springcard.itemIndex=function(v,id){for(var i=0;i<v.items.length;i++)if(v.items[i]&&util.toInt(v.items[i].item_id,-1)===util.toInt(id,-2))return i;return -1;};
     springcard.addItem=function(v,id,num){var i=springcard.itemIndex(v,id);if(i<0)v.items.push({item_id:id,num:num});else v.items[i].num=Math.max(0,util.toInt(v.items[i].num,0))+num;};
@@ -5651,6 +5652,16 @@
     springcard.send=function(work,effects){var v=springcard.ensure(work),card={bg:v.card_info.bg,bless:v.card_info.bless,tags:util.clone(v.card_info.tags)};if(!card.bg&&!card.bless&&!card.tags.some(function(id){return id>0;}))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'spring-card-empty'};v.send_list.push(card);v.card_info={bg:0,bless:0,tags:[0,0,0]};rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,card:card};};
     springcard.getReward=function(work,params,effects){var v=springcard.ensure(work),id=util.toInt(params&&params.item_id,-1),num=Math.max(1,util.toInt(params&&params.count,1));if(id<0||!rules.itemInfo(id))return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'spring-reward'};var add=rules.items.add(work,id,num,effects);if(!add.ok)return add;v.reward_list.push({item_id:id,count:num});rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,list:[{item_id:id,count:num}]};};
     springcard.taskReward=function(work,effects){var v=springcard.ensure(work),list=[];for(var i=0;i<v.task_item.length;i++){var id=util.toInt(v.task_item[i],-1);if(id>=0){springcard.addItem(v,id,1);list.push({item_id:id,count:1});}}v.task_item=[];rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,list:list};};
+    /* Sharing tags used to depend on a remote account.  Keep a deterministic,
+     * save-local code so the card screen remains usable offline and imported
+     * saves retain their pending exchanges. */
+    springcard.shareTags=function(work,params,effects){params=util.isObject(params)?params:{};var v=springcard.ensure(work),id=util.toInt(params.tags_id!==undefined?params.tags_id:params.id,-1);if(id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'spring-share-tags'};var code='LFSC-'+String(id)+'-'+String(v.share_codes.length+1);v.share_codes.push({code:code,tags_id:id,used:false,created_at:clock.now()});rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,share_code:code,tags_id:id};};
+    springcard.getShareTags=function(work,params,effects){params=util.isObject(params)?params:{};var v=springcard.ensure(work),code=String(params.share_code||params.code||'');if(!code)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'spring-share-code'};if(v.share_get>=3)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'spring-share-limit'};var row=null;for(var i=0;i<v.share_codes.length;i++)if(String(v.share_codes[i].code)===code){row=v.share_codes[i];break;}if(!row)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'spring-share-invalid'};if(row.used)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'spring-share-used'};row.used=true;v.share_get++;springcard.addItem(v,row.tags_id,1);rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,tags_id:row.tags_id,item_id:row.tags_id,share_get:v.share_get};};
+
+    /* MuseumDay sends museumday_arrive as a server push callback.  Persist the
+     * arrival marker and optional payload so reopening the activity does not
+     * lose the final destination state. */
+    museumday.arrive=function(work,params,effects){params=util.isObject(params)?params:{};var v=museumday.ensure(work);v.frog=1;if(params.desc_id!==undefined)v.desc_id=util.toInt(params.desc_id,0);if(params.pic_id!==undefined)v.pic_id=util.toInt(params.pic_id,0);v.next=0;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,frog:v.frog,desc_id:v.desc_id||0,pic_id:v.pic_id||0};};
     var lottery = rules.lottery = {};
     lottery.ensure=function(work){var v=activities.ensure(work).lottery;if(!util.isObject(v)||Array.isArray(v))v=activities.ensure(work).lottery={};v.phase=Math.max(0,util.toInt(v.phase,0));v.state=Math.max(0,util.toInt(v.state,0));['select_list','answer','right_flag','reward'].forEach(function(k){if(!Array.isArray(v[k]))v[k]=[];});if(!util.isObject(v.extra_item))v.extra_item={item_id:0,count:0};return v;};
     lottery.snapshot=function(work){return util.clone(lottery.ensure(work));};
@@ -5932,10 +5943,19 @@
         var v=travel.ensure(work); params=params || {}; if(v.status!=='result' || v.settled || !v.result)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'travel-result-unavailable'}; if(params.tripId && String(params.tripId)!==String(v.tripId))return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'trip-id'};
         var result=v.result; var grant=rules.wallet.grant(work,{clover:util.toInt(result.clover,0),ticket:util.toInt(result.ticket,0)},effects); if(!grant.ok)return grant;
         var grantedItems = [];
-        util.toArray(result.items).forEach(function(entry){
+        var itemEntries = util.toArray(result.items);
+        for (var itemIndex = 0; itemIndex < itemEntries.length; itemIndex++) {
+            var entry = itemEntries[itemIndex];
             var id=util.toInt(entry && (entry.item_id !== undefined ? entry.item_id : entry.id),-1), count=Math.max(1,util.toInt(entry && (entry.count !== undefined ? entry.count : entry.num),1));
-            if(id>=0){ var added=rules.items.add(work,id,count,effects); if(added.ok) grantedItems.push({item_id:id,count:count}); }
-        });
+            if(id>=0){
+                var added=rules.items.add(work,id,count,effects);
+                /* A configured destination reward must settle atomically. Returning
+                 * failure lets tx.commit roll back the wallet and any earlier
+                 * rewards instead of silently consuming the trip result. */
+                if(!added.ok) return added;
+                grantedItems.push({item_id:id,count:count});
+            }
+        }
         var grantedSpecialtys = [];
         util.toArray(result.specialtys).forEach(function(entry){
             var row=util.clone(entry); if(!util.isObject(row)) row={item_id:util.toInt(entry,-1),count:1};
@@ -7142,6 +7162,8 @@
     server.handlers.animpicture_album_remove_pic = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.albumRemove(work,params,effects); }};
     server.handlers.animpicture_use_item = {idempotent:true,apply:function(work,params,effects){ return rules.animpicture.useItem(work,params,effects); }};
     server.handlers.museumday_load = {read:function(work){ return rules.museumday.snapshot(work); }};
+    server.handlers.museumday_info = {read:function(work){ var v=rules.museumday.ensure(work); return {compass:util.toInt(v.compass,0),task_num:util.toInt(v.task_num,0)}; }};
+    server.handlers.museumday_arrive = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.arrive(work,params,effects); }};
     server.handlers.museumday_load_path = {read:function(work){ return {path:util.clone(rules.museumday.ensure(work).path)}; }};
     server.handlers.museumday_start_advance = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.startAdvance(work,params,effects); }};
     server.handlers.museumday_random_compass = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.randomCompass(work,params,effects); }};
@@ -7189,6 +7211,18 @@
     server.handlers.springcard_send = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.send(work,effects); }};
     server.handlers.springcard_get_reward = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.getReward(work,params,effects); }};
     server.handlers.springcard_get_task_reward = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.taskReward(work,effects); }};
+    server.handlers.springcard_get_task_item = {read:function(work){ var v=rules.springcard.ensure(work); return {task_item:util.clone(v.task_item),list:util.clone(v.task_item)}; }};
+    server.handlers.springcard_share_tags = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.shareTags(work,params,effects); }};
+    server.handlers.springcard_get_share_tags = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.getShareTags(work,params,effects); }};
+    server.handlers.greetcard_feedback_gift = {idempotent:true,apply:function(work,params,effects){
+        params=util.isObject(params)?params:{}; var v=rules.greetcard.ensure(work), index=Math.max(1,util.toInt(params.id!==undefined?params.id:params.index,1))-1;
+        var row=v.get_list[index]; if(!row)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'card-feedback-none'};
+        if(row.feedback)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'card-feedback-used'};
+        var id=util.toInt(params.item_id!==undefined?params.item_id:(row.gift!==undefined?row.gift:params.gift),-1), count=Math.max(1,util.toInt(params.count||params.num,1));
+        if(id<0||!rules.itemInfo(id))return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'card-feedback-item'};
+        var add=rules.items.add(work,id,count,effects); if(!add.ok)return add; row.feedback=true; row.feedback_item=id; rules.effect(effects,'activities');
+        return {ok:true,code:LF.ERR.OK,item_id:id,count:count,index:index+1};
+    }};
 
     /* D02 recharge/entitlement protocols: preserve imported state and expose
      * deterministic local exchanges when the caller supplies a cost. */
@@ -7216,6 +7250,7 @@
     server.handlers.cooking_look_ad = {read:function(){return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'offline-ad-unavailable'};}};
     server.handlers.cooking_complete_task = {idempotent:true,apply:function(work,params,effects){return rules.cooking.complete(work,effects);}};
     server.handlers.cooking_select = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"cooking",{select:util.toInt(params.index,0)},effects);}};
+    server.handlers.cooking_share = {idempotent:true,apply:function(work,params,effects){return rules.cooking.share(work,effects);}};
 
     server.handlers.capsule_get_coin = {idempotent:true,apply:function(work,params,effects){return rules.capsule.getCoin(work,params,effects);}};
     server.handlers.capsule_twist = {idempotent:true,apply:function(work,params,effects){return rules.capsule.twist(work,params,effects);}};
@@ -7360,6 +7395,31 @@
                 return rules.weather.roll(work, effects);
             }
         });
+        /* C14 日历按自然日换日。仅在 calendar_load/claim 时调用 ensure 会让
+         * 长时间离线的存档继续显示上一日任务；把换日纳入调度器，恢复时先
+         * 清理上一日的签到/幸运日/特殊日任务，再由下一次加载生成本地内容。 */
+        var calendar = work.activities && work.activities.calendar;
+        var calendarDue = 0;
+        if (calendar && rules.calendar && rules.calendar.dayKey) {
+            var currentDay = rules.calendar.dayKey(now);
+            if (!calendar.day_key || calendar.day_key !== currentDay) {
+                calendarDue = now;
+            } else {
+                var date = new Date(now * 1000);
+                calendarDue = Math.floor(Date.UTC(
+                    date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1
+                ) / 1000);
+            }
+        }
+        list.push({
+            id: "calendar.rollover",
+            dueAt: calendarDue,
+            run: function (effects) {
+                if (!rules.calendar || !rules.calendar.ensure) return {ok:true, skipped:true};
+                rules.calendar.ensure(work, effects);
+                return {ok:true, code:LF.ERR.OK, changed:{day_key:work.activities.calendar.day_key}};
+            }
+        });
         list.push({
             id: "compost.finish",
             dueAt: work.compost.process && work.compost.process.state === "running" ? util.toInt(work.compost.process.finish_at, 0) : 0,
@@ -7386,7 +7446,7 @@
                 return rules.craft ? rules.craft.finish(work, effects, now) : {ok:true, skipped:true};
             }
         });
-        list.push({id:"mail.expire",dueAt:(work.mail.mails||[]).reduce(function(next,row){var at=util.toInt(row.expire_at||row.expireAt,0);return at&&(next===0||at<next)?at:next;},0),run:function(effects){return rules.mail.expire(work,effects);}});
+        list.push({id:"mail.expire",dueAt:(work.mail.mails||[]).reduce(function(next,row){var at=util.toInt(row.expires_at||row.expire_at||row.expireAt,0);return at&&(next===0||at<next)?at:next;},0),run:function(effects){return rules.mail.expire(work,effects);}});
         list.push({
             id: "travel.arrive",
             dueAt: work.travel && work.travel.status === "traveling" ? util.toInt(work.travel.etaAt, 0) : 0,
