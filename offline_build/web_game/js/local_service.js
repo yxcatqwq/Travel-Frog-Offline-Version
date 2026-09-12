@@ -5373,7 +5373,7 @@
     rules.tasks.ensure = function (work) { if (!util.isObject(work.tasks)) work.tasks={data:{},list:[],dataList:[],dataReward:{},redot:{}}; if(!Array.isArray(work.tasks.list))work.tasks.list=[]; return work.tasks; };
     rules.tasks.snapshot = function (work) { var t=rules.tasks.ensure(work); return {tasks:util.clone(t.list),list:util.clone(t.dataList),reward:util.clone(t.dataReward)}; };
     rules.tasks.update = function (work, id, amount, effects) { var t=rules.tasks.ensure(work), key=String(id), found=null; for(var i=0;i<t.list.length;i++) if(String(t.list[i].id)===key) found=t.list[i]; if(!found){found={id:id,progress:0,target:1,claimed:false};t.list.push(found);} found.progress=Math.min(Math.max(0,util.toInt(found.target,1)),Math.max(0,util.toInt(found.progress,0)+util.toInt(amount,1))); rules.effect(effects,"tasks"); return {ok:true,code:LF.ERR.OK,task:util.clone(found)}; };
-    rules.tasks.claim = function (work, id, effects) { var t=rules.tasks.ensure(work), key=String(id); for(var i=0;i<t.list.length;i++){var task=t.list[i];if(String(task.id)===key){if(task.claimed||task.progress<util.toInt(task.target,1))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"task-not-ready"};task.claimed=true;var reward=util.toInt(task.reward_clover,0);if(reward)work.wallet.clover+=reward;var achieve=util.toInt(task.achieve_id,-1);if(achieve>=0){work.role.achieveList=util.toArray(work.role.achieveList);if(work.role.achieveList.indexOf(achieve)<0)work.role.achieveList.push(achieve);work.role.achieveTime=util.toArray(work.role.achieveTime);work.role.achieveTime.push(clock.now());rules.effect(effects,"role");}rules.effect(effects,"tasks");rules.effect(effects,"wallet");return {ok:true,code:LF.ERR.OK,reward_clover:reward,achieve_id:achieve};}} return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"task-not-found"}; };
+    rules.tasks.claim = function (work, id, effects) { var t=rules.tasks.ensure(work), key=String(id); for(var i=0;i<t.list.length;i++){var task=t.list[i];if(String(task.id)!==key)continue;if(task.claimed||task.progress<util.toInt(task.target,1))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"task-not-ready"};var reward=util.toInt(task.reward_clover,0), rewardItem=util.toInt(task.reward_item_id!==undefined?task.reward_item_id:task.reward_id,-1), rewardCount=Math.max(1,util.toInt(task.reward_count||task.reward_num,1));if(rewardItem<0){var cfg=config.get("TaskData",task.id)||config.get("taskData",task.id);if(cfg){rewardItem=util.toInt(cfg.reward_id!==undefined?cfg.reward_id:cfg.item_id,-1);rewardCount=Math.max(1,util.toInt(cfg.num||cfg.count,1));}}if(reward){var grant=rules.wallet.grant(work,{clover:reward},effects);if(!grant.ok)return grant;}if(rewardItem>=0){var itemGrant=rules.items.add(work,rewardItem,rewardCount,effects);if(!itemGrant.ok)return itemGrant;}task.claimed=true;var achieve=util.toInt(task.achieve_id,-1);if(achieve>=0){work.role.achieveList=util.toArray(work.role.achieveList);if(work.role.achieveList.indexOf(achieve)<0)work.role.achieveList.push(achieve);work.role.achieveTime=util.toArray(work.role.achieveTime);work.role.achieveTime.push(clock.now());rules.effect(effects,"role");}rules.effect(effects,"tasks");return {ok:true,code:LF.ERR.OK,reward_clover:reward,reward_item_id:rewardItem,reward_count:rewardCount,achieve_id:achieve};} return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"task-not-found"}; };
 
     rules.snapshot.role = function (work) {
         var role = work.role;
@@ -5488,15 +5488,19 @@
     rules.visit = rules.visit || {};
     rules.visit.open = function(work, params, effects) { var v=activities.ensure(work).visit;if(v.visitor && v.visitor.status !== "closed" && v.visitor.status !== "expired") return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"visitor-exists"};var now=clock.now(), visitorId=util.toInt(params&& (params.id||params.visitor_id),1);v.visitor_id=visitorId;v.visitor={id:visitorId,visitor_id:util.toInt(params&&params.visitor_id,0),name:String((params&&params.name)||""),arrived_at:now,expires_at:util.toInt(params&&params.expire_at,now+86400),status:"open",carpet_id:util.toInt(params&&params.carpet_id,0),served:false};rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK,visitor:util.clone(v.visitor)}; };
     rules.visit.setExpire = function(work, params, effects) { var v=activities.ensure(work).visit;if(!v.visitor)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"visitor-none"};var at=util.toInt(params&& (params.time||params.expire_at),0);if(at<=clock.now())return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:"expire-time"};v.visitor.expires_at=at;rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
+    rules.visit.snapshot = function(work) { var v=activities.ensure(work).visit, visitor=util.clone(v.visitor||null); if(visitor&&util.toInt(visitor.expires_at,0)>0&&util.toInt(visitor.expires_at,0)<=clock.now()&&visitor.status==='open') visitor.status='expired'; return {visitor:visitor,acquire:util.clone(v.acquire||[])}; };
     rules.story = rules.story || {};
     rules.story.read = function(work, params, effects) { var v=activities.ensure(work).story;var id=params&& (params.id||params.story_id);v.read_ids=Array.isArray(v.read_ids)?v.read_ids:[];if(id!==undefined&&v.read_ids.indexOf(id)<0)v.read_ids.push(id);v.story_id=id;v.new_story_id=0;rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
     rules.story.sendGift = function(work, params, effects) { var v=activities.ensure(work).story;var id=util.toInt(params&& (params.item_id||params.gift_id),-1);if(id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:"gift"};var take=rules.items.consume(work,id,1,effects);if(!take.ok)return take;v.gifts=Array.isArray(v.gifts)?v.gifts:[];v.gifts.push({story_id:params.story_id||params.id,item_id:id,at:clock.now()});rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK}; };
+    rules.story.snapshot = function(work) { var v=activities.ensure(work).story; return {stories:util.clone(v.stories||[]),new_story_id:util.toInt(v.new_story_id,0),story_id:v.story_id}; };
+    rules.story.feedback = function(work, params, effects) { var v=activities.ensure(work).story; v.feedback=Array.isArray(v.feedback)?v.feedback:[]; v.feedback.push(util.clone(params||{})); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK}; };
     /* C07 ??????????????????????????? */
     rules.cooking = rules.cooking || {};
     rules.cooking.ensure = function(work) { var v=activities.ensure(work).cooking; if(!util.isObject(v)) v=activities.ensure(work).cooking={}; if(!Array.isArray(v.task_list))v.task_list=[]; return v; };
     rules.cooking.start = function(work,params,effects) { params=util.isObject(params)?params:{}; var v=rules.cooking.ensure(work); if(v.process&&(v.process.state==='running'||v.process.state==='ready'))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-running'}; var output=util.toInt(params.output_id||params.item_id,-1), count=Math.max(1,util.toInt(params.output_count||params.count,1)); if(output<0||!rules.itemInfo(output))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-output'}; var inputs=Array.isArray(params.inputs)?params.inputs:[]; for(var i=0;i<inputs.length;i++){var id=util.toInt(inputs[i].item_id||inputs[i].id,-1),n=Math.max(1,util.toInt(inputs[i].count||inputs[i].num,1));if(id<0||!rules.itemInfo(id)||rules.items.count(work,id)<n)return {ok:false,code:LF.ERR.NO_ITEM,reason:'cooking-material:'+id};} for(var j=0;j<inputs.length;j++){var cid=util.toInt(inputs[j].item_id||inputs[j].id,-1);var take=rules.items.consume(work,cid,Math.max(1,util.toInt(inputs[j].count||inputs[j].num,1)),effects);if(!take.ok)return take;} var now=clock.now(),finish=now+Math.max(1,util.toInt(params.duration,1800));v.process={state:'running',output_id:output,output_count:count,started_at:now,finish_at:finish,inputs:util.clone(inputs)};v.select=util.toInt(params.theme||params.select,v.select||0);rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,finish_at:finish}; };
     rules.cooking.finish = function(work,effects,now){var v=rules.cooking.ensure(work),p=v.process;if(!p||p.state!=='running'||util.toInt(p.finish_at,0)>now)return {ok:true,skipped:true};p.state='ready';rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK};};
     rules.cooking.complete = function(work,effects){var v=rules.cooking.ensure(work),p=v.process;if(!p||p.state!=='ready'||p.finish_at>clock.now())return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-not-ready'};var add=rules.items.add(work,p.output_id,p.output_count,effects);if(!add.ok)return add;v.process=null;v.complete=true;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,item_list:[{item_id:p.output_id,count:p.output_count}]};};
+    rules.cooking.snapshot = function(work) { var v=rules.cooking.ensure(work); return {month:util.toInt(v.month,0),month_pro:util.toInt(v.month_pro,0),week:util.toInt(v.week,0),complete:!!v.complete,select:util.toInt(v.select,0),refresh_time:util.toInt(v.refresh_time,0),task_list:util.clone(v.task_list),process:util.clone(v.process||null)}; };
     /* C08 ??????????????????? */
     rules.capsule = rules.capsule || {};
     rules.capsule.ensure = function(work){var v=activities.ensure(work).capsule;if(!Array.isArray(v.reward_list))v.reward_list=[];if(!Array.isArray(v.task_list))v.task_list=[];v.coin=Math.max(0,util.toInt(v.coin,0));return v;};
@@ -5590,8 +5594,10 @@
     var encyclopedia = rules.encyclopedia = {};
     encyclopedia.ensure = function (work) { var value=activities.ensure(work).encyclopedia; if(!util.isObject(value)||Array.isArray(value))value=activities.ensure(work).encyclopedia={}; if(!Array.isArray(value.unlock_list))value.unlock_list=[]; if(!Array.isArray(value.unlock_desc))value.unlock_desc=[]; if(!Array.isArray(value.show_sub))value.show_sub=[]; return value; };
     encyclopedia.unlock = function (work, params, effects) { params=util.isObject(params)?params:{}; var id=util.toInt(params.id!==undefined?params.id:params.item_id,-1), value=encyclopedia.ensure(work); if(id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'ency-id'}; if(value.unlock_list.indexOf(id)<0)value.unlock_list.push(id); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,id:id}; };
+    encyclopedia.setShowSub = function (work, params, effects) { params=util.isObject(params)?params:{}; var value=encyclopedia.ensure(work), list=Array.isArray(params.show_sub)?params.show_sub:(Array.isArray(params.list)?params.list:[]); value.show_sub=util.clone(list); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,show_sub:util.clone(value.show_sub)}; };
     encyclopedia.snapshot = function (work) { var value=encyclopedia.ensure(work); if(!value.unlock_list.length&&work.items&&util.isObject(work.items.house))Object.keys(work.items.house).forEach(function(id){if(util.toInt(work.items.house[id],0)>0)value.unlock_list.push(util.toInt(id,0));}); return {unlock_list:util.clone(value.unlock_list),unlock_desc:util.clone(value.unlock_desc),show_sub:util.clone(value.show_sub)}; };
     encyclopedia.travelSnapshot = function (work) { var value=activities.ensure(work).encytravel; if(!util.isObject(value)||Array.isArray(value))value=activities.ensure(work).encytravel={unlock_list:[],unlock_desc:[],show_sub:[]}; if(!Array.isArray(value.unlock_list))value.unlock_list=[]; var album=rules.album&&rules.album.ensure?rules.album.ensure(work):{pictures:[]}; album.pictures.forEach(function(p){var id=p&& (p.pic_id!==undefined?p.pic_id:p.id); if(value.unlock_list.indexOf(id)<0)value.unlock_list.push(id);}); return {unlock_list:util.clone(value.unlock_list),unlock_desc:util.clone(value.unlock_desc||[]),show_sub:util.clone(value.show_sub||[])}; };
+    encyclopedia.setTravelShowSub = function (work, params, effects) { params=util.isObject(params)?params:{}; var all=activities.ensure(work), value=all.encytravel; if(!util.isObject(value)||Array.isArray(value)) value=all.encytravel={unlock_list:[],unlock_desc:[],show_sub:[]}; value.show_sub=util.clone(Array.isArray(params.show_sub)?params.show_sub:(Array.isArray(params.list)?params.list:[])); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,show_sub:util.clone(value.show_sub)}; };
     var museumday = rules.museumday = {};
     museumday.ensure = function(work){var v=activities.ensure(work).museumday;if(!util.isObject(v)||Array.isArray(v))v=activities.ensure(work).museumday={};v.end_time=Math.max(0,util.toInt(v.end_time,0));v.compass=Math.max(0,util.toInt(v.compass,0));v.inspire_num=Math.max(0,util.toInt(v.inspire_num,0));v.next=Math.max(0,util.toInt(v.next,0));v.left_num=Math.max(0,util.toInt(v.left_num,0));['museum_list','items','get_items','log_list','path'].forEach(function(k){if(!Array.isArray(v[k]))v[k]=[];});return v;};
     museumday.snapshot=function(work){var v=museumday.ensure(work);if(v.end_time&&v.end_time<clock.now())v.end_time=0;return util.clone(v);};
@@ -5601,6 +5607,9 @@
     museumday.inspire=function(work,params,effects){var v=museumday.ensure(work);if(v.inspire_num<1)return {ok:false,code:LF.ERR.NO_RESOURCE,reason:'inspire'};v.inspire_num--;v.next=(Math.abs((clock.now()+v.path.length)%4)+1);v.path.push(v.next);rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,next:v.next,inspire:v.inspire_num};};
     museumday.getItems=function(work,effects){var v=museumday.ensure(work),received=[];for(var i=0;i<v.items.length;i++){var row=v.items[i],id=util.toInt(row&&row.item_id,-1),num=Math.max(1,util.toInt(row&&row.num,1));if(id>=0&&rules.itemInfo(id)){var add=rules.items.add(work,id,num,effects);if(!add.ok)return add;received.push({item_id:id,num:num});}}v.get_items=v.get_items.concat(received);v.items=[];rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,get_items:util.clone(v.get_items)};};
     museumday.refresh=function(work,params,effects){var v=museumday.ensure(work);if(v.left_num<=0)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'refresh-limit'};v.left_num--;v.next=0;v.path=[];rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,left_num:v.left_num};};
+    rules.museum = rules.museum || {};
+    rules.museum.ensure = function(work) { var v=activities.ensure(work).museum; if(!util.isObject(v)||Array.isArray(v)) v=activities.ensure(work).museum={}; if(!Array.isArray(v.museum_list))v.museum_list=[]; return v; };
+    rules.museum.snapshot = function(work) { var v=rules.museum.ensure(work), d=rules.museumday.ensure(work); var list=v.museum_list.length?v.museum_list:d.museum_list; return {museum_list:util.clone(list)}; };
     var partycake = rules.partycake = {};
     partycake.ensure=function(work){var v=activities.ensure(work).partycake;if(!util.isObject(v)||Array.isArray(v))v=activities.ensure(work).partycake={};v.end_time=Math.max(0,util.toInt(v.end_time,0));v.cream=Math.max(0,util.toInt(v.cream,0));v.sugar=Math.max(0,util.toInt(v.sugar,0));v.pre_cream=Math.max(0,util.toInt(v.pre_cream,0));v.pre_sugar=Math.max(0,util.toInt(v.pre_sugar,0));v.cur_state=Math.max(0,util.toInt(v.cur_state,0));v.part=Math.max(0,util.toInt(v.part,0));['layers','task_list','share_get'].forEach(function(k){if(!Array.isArray(v[k]))v[k]=[];});return v;};
     partycake.snapshot=function(work){return util.clone(partycake.ensure(work));};
@@ -5775,6 +5784,73 @@
         else if (row) row.claimed = true;
         rules.effect(effects, "activities");
         return {ok:true, code:LF.ERR.OK, day:day, reward:reward};
+    };
+
+    /* D02 local recharge entitlement container. Payment providers are not
+     * available offline, but imported water/change/field/sack state remains
+     * usable and explicit local exchange requests are persisted atomically. */
+    var recharge = rules.recharge = {};
+    recharge.ensure = function (work) {
+        var v = activities.ensure(work).recharge;
+        if (!util.isObject(v) || Array.isArray(v)) v = activities.ensure(work).recharge = {};
+        v.water = Math.max(0, util.toInt(v.water, 0));
+        v.change = Math.max(0, util.toInt(v.change, 0));
+        if (!Array.isArray(v.field)) v.field = [];
+        if (!Array.isArray(v.sack)) v.sack = [];
+        return v;
+    };
+    recharge.gift = function (work) {
+        var v = activities.ensure(work).recharge_gift;
+        if (!util.isObject(v) || Array.isArray(v)) v = activities.ensure(work).recharge_gift = {};
+        if (!Array.isArray(v.gift)) v.gift = [];
+        return v;
+    };
+    recharge.snapshot = function (work) { return util.clone(recharge.ensure(work)); };
+    recharge.giftSnapshot = function (work) { return {gift:util.clone(recharge.gift(work).gift)}; };
+    recharge.updateNum = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var v = recharge.ensure(work);
+        ['water','change'].forEach(function (key) { if (params[key] !== undefined) v[key] = Math.max(0, util.toInt(params[key], v[key])); });
+        if (Array.isArray(params.field)) v.field = util.clone(params.field);
+        if (Array.isArray(params.sack)) v.sack = util.clone(params.sack);
+        rules.effect(effects, 'activities');
+        return {ok:true, code:LF.ERR.OK, data:util.clone(v)};
+    };
+    recharge.change = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var v = recharge.ensure(work), amount = Math.max(1, util.toInt(params.amount !== undefined ? params.amount : params.num, 1));
+        var cost = Math.max(0, util.toInt(params.cost, 0));
+        if (cost) { var paid = rules.wallet.consume(work, {clover:cost}, effects); if (!paid.ok) return paid; }
+        v.change += amount; rules.effect(effects, 'activities');
+        return {ok:true, code:LF.ERR.OK, change:v.change, amount:amount};
+    };
+    recharge.water = function (work, params, effects) {
+        params = util.isObject(params) ? params : {};
+        var v = recharge.ensure(work), amount = Math.max(1, util.toInt(params.amount !== undefined ? params.amount : params.num, 1));
+        var cost = Math.max(0, util.toInt(params.cost !== undefined ? params.cost : params.change, 0));
+        if (cost > v.change) return {ok:false, code:LF.ERR.NO_RESOURCE, reason:'recharge-change'};
+        v.change -= cost; v.water += amount; rules.effect(effects, 'activities');
+        return {ok:true, code:LF.ERR.OK, water:v.water, amount:amount};
+    };
+    recharge.readyPay = function (work, params, effects) { var v=recharge.ensure(work); v.pending_pay=util.clone(params||{}); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK,pending:util.clone(v.pending_pay)}; };
+    recharge.cancelPay = function (work, params, effects) { var v=recharge.ensure(work); v.pending_pay=null; rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK}; };
+
+    /* Tutorial completion is persisted as individual steps so imported saves
+     * can resume safely; the shipped new-save template still starts complete. */
+    var tutorial = rules.tutorial = {};
+    tutorial.ensure = function (work) {
+        if (!util.isObject(work.settings)) work.settings = {};
+        if (!util.isObject(work.settings.client)) work.settings.client = {};
+        var c = work.settings.client;
+        if (!Array.isArray(c.tutorial_completed)) c.tutorial_completed = [];
+        return c;
+    };
+    tutorial.step = function (work, name, effects) {
+        var c=tutorial.ensure(work), key=String(name||'');
+        if (c.tutorial_completed.indexOf(key)<0) c.tutorial_completed.push(key);
+        c.guideStep='Complete';
+        rules.effect(effects,'role');
+        return {ok:true,code:LF.ERR.OK,step:key,guideStep:c.guideStep};
     };
 
 /* ---- 65_travel.js ---- */
@@ -6047,8 +6123,14 @@
     mail.read = function (work,id,effects) { var m=mail.ensure(work); for(var i=0;i<m.mails.length;i++){if(util.toInt(m.mails[i].id,-1)===util.toInt(id,-1)){m.mails[i].read=true; rules.effect(effects,'mail'); return {ok:true,code:LF.ERR.OK};}} return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'mail-not-found'}; };
     mail.open = function (work,id,effects) { var m=mail.ensure(work); for(var i=0;i<m.mails.length;i++){var row=m.mails[i]; if(util.toInt(row.id,-1)!==util.toInt(id,-1))continue; if(row.opened)return {ok:true,code:LF.ERR.OK}; var grant=rules.wallet.grant(work,row.resource||{},effects); if(!grant.ok)return grant; util.toArray(row.items).forEach(function(item){rules.items.add(work,item.item_id,util.toInt(item.count,1),effects);}); row.opened=true; row.read=true; rules.effect(effects,'mail'); rules.effect(effects,'container'); return {ok:true,code:LF.ERR.OK}; } return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'mail-not-found'}; };
     mail.snapshot = function (work) { return mail.list(work,1,util.toInt(mail.ensure(work).mails.length,0)||1); };
-    mail.expire = function (work, effects) { mail.ensure(work); return {ok:true,code:LF.ERR.OK,removed:0}; };
-    mail.giftToBag = function (work,id,effects) { var m=mail.ensure(work), key=util.toInt(id,-1); for(var i=0;i<m.specialtys.length;i++){if(util.toInt(m.specialtys[i].item_id,-1)===key){var add=rules.items.add(work,key,1,effects);if(!add.ok)return add;m.specialtys.splice(i,1);rules.effect(effects,'mail');rules.effect(effects,'container');return {ok:true,code:LF.ERR.OK};}} return {ok:false,code:LF.ERR.NO_ITEM,reason:'gift-item-not-found'}; };
+    mail.expire = function (work, effects) { var m=mail.ensure(work), now=clock.now(), removed=0; for(var i=0;i<m.mails.length;i++){var row=m.mails[i], at=util.toInt(row.expires_at!==undefined?row.expires_at:(row.expire_at!==undefined?row.expire_at:0),0); if(at>0&&at<=now&&!row.opened&&!row.expired){row.expired=true;row.items=[];row.resource={};removed++;}} if(removed)rules.effect(effects,'mail'); return {ok:true,code:LF.ERR.OK,removed:removed}; };
+    mail.giftToBag = function (work,id,effects) { var m=mail.ensure(work), key=util.toInt(id,-1); for(var i=0;i<m.specialtys.length;i++){var row=m.specialtys[i];if(util.toInt(row.item_id,-1)===key){var add=rules.items.add(work,key,1,effects);if(!add.ok)return add;var left=Math.max(0,util.toInt(row.count,1)-1);if(left)row.count=left;else m.specialtys.splice(i,1);rules.effect(effects,'mail');rules.effect(effects,'container');return {ok:true,code:LF.ERR.OK};}} return {ok:false,code:LF.ERR.NO_ITEM,reason:'gift-item-not-found'}; };
+    mail.bagToGift = function (work, id, count, effects) {
+        var m=mail.ensure(work), key=util.toInt(id,-1), amount=Math.max(1,util.toInt(count,1));
+        var taken=rules.items.consume(work,key,amount,effects); if(!taken.ok)return taken;
+        m.specialtys.push({item_id:key,count:amount,source:'bag'}); rules.effect(effects,'mail'); rules.effect(effects,'container');
+        return {ok:true,code:LF.ERR.OK,item_id:key,count:amount};
+    };
     mail.giftDeletePicture = function (work,id,effects) { var m=mail.ensure(work), key=String(id); for(var i=0;i<m.pictures.length;i++){if(String(m.pictures[i].id)===key){m.pictures.splice(i,1);rules.effect(effects,'mail');return {ok:true,code:LF.ERR.OK};}} return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'gift-picture-not-found'}; };
 
 /* ---- 70_server.js ---- */
@@ -6429,6 +6511,12 @@
             return {code: LF.ERR.OK};
         }
     };
+    server.handlers.hall_hello = { read: function (work) { return {code:LF.ERR.OK, timestamp:clock.now(), account:String(work.header.saveId)}; } };
+    server.handlers.hall_reconnect = { read: function (work, params) { return {code:LF.ERR.OK, account:String((params&&params.account)||work.header.saveId), token:"local"}; } };
+    server.handlers.tutorial_step_open_door = {idempotent:true,apply:function(work,params,effects){return rules.tutorial.step(work,'open_door',effects);}};
+    server.handlers.tutorial_step_open_door_q = {idempotent:true,apply:function(work,params,effects){return rules.tutorial.step(work,'open_door_q',effects);}};
+    server.handlers.tutorial_step_ask_award = {idempotent:true,apply:function(work,params,effects){return rules.tutorial.step(work,'ask_award',effects);}};
+    server.handlers.tutorial_step_ask_award_q = {idempotent:true,apply:function(work,params,effects){return rules.tutorial.step(work,'ask_award_q',effects);}};
 
     server.handlers.client_set_client = {
         apply: function (work, params, effects) {
@@ -6529,6 +6617,7 @@
             return result;
         }
     };
+    server.handlers.clover_notice_get = { read: function (work) { return {clover:util.toInt(work.wallet.clover,0), ticket:util.toInt(work.wallet.ticket,0)}; } };
 
     server.handlers.clover_harvest_resend = {
         idempotent: true,
@@ -6904,6 +6993,9 @@
     server.handlers.task_load_list = { read: function (work) { return rules.tasks.snapshot(work); } };
     server.handlers.task_update = { apply: function (work, params, effects) { return rules.tasks.update(work, params.id || params.task_id, params.num || params.amount || 1, effects); } };
     server.handlers.task_reward = { apply: function (work, params, effects) { return rules.tasks.claim(work, params.id || params.task_id, effects); } };
+    server.handlers.task_client_pro = { idempotent:true, apply:function(work, params, effects) { var p=params&&params.param!==undefined?params.param:params; if(typeof p==='object'&&p!==null) return rules.tasks.update(work,p.id||p.task_id||p.type,p.num||p.amount||1,effects); return rules.tasks.update(work,p,1,effects); } };
+    server.handlers.task_get_reward = { idempotent:true, apply:function(work, params, effects) { return rules.tasks.claim(work, params && (params.id||params.task_id), effects); } };
+    server.handlers.task_get_list_reward = { idempotent:true, apply:function(work, params, effects) { var raw=Array.isArray(params&&params.id)?params.id:[params&&params.id], ids=[]; for(var q=0;q<raw.length;q++){var encoded=util.toInt(raw[q],-1), found=null; for(var j=0;j<work.tasks.list.length;j++){var t=work.tasks.list[j];if(util.toInt(t.id,-2)===encoded){found=t;break;}var listId=util.toInt(t.list_id!==undefined?t.list_id:t.listId,-1), tier=util.toInt(t.tier!==undefined?t.tier:t.level,-1);if(listId>=0&&tier>=0&&encoded===listId*100+tier+1){found=t;break;}} ids.push(found?found.id:encoded);} var out=[]; for(var i=0;i<ids.length;i++){var r=rules.tasks.claim(work,ids[i],effects); if(!r.ok)return r; out.push(r);} return {ok:true,code:LF.ERR.OK,rewards:out}; } };
     server.handlers.mail_load = { read: function (work) { return rules.mail.snapshot(work).mails; } };
     server.handlers.mail_load_mails = { read: function (work, params) { return rules.mail.list(work, params.start, params.count); } };
     server.handlers.album_load_all = { read: function (work) { return {id_list: util.clone(rules.album.ensure(work).pictures).map(function(p){ return {id:p.id, pic_id:p.pic_id}; })}; } };
@@ -6926,6 +7018,7 @@
     server.handlers.guest_takeout_bag = { apply: function (work, params, effects) { var d=work.guests&&work.guests.drawing;if(!d||d.locked)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'guest-bag-locked'};var pos=util.toInt(params.pos,0)-1;if(pos<0||pos>=4||util.toInt(d.bag[pos],-1)<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'guest-bag'};var id=d.bag[pos],add=rules.items.add(work,id,1,effects);if(!add.ok)return add;d.bag[pos]=-1;rules.effect(effects,'guests');return {ok:true,code:LF.ERR.OK}; } };
     server.handlers.travel_load_note = { read: function (work) { return rules.travel.noteSnapshot(work); } };
     server.handlers.travel_load_gift = { read: function (work) { return rules.travel.giftSnapshot(work); } };
+    server.handlers.travel_bag_to_gift = { idempotent:true, apply:function(work,params,effects){ return rules.mail.bagToGift(work, params&&params.item_id, params&&params.count, effects); } };
     server.placeholder("visit_load", {visitor: null, acquire: []});
     server.placeholder("story_load", {stories: [], new_story_id: 0});
     server.placeholder("misc_moment_load", {list: []});
@@ -6937,7 +7030,9 @@
     server.placeholder("museum_load", {museum_list: []});
     server.handlers.encyclopedia_load = { read: function (work) { return rules.encyclopedia.snapshot(work); } };
     server.handlers.encyclopedia_unlock = { idempotent:true, apply:function(work,params,effects){ return rules.encyclopedia.unlock(work,params,effects); } };
+    server.handlers.encyclopedia_set_show_sub = {idempotent:true,apply:function(work,params,effects){return rules.encyclopedia.setShowSub(work,params,effects);}};
     server.handlers.encytravel_load = { read: function (work) { return rules.encyclopedia.travelSnapshot(work); } };
+    server.handlers.encytravel_set_show_sub = {idempotent:true,apply:function(work,params,effects){return rules.encyclopedia.setTravelShowSub(work,params,effects);}};
     server.handlers.calendar_load = { read: function (work) { return rules.calendar.snapshot(work); } };
     server.handlers.calendar_load_note = { read: function (work) { return rules.calendar.noteSnapshot(work); } };
     server.handlers.calendar_task_update = { apply: function (work, params, effects) {
@@ -7054,6 +7149,7 @@
     server.handlers.museumday_inspire = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.inspire(work,params,effects); }};
     server.handlers.museumday_get_items = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.getItems(work,effects); }};
     server.handlers.museumday_refresh = {idempotent:true,apply:function(work,params,effects){ return rules.museumday.refresh(work,params,effects); }};
+    server.handlers.museum_load = {read:function(work){return rules.museum.snapshot(work);}};
     server.handlers.partycake_load = {read:function(work){ return rules.partycake.snapshot(work); }};
     server.handlers.partycake_load_mate = {read:function(work){ var v=rules.partycake.ensure(work); return {pre_cream:v.pre_cream,pre_sugar:v.pre_sugar}; }};
     server.handlers.partycake_load_task = {read:function(work){ return {task_list:util.clone(rules.partycake.ensure(work).task_list)}; }};
@@ -7067,6 +7163,8 @@
     server.handlers.partycake_reward_light = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.rewardLight(work,effects); }};
     server.handlers.partycake_reward_share = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.rewardShare(work,params,effects); }};
     server.handlers.greetcard_load = {read:function(work){ return rules.greetcard.snapshot(work); }};
+    server.handlers.greetcard_load_count = {read:function(work){ return {count:rules.greetcard.ensure(work).send_list.length}; }};
+    server.handlers.greetcard_get_task_item = {idempotent:true,apply:function(work,params,effects){var v=rules.greetcard.ensure(work);if(params&&params.list) v.task_item=util.clone(params.list);rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,list:util.clone(v.task_item)};}};
     server.handlers.greetcard_buy = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.buy(work,params,effects); }};
     server.handlers.greetcard_change_bg = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.changeBg(work,params,effects); }};
     server.handlers.greetcard_change_bless = {idempotent:true,apply:function(work,params,effects){ return rules.greetcard.changeBless(work,params,effects); }};
@@ -7083,7 +7181,7 @@
     server.handlers.lottery_confirm_reward = {idempotent:true,apply:function(work,params,effects){ return rules.lottery.confirm(work,params,effects); }};
     server.handlers.springcard_load = {read:function(work){ return rules.springcard.snapshot(work); }};
     server.handlers.springcard_load_count = {read:function(work){ return {count:rules.springcard.ensure(work).send_list.length}; }};
-    server.handlers.springcard_load_task_item = {read:function(work){ return {list:util.clone(rules.springcard.ensure(work).task_item)}; }};
+    server.handlers.springcard_load_task_item = {read:function(work){ var v=rules.springcard.ensure(work); return {task_harvest:util.toInt(v.task_harvest,0),share_num:util.toInt(v.share_num,0),list:util.clone(v.task_item)}; }};
     server.handlers.springcard_buy = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.buy(work,params,effects); }};
     server.handlers.springcard_change_bg = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.changeBg(work,params,effects); }};
     server.handlers.springcard_change_bless = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.changeBless(work,params,effects); }};
@@ -7092,18 +7190,38 @@
     server.handlers.springcard_get_reward = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.getReward(work,params,effects); }};
     server.handlers.springcard_get_task_reward = {idempotent:true,apply:function(work,params,effects){ return rules.springcard.taskReward(work,effects); }};
 
+    /* D02 recharge/entitlement protocols: preserve imported state and expose
+     * deterministic local exchanges when the caller supplies a cost. */
+    server.handlers.recharge_load = {read:function(work){ return rules.recharge.snapshot(work); }};
+    server.handlers.recharge_load_gift = {read:function(work){ return rules.recharge.giftSnapshot(work); }};
+    server.handlers.recharge_update_num = {idempotent:true,apply:function(work,params,effects){ return rules.recharge.updateNum(work,params,effects); }};
+    server.handlers.recharge_change = {idempotent:true,apply:function(work,params,effects){ return rules.recharge.change(work,params,effects); }};
+    server.handlers.recharge_water = {idempotent:true,apply:function(work,params,effects){ return rules.recharge.water(work,params,effects); }};
+    server.handlers.recharge_ready_pay = {idempotent:true,apply:function(work,params,effects){ return rules.recharge.readyPay(work,params,effects); }};
+    server.handlers.recharge_cancel_pay = {idempotent:true,apply:function(work,params,effects){ return rules.recharge.cancelPay(work,params,effects); }};
+
     server.handlers.visit_open = {idempotent:true,apply:function(work,params,effects){return rules.visit.open(work,params,effects);}};
+    server.handlers.visit_load = {read:function(work){return rules.visit.snapshot(work);}};
     server.handlers.visit_set_expire_time = {idempotent:true,apply:function(work,params,effects){return rules.visit.setExpire(work,params,effects);}};
     server.handlers.visit_set_carpet = {idempotent:true,apply:function(work,params,effects){var v=work.activities&&work.activities.visit&&work.activities.visit.visitor;if(!v)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"visitor-none"};v.carpet_id=util.toInt(params.id,-1);rules.effect(effects,"activities");return {ok:true,code:LF.ERR.OK};}};
     server.handlers.story_read_new_story = {idempotent:true,apply:function(work,params,effects){return rules.story.read(work,params,effects);}};
     server.handlers.story_send_gift = {idempotent:true,apply:function(work,params,effects){return rules.story.sendGift(work,params.gift||params,effects);}};
+    server.handlers.story_load = {read:function(work){return rules.story.snapshot(work);}};
+    server.handlers.story_feedback_gift = {idempotent:true,apply:function(work,params,effects){return rules.story.feedback(work,params,effects);}};
 
     server.handlers.cooking_start_cooking = {idempotent:true,apply:function(work,params,effects){return rules.cooking.start(work,params,effects);}};
+    server.handlers.cooking_load_cooking = {read:function(work){return rules.cooking.snapshot(work);}};
+    server.handlers.cooking_refresh_task = {idempotent:true,apply:function(work,params,effects){var v=rules.cooking.ensure(work);v.task_list=[];v.refresh_time=clock.now()+86400;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,task_list:[]};}};
+    server.handlers.cooking_task_update = {idempotent:true,apply:function(work,params,effects){var v=rules.cooking.ensure(work);v.task_list=Array.isArray(params&&params.task_list)?util.clone(params.task_list):v.task_list;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,task_list:util.clone(v.task_list)};}};
+    server.handlers.cooking_look_ad = {read:function(){return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'offline-ad-unavailable'};}};
     server.handlers.cooking_complete_task = {idempotent:true,apply:function(work,params,effects){return rules.cooking.complete(work,effects);}};
     server.handlers.cooking_select = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"cooking",{select:util.toInt(params.index,0)},effects);}};
 
     server.handlers.capsule_get_coin = {idempotent:true,apply:function(work,params,effects){return rules.capsule.getCoin(work,params,effects);}};
     server.handlers.capsule_twist = {idempotent:true,apply:function(work,params,effects){return rules.capsule.twist(work,params,effects);}};
+    server.handlers.capsule_load = {read:function(work){var v=rules.capsule.ensure(work);return {end_time:util.toInt(v.end_time,0),coin:v.coin,pre_coin:util.toInt(v.pre_coin,0),reward_list:util.clone(v.reward_list),task_list:util.clone(v.task_list),patch_num:util.toInt(v.patch_num,0)};}};
+    server.handlers.capsule_load_coin = {read:function(work){var v=rules.capsule.ensure(work);return {coin:v.coin,pre_coin:util.toInt(v.pre_coin,0)};}};
+    server.handlers.capsule_load_task = {read:function(work){return {task_list:util.clone(rules.capsule.ensure(work).task_list)};}};
     server.handlers.capsule_patch = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"capsule",params||{},effects);}};
     server.handlers.capsule_fast_task = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"capsule",{fast_task:params||{}},effects);}};
 
@@ -7167,6 +7285,14 @@
         var gifts=util.toArray(work.items.selectGift); if(!gifts.length)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:"gift-empty"};
         var granted=[]; for(var i=0;i<gifts.length;i++){var g=gifts[i]||{}, id=util.toInt(g.item_id||g.id,-1), count=Math.max(1,util.toInt(g.count||g.num,1)); if(id<0)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:"gift-item"}; var add=rules.items.add(work,id,count,effects); if(!add.ok)return add; granted.push({item_id:id,count:count});}
         work.items.selectGift=[]; rules.effect(effects,"items"); return {ok:true,code:LF.ERR.OK,items:granted};
+    } };
+    server.handlers.item_select_gift = { idempotent:true, apply:function(work,params,effects) {
+        var list=util.toArray(work.items.selectGift); if(!list.length)return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'gift-selection-empty'};
+        var gift=list[0]||{}, choices=util.toArray(gift.items), indexes=Array.isArray(params&&params.index_list)?params.index_list:[];
+        if(!indexes.length)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'gift-selection-index'};
+        var granted=[];
+        for(var i=0;i<indexes.length;i++){var idx=util.toInt(indexes[i],-1), item=choices[idx];if(idx<0||!item)return {ok:false,code:LF.ERR.ILLEGAL_PARAM,reason:'gift-selection-index'};var id=util.toInt(item.item_id!==undefined?item.item_id:item.id,-1), count=Math.max(1,util.toInt(item.count||item.num,1));var add=rules.items.add(work,id,count,effects);if(!add.ok)return add;granted.push({item_id:id,count:count});}
+        var num=Math.max(1,util.toInt(gift.num,1))-1;if(num>0)gift.num=num;else list.shift();rules.effect(effects,'items');return {ok:true,code:LF.ERR.OK,items:granted};
     } };
 
     /** 主动通知堆肥箱变化（补偿客户端回调派发的事件类型错误）。 */
