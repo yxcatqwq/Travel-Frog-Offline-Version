@@ -519,6 +519,15 @@ test('mail remains available during offline scheduler catch-up', () => {
   assert.equal(lf.state.data.mail.mails.length,2);
 });
 
+test('scheduler expires unopened mail using the expires_at field', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.mail.mails = [{id: 3, expires_at: lf.clock.now() - 1, opened: false, items: [{item_id: 1001, count: 1}]}];
+  const result = r.commit(w => ({ok:true, changed:lf.scheduler.catchUp(w, {})}));
+  assert.equal(result.changed.ran.includes('mail.expire'), true);
+  assert.equal(lf.state.data.mail.mails[0].expired, true);
+  assert.equal(lf.state.data.mail.mails[0].items.length, 0);
+});
+
 test('guest state survives validation and guest_load returns local visitor', () => {
   const r=runtime(); const {lf}=r; lf.state.data.guests.current={id:9,name:'local-guest'};
   const validated=lf.state.validate(lf.state.data).data; assert.equal(validated.guests.current.id,9);
@@ -942,4 +951,22 @@ test('greeting card feedback gift grants incoming item only once', () => {
   assert.equal(r.commit(w => lf.server.handlers.greetcard_feedback_gift.apply(w, {id: 1}, {})).ok, true);
   assert.equal(lf.state.data.items.house[9001], before + 1);
   assert.equal(r.commit(w => lf.server.handlers.greetcard_feedback_gift.apply(w, {id: 1}, {})).ok, false);
+});
+
+test('cooking share is handled locally and survives reload', () => {
+  const r = runtime(); const {lf} = r;
+  const first = r.commit(w => lf.server.handlers.cooking_share.apply(w, {}, {}));
+  assert.equal(first.ok, true); assert.equal(first.share_count, 1);
+  r.reload(); assert.equal(lf.state.data.activities.cooking.share_count, 1);
+});
+
+test('calendar reward handlers select first pending entry when client omits parameters', () => {
+  const r = runtime(); const {lf} = r, effects={};
+  assert.equal(r.commit(w => lf.server.handlers.calendar_get_beginer_reward.apply(w, {}, effects)).ok, true);
+  lf.state.data.activities.calendar.lucky_days = [1001];
+  assert.equal(r.commit(w => lf.server.handlers.calendar_get_luck_reward.apply(w, {}, effects)).ok, true);
+  assert.equal(lf.state.data.activities.calendar.lucky_days[0], null);
+  lf.state.data.activities.calendar.st_days = [1002];
+  assert.equal(r.commit(w => lf.server.handlers.calendar_get_st_reward.apply(w, {}, effects)).ok, true);
+  assert.equal(lf.state.data.activities.calendar.st_days[0], null);
 });

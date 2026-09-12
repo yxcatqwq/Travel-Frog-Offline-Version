@@ -72,10 +72,11 @@
     rules.story.feedback = function(work, params, effects) { var v=activities.ensure(work).story; v.feedback=Array.isArray(v.feedback)?v.feedback:[]; v.feedback.push(util.clone(params||{})); rules.effect(effects,'activities'); return {ok:true,code:LF.ERR.OK}; };
     /* C07 ??????????????????????????? */
     rules.cooking = rules.cooking || {};
-    rules.cooking.ensure = function(work) { var v=activities.ensure(work).cooking; if(!util.isObject(v)) v=activities.ensure(work).cooking={}; if(!Array.isArray(v.task_list))v.task_list=[]; return v; };
+    rules.cooking.ensure = function(work) { var v=activities.ensure(work).cooking; if(!util.isObject(v)) v=activities.ensure(work).cooking={}; if(!Array.isArray(v.task_list))v.task_list=[]; v.share_count=Math.max(0,util.toInt(v.share_count,0)); return v; };
     rules.cooking.start = function(work,params,effects) { params=util.isObject(params)?params:{}; var v=rules.cooking.ensure(work); if(v.process&&(v.process.state==='running'||v.process.state==='ready'))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-running'}; var output=util.toInt(params.output_id||params.item_id,-1), count=Math.max(1,util.toInt(params.output_count||params.count,1)); if(output<0||!rules.itemInfo(output))return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-output'}; var inputs=Array.isArray(params.inputs)?params.inputs:[]; for(var i=0;i<inputs.length;i++){var id=util.toInt(inputs[i].item_id||inputs[i].id,-1),n=Math.max(1,util.toInt(inputs[i].count||inputs[i].num,1));if(id<0||!rules.itemInfo(id)||rules.items.count(work,id)<n)return {ok:false,code:LF.ERR.NO_ITEM,reason:'cooking-material:'+id};} for(var j=0;j<inputs.length;j++){var cid=util.toInt(inputs[j].item_id||inputs[j].id,-1);var take=rules.items.consume(work,cid,Math.max(1,util.toInt(inputs[j].count||inputs[j].num,1)),effects);if(!take.ok)return take;} var now=clock.now(),finish=now+Math.max(1,util.toInt(params.duration,1800));v.process={state:'running',output_id:output,output_count:count,started_at:now,finish_at:finish,inputs:util.clone(inputs)};v.select=util.toInt(params.theme||params.select,v.select||0);rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,finish_at:finish}; };
     rules.cooking.finish = function(work,effects,now){var v=rules.cooking.ensure(work),p=v.process;if(!p||p.state!=='running'||util.toInt(p.finish_at,0)>now)return {ok:true,skipped:true};p.state='ready';rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK};};
     rules.cooking.complete = function(work,effects){var v=rules.cooking.ensure(work),p=v.process;if(!p||p.state!=='ready'||p.finish_at>clock.now())return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'cooking-not-ready'};var add=rules.items.add(work,p.output_id,p.output_count,effects);if(!add.ok)return add;v.process=null;v.complete=true;rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,item_list:[{item_id:p.output_id,count:p.output_count}]};};
+    rules.cooking.share = function(work,effects){var v=rules.cooking.ensure(work);v.share_count++;v.last_share_at=clock.now();rules.effect(effects,'activities');return {ok:true,code:LF.ERR.OK,share_count:v.share_count};};
     rules.cooking.snapshot = function(work) { var v=rules.cooking.ensure(work); return {month:util.toInt(v.month,0),month_pro:util.toInt(v.month_pro,0),week:util.toInt(v.week,0),complete:!!v.complete,select:util.toInt(v.select,0),refresh_time:util.toInt(v.refresh_time,0),task_list:util.clone(v.task_list),process:util.clone(v.process||null)}; };
     /* C08 ??????????????????? */
     rules.capsule = rules.capsule || {};
@@ -347,19 +348,31 @@
     };
     calendar.claim = function (work, kind, params, effects) {
         params = util.isObject(params) ? params : {};
-        var value = calendar.ensure(work, effects), day = util.toInt(params.day, 0), claimKey = kind + ":" + (day || value.day_key);
-        if (value.claimed[claimKey]) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"already-claimed"};
-        var row = null, reward = null;
+        var value = calendar.ensure(work, effects), day = util.toInt(params.day, 0), row = null, rowIndex = -1, reward = null;
+        /* The original client omits the day for beginner/st/luck requests and
+         * selects the first red-dot entry locally.  Accept explicit day/index
+         * too, which is useful for imported saves and diagnostics. */
         if (kind === "beginner") {
-            if (day < 1 || day > 7) return {ok:false, code:LF.ERR.ILLEGAL_PARAM, reason:"beginner-day"};
-            row = config.get("CalendarData", "beginner");
-            row = Array.isArray(row) ? row[day - 1] : null;
+            if (day < 1) { for (var bi=0; bi<7; bi++) if (!value.new_flag[bi]) { day=bi+1; break; } }
+            if (day < 1 || day > 7) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"beginner-reward-unavailable"};
+            var beginner = config.get("CalendarData", "beginner");
+            row = Array.isArray(beginner) ? beginner[day - 1] : null;
             reward = row ? {item_id:util.toInt(row.item_id, -1), count:Math.max(1, util.toInt(row.num || row.count, 1))} : {clover:10};
         } else {
-            row = calendar.findReward(kind === "luck" ? value.lucky_days : value.st_days, day);
+            var list = kind === "luck" ? value.lucky_days : value.st_days;
+            if (day > 0) {
+                for (var ri=0; ri<list.length; ri++) if (list[ri] && util.isObject(list[ri]) && String(list[ri].day) === String(day)) { row=list[ri]; rowIndex=ri; break; }
+                if (!row && list[day-1] !== undefined && list[day-1] !== null) { row=list[day-1]; rowIndex=day-1; }
+            } else {
+                for (var li=0; li<list.length; li++) if (list[li] !== null && list[li] !== undefined && !(util.isObject(list[li]) && list[li].claimed)) { row=list[li]; rowIndex=li; day=li+1; break; }
+            }
             if (!row) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"calendar-reward-unavailable"};
-            reward = {item_id:util.toInt(row.item_id, -1), count:Math.max(1, util.toInt(row.count, 1))};
+            var rid = util.isObject(row) ? (row.item_id !== undefined ? row.item_id : row.id) : row;
+            var rnum = util.isObject(row) ? (row.count !== undefined ? row.count : row.num) : 1;
+            reward = {item_id:util.toInt(rid, -1), count:Math.max(1, util.toInt(rnum, 1))};
         }
+        var claimKey = kind + ":" + (day || value.day_key);
+        if (value.claimed[claimKey]) return {ok:false, code:LF.ERR.ILLEGAL_OP, reason:"already-claimed"};
         var granted;
         if (reward.clover) granted = rules.wallet.grant(work, {clover:reward.clover}, effects);
         else if (reward.item_id >= 0) granted = rules.items.add(work, reward.item_id, reward.count, effects);
@@ -367,7 +380,10 @@
         if (!granted.ok) return granted;
         value.claimed[claimKey] = true;
         if (kind === "beginner") value.new_flag[day - 1] = 1;
-        else if (row) row.claimed = true;
+        else if (rowIndex >= 0) {
+            if (util.isObject(row)) row.claimed = true;
+            else value[kind === "luck" ? "lucky_days" : "st_days"][rowIndex] = null;
+        }
         rules.effect(effects, "activities");
         return {ok:true, code:LF.ERR.OK, day:day, reward:reward};
     };

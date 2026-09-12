@@ -1094,6 +1094,7 @@
     server.handlers.cooking_look_ad = {read:function(){return {ok:false,code:LF.ERR.ILLEGAL_OP,reason:'offline-ad-unavailable'};}};
     server.handlers.cooking_complete_task = {idempotent:true,apply:function(work,params,effects){return rules.cooking.complete(work,effects);}};
     server.handlers.cooking_select = {idempotent:true,apply:function(work,params,effects){return LF.activities.merge(work,"cooking",{select:util.toInt(params.index,0)},effects);}};
+    server.handlers.cooking_share = {idempotent:true,apply:function(work,params,effects){return rules.cooking.share(work,effects);}};
 
     server.handlers.capsule_get_coin = {idempotent:true,apply:function(work,params,effects){return rules.capsule.getCoin(work,params,effects);}};
     server.handlers.capsule_twist = {idempotent:true,apply:function(work,params,effects){return rules.capsule.twist(work,params,effects);}};
