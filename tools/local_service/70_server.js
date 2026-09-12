@@ -1018,7 +1018,7 @@
     server.handlers.museum_load = {read:function(work){return rules.museum.snapshot(work);}};
     server.handlers.partycake_load = {read:function(work){ return rules.partycake.snapshot(work); }};
     server.handlers.partycake_load_mate = {read:function(work){ var v=rules.partycake.ensure(work); return {pre_cream:v.pre_cream,pre_sugar:v.pre_sugar}; }};
-    server.handlers.partycake_load_task = {read:function(work){ return {task_list:util.clone(rules.partycake.ensure(work).task_list)}; }};
+    server.handlers.partycake_load_task = {read:function(work){ var v=rules.partycake.ensure(work), task=v.task_list.length?v.task_list[0]:{id:1,progress:0,target:1,complete:false}; return {task:util.clone(task)}; }};
     server.handlers.partycake_load_qa = {read:function(work){ var v=rules.partycake.ensure(work); return {guest:v.guest||{},wrong:v.wrong||0,answer:v.answer||[],reward:v.reward||[]}; }};
     server.handlers.partycake_get_mate = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.getMate(work,effects); }};
     server.handlers.partycake_make = {idempotent:true,apply:function(work,params,effects){ return rules.partycake.make(work,params,effects); }};

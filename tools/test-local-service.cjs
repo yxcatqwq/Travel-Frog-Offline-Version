@@ -942,6 +942,8 @@ test('spring card share tags has local code lifecycle and task item alias', () =
   assert.equal(lf.state.data.activities.springcard.share_get, 1);
   assert.equal(lf.state.data.activities.springcard.items.some(x => x.item_id === 301), true);
   assert.equal(r.commit(w => lf.server.handlers.springcard_get_share_tags.apply(w, {share_code: made.share_code}, {})).ok, false);
+  const load = lf.server.handlers.springcard_load.read(lf.state.data);
+  assert.equal(load.share_get, 1); assert.equal(load.share_code, made.share_code);
 });
 
 test('greeting card feedback gift grants incoming item only once', () => {
@@ -977,4 +979,11 @@ test('cooking task callbacks return task field expected by client model', () => 
   assert.equal(refreshed.ok, true); assert.equal(refreshed.task.id, 4);
   const updated = r.commit(w => lf.server.handlers.cooking_task_update.apply(w, {task: {id: 4, progress: 1, target: 1}}, {}));
   assert.equal(updated.ok, true); assert.equal(updated.task.progress, 1);
+});
+
+test('party cake task callback returns one task object expected by client model', () => {
+  const r = runtime(); const {lf} = r;
+  lf.state.data.activities.partycake.task_list = [{id:2, progress:1, target:2, complete:false}];
+  const payload = lf.server.handlers.partycake_load_task.read(lf.state.data);
+  assert.equal(payload.task.id, 2); assert.equal(payload.task.progress, 1);
 });
